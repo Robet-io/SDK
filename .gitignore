@@ -1,0 +1,22 @@
+# ABI directory
+abi/*.json
+abi/*.abi
+
+# Dependency npm
+node_modules
+package-lock.json
+
+# Debug log from npm
+npm-debug.log
+
+# local env variables
+.env
+
+# macOS
+.DS_Store
+
+# IntelliJ IDE
+.idea
+
+# Bundle
+*.bundle.js
