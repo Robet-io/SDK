@@ -38,13 +38,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClaimTransaction = exports.SDK = void 0;
 var isServer = function () {
-    return !(typeof window != 'undefined' && window.document);
+    return !(typeof window != "undefined" && window.document);
 };
-var _ = require('lodash');
-var BN = require('bn.js');
-var Web3 = require('web3');
-var sigUtil = require('@metamask/eth-sig-util');
-var environment = require('./configuration.json');
+var _ = require("lodash");
+var BN = require("bn.js");
+var Web3 = require("web3");
+var sigUtil = require("@metamask/eth-sig-util");
+var environment = require("./configuration.json");
 var web3;
 if (isServer()) {
     web3 = new Web3(new Web3.providers.HttpProvider(environment.rpcUrlTestnet));
@@ -65,23 +65,25 @@ var MetaMaskInitializer = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
-                web3.eth.net.getId().then(function (_networkId) {
+                web3.eth.net
+                    .getId()
+                    .then(function (_networkId) {
                     _this.networkId = _networkId;
-                    console.log('Network id: ' + _this.networkId);
+                    console.log("Network id: " + _this.networkId);
                     if (_this.networkId != environment.chainId) {
                         return _this.switchChain();
                     }
                     else {
-                        console.log('getBalance for account: ' + _this.account);
+                        console.log("getBalance for account: " + _this.account);
                         web3.eth.getBalance(_this.account).then(function (balance) {
-                            console.log('Balance: ' + balance);
+                            console.log("Balance: " + balance);
                         });
-                        console.log('_ ' + (typeof _ !== 'undefined'));
+                        console.log("_ " + (typeof _ !== "undefined"));
                         if (_this.resolve)
                             _this.resolve(_this.account);
                     }
-                }).then(function () {
-                });
+                })
+                    .then(function () { });
                 return [2 /*return*/];
             });
         });
@@ -94,8 +96,8 @@ var MetaMaskInitializer = /** @class */ (function () {
                     case 0:
                         _a.trys.push([0, 2, , 7]);
                         return [4 /*yield*/, this.ethereum.request({
-                                method: 'wallet_switchEthereumChain',
-                                params: [{ chainId: environment.chainIdHex }],
+                                method: "wallet_switchEthereumChain",
+                                params: [{ chainId: environment.chainIdHex }]
                             })];
                     case 1:
                         _a.sent();
@@ -107,12 +109,14 @@ var MetaMaskInitializer = /** @class */ (function () {
                     case 3:
                         _a.trys.push([3, 5, , 6]);
                         return [4 /*yield*/, this.ethereum.request({
-                                method: 'wallet_addEthereumChain',
-                                params: [{
+                                method: "wallet_addEthereumChain",
+                                params: [
+                                    {
                                         chainId: environment.chainIdHex,
                                         rpcUrls: [environment.rpcUrlTestnet],
                                         chainName: environment.chainName
-                                    }],
+                                    }
+                                ]
                             })];
                     case 4:
                         _a.sent();
@@ -129,23 +133,25 @@ var MetaMaskInitializer = /** @class */ (function () {
     MetaMaskInitializer.prototype.initMetamask = function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            console.log('init');
-            if (typeof _this.ethereum !== 'undefined') {
-                console.log('MetaMask is installed!');
-                console.log('Network: ' + _this.ethereum.networkVersion);
-                console.log('Address: ' + _this.ethereum.selectedAddress);
-                _this.ethereum.request({ method: 'eth_requestAccounts' }).then(function (accounts) {
+            console.log("init");
+            if (typeof _this.ethereum !== "undefined") {
+                console.log("MetaMask is installed!");
+                console.log("Network: " + _this.ethereum.networkVersion);
+                console.log("Address: " + _this.ethereum.selectedAddress);
+                _this.ethereum
+                    .request({ method: "eth_requestAccounts" })
+                    .then(function (accounts) {
                     _this.account = accounts[0];
-                    console.log('Accounts: ' + accounts[0]);
+                    console.log("Accounts: " + accounts[0]);
                     _this.onNetwork();
                 });
-                _this.ethereum.on('accountsChanged', function (accounts) {
+                _this.ethereum.on("accountsChanged", function (accounts) {
                     // Time to reload your interface with accounts[0]!
                     _this.account = accounts[0];
-                    console.log('Accounts changed: ' + accounts[0]);
+                    console.log("Accounts changed: " + accounts[0]);
                     _this.onNetwork();
                 });
-                _this.ethereum.on('chainChanged', function (chain) {
+                _this.ethereum.on("chainChanged", function (chain) {
                     return _this.switchChain();
                 });
             }
@@ -207,7 +213,8 @@ var ClaimTransaction = /** @class */ (function () {
                         if (lastClaim) {
                             this.nonce = lastClaim.nonce + 1;
                             this.id = lastClaim.id;
-                            lastBalance = lastClaim.cumulativeDebits[ME] - lastClaim.cumulativeDebits[THEY];
+                            lastBalance =
+                                lastClaim.cumulativeDebits[ME] - lastClaim.cumulativeDebits[THEY];
                         }
                         balance = lastBalance + amount;
                         if (balance > 0) {
@@ -227,7 +234,15 @@ var ClaimTransaction = /** @class */ (function () {
         });
     };
     ClaimTransaction.prototype.serialize = function () {
-        return JSON.stringify(_.pick(this, ["id", "addresses", "messageForAlice", "cumulativeDebits", "nonce", "timestamp", "signatures"]));
+        return JSON.stringify(_.pick(this, [
+            "id",
+            "addresses",
+            "messageForAlice",
+            "cumulativeDebits",
+            "nonce",
+            "timestamp",
+            "signatures"
+        ]));
     };
     ClaimTransaction.prototype.parse = function (body) {
         console.log("Parsing: %s", body);
@@ -241,31 +256,34 @@ var ClaimTransaction = /** @class */ (function () {
         this.nonce = body.nonce;
         this.timestamp = body.timestamp;
         this.signatures = body.signatures;
-        var amount = (this.cumulativeDebits[ME]) - (this.cumulativeDebits[THEY]);
+        var amount = this.cumulativeDebits[ME] - this.cumulativeDebits[THEY];
         var lastClaim = pastClaims[this.addresses[THEY]];
         if (lastClaim) {
-            amount = amount - lastClaim.cumulativeDebits[ME] + lastClaim.cumulativeDebits[THEY];
+            amount =
+                amount -
+                    lastClaim.cumulativeDebits[ME] +
+                    lastClaim.cumulativeDebits[THEY];
         }
         this.amount = amount;
-        console.log('Claim:', this);
+        console.log("Claim:", this);
         return this;
     };
     ClaimTransaction.prototype.encode = function () {
         var EIP712Domain = [
-            { name: 'name', type: 'string' },
-            { name: 'version', type: 'string' },
-            { name: 'chainId', type: 'uint256' },
-            { name: 'verifyingContract', type: 'address' },
+            { name: "name", type: "string" },
+            { name: "version", type: "string" },
+            { name: "chainId", type: "uint256" },
+            { name: "verifyingContract", type: "address" }
         ];
         var Claim = [
-            { name: 'id', type: 'uint256' },
-            { name: 'alice', type: 'address' },
-            { name: 'bob', type: 'address' },
-            { name: 'nonce', type: 'uint256' },
-            { name: 'timestamp', type: 'uint256' },
-            { name: 'messageForAlice', type: 'string' },
-            { name: 'cumulativeDebitAlice', type: 'uint256' },
-            { name: 'cumulativeDebitBob', type: 'uint256' },
+            { name: "id", type: "uint256" },
+            { name: "alice", type: "address" },
+            { name: "bob", type: "address" },
+            { name: "nonce", type: "uint256" },
+            { name: "timestamp", type: "uint256" },
+            { name: "messageForAlice", type: "string" },
+            { name: "cumulativeDebitAlice", type: "uint256" },
+            { name: "cumulativeDebitBob", type: "uint256" }
         ];
         var name = "CoinGames Vault";
         var version = "1";
@@ -277,7 +295,7 @@ var ClaimTransaction = /** @class */ (function () {
                 Claim: Claim
             },
             domain: { name: name, version: version, chainId: chainId, verifyingContract: verifyingContract },
-            primaryType: 'Claim',
+            primaryType: "Claim",
             message: {
                 id: this.id,
                 alice: this.addresses[ALICE],
@@ -286,7 +304,7 @@ var ClaimTransaction = /** @class */ (function () {
                 timestamp: this.timestamp,
                 messageForAlice: this.messageForAlice,
                 cumulativeDebitAlice: new BN(this.cumulativeDebits[ALICE]).toString(10),
-                cumulativeDebitBob: new BN(this.cumulativeDebits[BOB]).toString(10),
+                cumulativeDebitBob: new BN(this.cumulativeDebits[BOB]).toString(10)
             }
         };
     };
@@ -297,16 +315,20 @@ var ClaimTransaction = /** @class */ (function () {
                 encodedClaim = this.encode();
                 console.log("Solidity Sha3: ", encodedClaim);
                 signValidity = this._checkSignature(encodedClaim);
-                console.log('signValidity: ', signValidity);
+                console.log("signValidity: ", signValidity);
                 return [2 /*return*/, signValidity];
             });
         });
     };
     ClaimTransaction.prototype.check = function () {
-        if (this.id < 0 || this.nonce < 1 || this.timestamp < 0 || this.cumulativeDebits[ALICE] < 0 || this.cumulativeDebits[BOB] < 0)
+        if (this.id < 0 ||
+            this.nonce < 1 ||
+            this.timestamp < 0 ||
+            this.cumulativeDebits[ALICE] < 0 ||
+            this.cumulativeDebits[BOB] < 0)
             throw "Claim not valid.";
         if (this.cumulativeDebits[ME] != 0 && this.cumulativeDebits[THEY] != 0) {
-            throw 'Claim not balanced.';
+            throw "Claim not balanced.";
         }
         var amount = Math.abs(this.amount);
         if (ME == ALICE) {
@@ -335,7 +357,8 @@ var ClaimTransaction = /** @class */ (function () {
         }
         var lastClaim = pastClaims[this.addresses[THEY]];
         if (lastClaim) {
-            if (lastClaim.nonce + 1 != this.nonce || lastClaim.timestamp > this.timestamp)
+            if (lastClaim.nonce + 1 != this.nonce ||
+                lastClaim.timestamp > this.timestamp)
                 throw "Claim not sequent.";
             if (this.id != lastClaim.id) {
                 throw "payment channel not valid";
@@ -355,10 +378,10 @@ var ClaimTransaction = /** @class */ (function () {
                     case 0:
                         this.check();
                         if (this.amount < 0) {
-                            throw 'Claim with amount inconsistent with sending policies.';
+                            throw "Claim with amount inconsistent with sending policies.";
                         }
                         encodedClaim = this.encode();
-                        console.log('Solidity Sha3: ' + encodedClaim);
+                        console.log("Solidity Sha3: " + encodedClaim);
                         // Counter sign
                         return [4 /*yield*/, this._sign(encodedClaim)];
                     case 1:
@@ -377,12 +400,12 @@ var ClaimTransaction = /** @class */ (function () {
                     case 0:
                         this.check();
                         if (this.amount > 0) {
-                            throw 'Claim with amount inconsistent with sending policies.';
+                            throw "Claim with amount inconsistent with sending policies.";
                         }
                         encodedClaim = this.encode();
-                        console.log('Solidity Sha3: ' + encodedClaim);
+                        console.log("Solidity Sha3: " + encodedClaim);
                         signValidity = this._checkSignature(encodedClaim);
-                        console.log('signValidity: ' + signValidity);
+                        console.log("signValidity: " + signValidity);
                         // Counter sign
                         return [4 /*yield*/, this._sign(encodedClaim)];
                     case 1:
@@ -403,20 +426,20 @@ var ClaimTransaction = /** @class */ (function () {
                         _a = this.signatures;
                         _b = ME;
                         return [4 /*yield*/, web3.currentProvider.request({
-                                method: 'eth_signTypedData_v4',
+                                method: "eth_signTypedData_v4",
                                 params: [config.account, JSON.stringify(encodedClaim)],
-                                from: config.account,
+                                from: config.account
                             })];
                     case 1:
                         _a[_b] = _c.sent();
                         return [3 /*break*/, 3];
                     case 2:
                         if (ME == BOB) {
-                            privKey = Buffer.from(config.privateKey, 'hex');
+                            privKey = Buffer.from(config.privateKey, "hex");
                             this.signatures[ME] = sigUtil.signTypedData({
                                 privateKey: privKey,
                                 data: encodedClaim,
-                                version: 'V4',
+                                version: "V4"
                             });
                         }
                         _c.label = 3;
@@ -429,10 +452,11 @@ var ClaimTransaction = /** @class */ (function () {
         var recovered = sigUtil.recoverTypedSignature({
             data: encodedClaim,
             signature: this.signatures[THEY],
-            version: 'V4',
+            version: "V4"
         });
-        console.log('_checkSignature', encodedClaim, recovered);
-        var ret = web3.utils.toChecksumAddress(recovered) === web3.utils.toChecksumAddress(this.addresses[THEY]);
+        console.log("_checkSignature", encodedClaim, recovered);
+        var ret = web3.utils.toChecksumAddress(recovered) ===
+            web3.utils.toChecksumAddress(this.addresses[THEY]);
         if (!ret)
             throw "Signature not valid.";
         return ret;
@@ -442,8 +466,15 @@ var ClaimTransaction = /** @class */ (function () {
         if (!sentClaim) {
             return false;
         }
-        var relevantFields = ['addresses', 'cumulativeDebits', 'nonce', 'timestamp'];
-        return sentClaim && _.isEqual(_.pick(this, relevantFields), _.pick(sentClaim, relevantFields)) && sentClaim.signatures[ME] == this.signatures[ME];
+        var relevantFields = [
+            "addresses",
+            "cumulativeDebits",
+            "nonce",
+            "timestamp"
+        ];
+        return (sentClaim &&
+            _.isEqual(_.pick(this, relevantFields), _.pick(sentClaim, relevantFields)) &&
+            sentClaim.signatures[ME] == this.signatures[ME]);
     };
     return ClaimTransaction;
 }());
@@ -454,21 +485,20 @@ var AliceNetwork = /** @class */ (function () {
     AliceNetwork.prototype.connect = function () {
         var _this = this;
         // Create WebSocket connection.
-        this.socket = new WebSocket('ws://localhost:8666');
+        this.socket = new WebSocket("ws://localhost:8666");
         // Connection opened
-        this.socket.addEventListener('open', function (event) {
-            console.log('Connection established!');
+        this.socket.addEventListener("open", function (event) {
+            console.log("Connection established!");
         });
         // Listen for messages
-        this.socket.addEventListener('message', function (event) { return __awaiter(_this, void 0, void 0, function () {
+        this.socket.addEventListener("message", function (event) { return __awaiter(_this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                console.log('Message from server ', event.data);
+                console.log("Message from server ", event.data);
                 SDK.onMessageReceived(event.data);
                 return [2 /*return*/];
             });
         }); });
     };
-    ;
     AliceNetwork.prototype.send = function (message) {
         var _a;
         (_a = this.socket) === null || _a === void 0 ? void 0 : _a.send(message);
@@ -479,10 +509,10 @@ var AliceClaimDAO = /** @class */ (function () {
     function AliceClaimDAO() {
     }
     AliceClaimDAO.prototype.load = function () {
-        return window.localStorage.getItem('wallet-last-claim');
+        return window.localStorage.getItem("wallet-last-claim");
     };
     AliceClaimDAO.prototype.save = function (claim) {
-        window.localStorage.setItem('wallet-last-claim', claim.serialize());
+        window.localStorage.setItem("wallet-last-claim", claim.serialize());
         console.log(claim.serialize());
     };
     return AliceClaimDAO;
@@ -507,25 +537,36 @@ function onMessageReceived(message) {
             switch (_a.label) {
                 case 0:
                     newClaim = new ClaimTransaction().parse(message);
-                    if (!(newClaim.signatures[THEY] && !newClaim.signatures[ME] && newClaim.amount < 0)) return [3 /*break*/, 2];
+                    if (!(newClaim.signatures[THEY] &&
+                        !newClaim.signatures[ME] &&
+                        newClaim.amount < 0)) return [3 /*break*/, 2];
+                    // pagamento suo
                     return [4 /*yield*/, newClaim.checkAndCountersign()];
                 case 1:
+                    // pagamento suo
                     _a.sent();
                     saveTransaction(newClaim);
                     sendClaim(newClaim);
                     return [3 /*break*/, 6];
                 case 2:
-                    if (!(newClaim.signatures[THEY] && newClaim.signatures[ME] && newClaim.amount > 0 && newClaim.isSentClaim())) return [3 /*break*/, 4];
+                    if (!(newClaim.signatures[THEY] &&
+                        newClaim.signatures[ME] &&
+                        newClaim.amount > 0 &&
+                        newClaim.isSentClaim())) return [3 /*break*/, 4];
                     return [4 /*yield*/, newClaim.checkSignature()];
                 case 3:
+                    // controfirma ad un mio pagamento
                     if (_a.sent()) {
                         saveTransaction(newClaim);
                     }
                     return [3 /*break*/, 6];
                 case 4:
-                    if (!(!newClaim.signatures[THEY] && !newClaim.signatures[ME] && newClaim.amount > 0)) return [3 /*break*/, 6];
+                    if (!(!newClaim.signatures[THEY] &&
+                        !newClaim.signatures[ME] &&
+                        newClaim.amount > 0)) return [3 /*break*/, 6];
+                    // proposta di pagamento da parte mia
                     if (!config.onTransactionRequestReceived(newClaim.amount, newClaim.addresses[THEY])) {
-                        throw 'Transaction refused.';
+                        throw "Transaction refused.";
                     }
                     return [4 /*yield*/, newClaim.checkAndSign()];
                 case 5:
@@ -553,12 +594,12 @@ var SDK = {
                             return true;
                         },
                         onTransactionCompleted: function (amount, address, claimTransaction) {
-                            console.log('Transaction completed: ' + amount);
+                            console.log("Transaction completed: " + amount);
                         },
                         network: new AliceNetwork(),
-                        claimDAO: new AliceClaimDAO(),
+                        claimDAO: new AliceClaimDAO()
                     }, _config);
-                    console.log('ME ALICE', ME, ALICE);
+                    console.log("ME ALICE", ME, ALICE);
                     if (!(ME == ALICE)) return [3 /*break*/, 2];
                     _a = config;
                     return [4 /*yield*/, new MetaMaskInitializer().initMetamask()];
@@ -571,7 +612,7 @@ var SDK = {
                     if (lastClaim) {
                         claimTransaction = new ClaimTransaction().parse(lastClaim);
                         pastClaims[claimTransaction.addresses[THEY]] = claimTransaction;
-                        console.log('last claim recovered: ' + lastClaim);
+                        console.log("last claim recovered: " + lastClaim);
                     }
                     return [2 /*return*/];
             }
@@ -598,13 +639,15 @@ var SDK = {
             switch (_a.label) {
                 case 0:
                     lastClaim = pastClaims[config.serverAccount];
-                    return [4 /*yield*/, VaultContract.methods.withdraw(lastClaim).send({ from: config.account })];
+                    return [4 /*yield*/, VaultContract.methods
+                            .withdraw(lastClaim)
+                            .send({ from: config.account })];
                 case 1:
                     _a.sent();
                     return [2 /*return*/];
             }
         });
-    }); },
+    }); }
 };
 exports.SDK = SDK;
 // module.exports = {SDK:SDK, ClaimTransaction:ClaimTransaction};

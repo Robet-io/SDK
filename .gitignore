@@ -20,3 +20,7 @@ npm-debug.log
 
 # Bundle
 *.bundle.js
+
+dist/
+
+tsconfig.tsbuildinfo
