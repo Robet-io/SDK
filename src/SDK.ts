@@ -1,26 +1,20 @@
-import {config} from "dotenv";
-
-
 const _ = require("lodash");
 const BN = require("bn.js");
 const Web3 = require("web3");
 
 const sigUtil = require("@metamask/eth-sig-util");
 
-
-
 import { AliceClaimDAO } from "./AliceClaimDAO";
 import { NetworkInterface } from "./NetworkInterface";
 import { AliceNetwork } from "./AliceNetwork";
 import { MetaMaskController } from "./MetaMaskController";
-import {ALICE, BOB, ME, THEY, isServer, environment} from "./Environment"
-import {ClaimTransaction} from "./ClaimTransaction"
-import {Container} from "typedi";
-import {ClaimDAOInterface} from "./ClaimDAOInterface";
-
+import { ALICE, BOB, ME, THEY, isServer, environment } from "./Environment";
+import { ClaimTransaction } from "./ClaimTransaction";
+import { Container } from "typedi";
+import { ClaimDAOInterface } from "./ClaimDAOInterface";
 
 let web3: any;
-let claimDAO:ClaimDAOInterface;
+let claimDAO: ClaimDAOInterface;
 
 if (isServer()) {
   web3 = new Web3(new Web3.providers.HttpProvider(environment.rpcUrlTestnet));
@@ -30,8 +24,8 @@ if (isServer()) {
   claimDAO = new AliceClaimDAO();
 }
 
-Container.set("web3",web3);
-Container.set("claimDAO",claimDAO);
+Container.set("web3", web3);
+Container.set("claimDAO", claimDAO);
 
 const VaultABI = require("../abi/Vault.json");
 const VaultContract = new web3.eth.Contract(
@@ -41,7 +35,6 @@ const VaultContract = new web3.eth.Contract(
 
 //const RACTokenABI = require("../abi/RACToken.json")
 //const RACTokenContract = new web3.eth.Contract(RACTokenABI, environment.racTokenContractAddress)
-
 
 class PaymentController {
   constructor(protected config: any) {}
@@ -97,7 +90,7 @@ class PaymentController {
       .send({ from: this.config.account });
   }
   protected saveTransaction(newClaim: ClaimTransaction) {
-    claimDAO.saveTransaction(newClaim,newClaim.addresses[THEY]);
+    claimDAO.saveTransaction(newClaim, newClaim.addresses[THEY]);
     this.config.claimDAO.save(newClaim);
     this.config.onTransactionCompleted(
       newClaim.amount,
@@ -111,7 +104,7 @@ class PaymentController {
     const message = claim.serialize();
     this.config.network.send(message);
     if (claim.signatures[ME] && !claim.signatures[THEY]) {
-      claimDAO.saveSentClaim(claim,claim.addresses[THEY]);
+      claimDAO.saveSentClaim(claim, claim.addresses[THEY]);
     }
   }
 }
@@ -142,11 +135,14 @@ const SDK = {
       _config
     );
 
-    Container.set("config",config);
+    Container.set("config", config);
 
     console.log("ME ALICE", ME, ALICE);
     if (ME == ALICE) {
-      config.account = await new MetaMaskController(web3,environment).initMetamask();
+      config.account = await new MetaMaskController(
+        web3,
+        environment
+      ).initMetamask();
     }
     config.network.connect();
 
@@ -154,6 +150,6 @@ const SDK = {
   }
 };
 
-export { SDK };
+export default SDK;
 
 // module.exports = {SDK:SDK, ClaimTransaction:ClaimTransaction};

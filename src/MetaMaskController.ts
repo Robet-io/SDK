@@ -1,13 +1,12 @@
 import Web3 from "web3";
 
-
 class MetaMaskController {
   account: string | undefined;
   networkId: number | undefined;
   resolve: ((account: string | undefined) => void) | undefined;
   ethereum: any;
 
-  constructor(private web3: Web3, private environment:any) {
+  constructor(private web3: Web3, private environment: any) {
     // @ts-ignore
     this.ethereum = window.ethereum;
   }

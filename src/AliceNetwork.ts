@@ -1,9 +1,11 @@
-import { SDK } from "./SDK";
-import {NetworkBase, NetworkInterface} from "./NetworkInterface";
-import {Service} from "typedi";
+import { NetworkBase, NetworkInterface } from "./NetworkInterface";
 
 class AliceNetwork extends NetworkBase {
   socket: WebSocket | undefined;
+
+  constructor() {
+    super();
+  }
 
   connect() {
     // Create WebSocket connection.

@@ -9,12 +9,12 @@ module.exports = {
   entry: './src/SDK.ts',
   output: {
     filename: 'SDK.js',
-    path: path.resolve(__dirname, 'build'),
+    path: path.resolve(__dirname, 'dist'),
     library: "SDK",
     libraryTarget: 'umd'
   },
   devServer: {
-    static: ["build", "demo"],
+    static: ["dist", "demo"],
     compress: true,
     port: 9000,
     client: {

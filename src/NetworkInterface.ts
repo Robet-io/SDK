@@ -1,29 +1,28 @@
 interface NetworkListener {
-    onMessageReceived(message: string):void;
+  onMessageReceived(message: string): void;
 }
 
 interface NetworkInterface {
-    connect(): void;
+  connect(): void;
 
-    send(message: string): void;
+  send(message: string): void;
 
-    setListener(listener:NetworkListener):void;
+  setListener(listener: NetworkListener): void;
 }
 
-abstract class NetworkBase implements NetworkInterface{
-    abstract connect(): void;
+abstract class NetworkBase implements NetworkInterface {
+  abstract connect(): void;
 
-    abstract send(message: string): void;
+  abstract send(message: string): void;
 
-    listener:NetworkListener
-    protected constructor() {
-        this.listener = {onMessageReceived(message: string):void{}};
-    }
+  listener: NetworkListener;
+  protected constructor() {
+    this.listener = { onMessageReceived(message: string): void {} };
+  }
 
-    setListener(listener: NetworkListener): void {
-        this.listener = listener;
-    }
-
+  setListener(listener: NetworkListener): void {
+    this.listener = listener;
+  }
 }
 
-export {NetworkInterface,NetworkBase};
+export { NetworkInterface, NetworkBase };
