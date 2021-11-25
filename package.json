@@ -9,7 +9,7 @@
     "build:web": "npx browserslist@latest --update-db && webpack",
     "watch": "tsc -w",
     "demo": "npm run build && ts-node demo/demo.ts",
-    "demo:web": "webpack serve",
+    "demo:web": "npm run build:web && webpack serve",
     "test": "jest",
     "test:watch": "jest --watch",
     "coverage": "npm run test -- --coverage",

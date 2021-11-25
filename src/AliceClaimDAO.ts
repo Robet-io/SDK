@@ -3,9 +3,9 @@ import { ClaimDAOInterface } from "./ClaimDAOInterface";
 import { THEY } from "./Environment";
 import { Container } from "typedi";
 
-let config: any = Container.get("config");
-
 class AliceClaimDAO implements ClaimDAOInterface {
+  protected readonly config: any = Container.get("config");
+
   _get(address: string, key: string): ClaimTransaction | null {
     const storageClaim = window.localStorage.getItem(key);
     if (storageClaim) {
@@ -17,7 +17,7 @@ class AliceClaimDAO implements ClaimDAOInterface {
   _createBaseTransaction() {
     return new ClaimTransaction().parse({
       id: 0,
-      addresses: [config.account, config.serverAccount],
+      addresses: [this.config.account, this.config.serverAccount],
       messageForAlice: "",
       cumulativeDebits: [0, 0],
       nonce: 0,

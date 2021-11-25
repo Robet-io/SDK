@@ -8,9 +8,6 @@ const _ = require("lodash");
 import Web3 from "web3";
 import { ClaimDAOInterface } from "./ClaimDAOInterface";
 
-let web3: Web3 = Container.get("web3");
-let claimDAO: ClaimDAOInterface = Container.get("claimDAO");
-
 class ClaimTransaction {
   id: number = 0;
   addresses: Array<string> = [];
@@ -20,10 +17,11 @@ class ClaimTransaction {
   timestamp: number = Date.now();
   amount: number = 0;
   messageForAlice: string = "";
-  config: any;
+  protected readonly config: any = Container.get("config");
+  protected readonly web3: Web3 = Container.get("web3");
+  protected readonly claimDAO: ClaimDAOInterface = Container.get("claimDAO");
 
   constructor() {
-    this.config = Container.get("config");
   }
 
   async createPayment(amount: number, theirAddress: string) {
@@ -54,7 +52,7 @@ class ClaimTransaction {
     }
 
     let lastBalance = 0;
-    let lastClaim = claimDAO.getLastTransaction(theirAddress);
+    let lastClaim = this.claimDAO.getLastTransaction(theirAddress);
     if (lastClaim) {
       this.nonce = lastClaim.nonce + 1;
       this.id = lastClaim.id;
@@ -105,7 +103,7 @@ class ClaimTransaction {
     this.signatures = body.signatures;
 
     let amount = this.cumulativeDebits[ME] - this.cumulativeDebits[THEY];
-    const lastClaim = claimDAO.getLastTransaction(this.addresses[THEY]);
+    const lastClaim = this.claimDAO.getLastTransaction(this.addresses[THEY]);
     if (lastClaim) {
       (amount = ALICE), BOB, ME, THEY, isServer, environment;
       amount -
@@ -212,7 +210,7 @@ class ClaimTransaction {
       }
     }
 
-    let lastClaim = claimDAO.getLastTransaction(this.addresses[THEY]);
+    let lastClaim = this.claimDAO.getLastTransaction(this.addresses[THEY]);
 
     if (lastClaim) {
       if (
@@ -294,14 +292,14 @@ class ClaimTransaction {
     console.log("_checkSignature", encodedClaim, recovered);
 
     let ret =
-      web3.utils.toChecksumAddress(recovered) ===
-      web3.utils.toChecksumAddress(this.addresses[THEY]);
+        this.web3.utils.toChecksumAddress(recovered) ===
+        this.web3.utils.toChecksumAddress(this.addresses[THEY]);
     if (!ret) throw "Signature not valid.";
     return ret;
   }
 
   isSentClaim() {
-    const sentClaim = claimDAO.getLastSentClaim(this.addresses[THEY]);
+    const sentClaim = this.claimDAO.getLastSentClaim(this.addresses[THEY]);
     if (!sentClaim) {
       return false;
     }

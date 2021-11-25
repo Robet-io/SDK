@@ -8,10 +8,11 @@
 <body>
 	<pre id="result"></pre>
 
-	<script type="module" src="SDK.js"></script>
+	<script type="module" src="./SDK.js"></script>
 	<script>
-		SDK.init();
+		(async() => {
+			await SDK.init();
+		})();
 	</script>
-
 </body>
 </html>

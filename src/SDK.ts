@@ -14,18 +14,14 @@ import { Container } from "typedi";
 import { ClaimDAOInterface } from "./ClaimDAOInterface";
 
 let web3: any;
-let claimDAO: ClaimDAOInterface;
 
 if (isServer()) {
   web3 = new Web3(new Web3.providers.HttpProvider(environment.rpcUrlTestnet));
-  claimDAO = new AliceClaimDAO();
 } else {
   web3 = new Web3(Web3.givenProvider || environment.rpcUrlTestnet);
-  claimDAO = new AliceClaimDAO();
 }
 
 Container.set("web3", web3);
-Container.set("claimDAO", claimDAO);
 
 const VaultABI = require("../abi/Vault.json");
 const VaultContract = new web3.eth.Contract(
@@ -37,7 +33,12 @@ const VaultContract = new web3.eth.Contract(
 //const RACTokenContract = new web3.eth.Contract(RACTokenABI, environment.racTokenContractAddress)
 
 class PaymentController {
-  constructor(protected config: any) {}
+  protected readonly network:NetworkInterface = Container.get("network");
+  protected readonly claimDAO:ClaimDAOInterface;
+  constructor(protected config: any) {
+    this.claimDAO = new AliceClaimDAO();
+    Container.set("claimDAO", this.claimDAO);
+  }
   async onMessageReceived(message: string) {
     const newClaim = new ClaimTransaction().parse(message);
 
@@ -84,72 +85,75 @@ class PaymentController {
     this.sendClaim(newClaim);
   }
   async withdraw() {
-    let lastClaim = claimDAO.getLastTransaction(this.config.serverAccount);
+    let lastClaim = this.claimDAO.getLastTransaction(this.config.serverAccount);
     await VaultContract.methods
       .withdraw(lastClaim)
       .send({ from: this.config.account });
   }
   protected saveTransaction(newClaim: ClaimTransaction) {
-    claimDAO.saveTransaction(newClaim, newClaim.addresses[THEY]);
-    this.config.claimDAO.save(newClaim);
+    this.claimDAO.saveTransaction(newClaim, newClaim.addresses[THEY]);
     this.config.onTransactionCompleted(
       newClaim.amount,
       newClaim.addresses[THEY],
       newClaim
     );
-    claimDAO.deleteLastSentClaim(newClaim.addresses[THEY]);
+    this.claimDAO.deleteLastSentClaim(newClaim.addresses[THEY]);
   }
 
   protected sendClaim(claim: ClaimTransaction) {
     const message = claim.serialize();
     this.config.network.send(message);
     if (claim.signatures[ME] && !claim.signatures[THEY]) {
-      claimDAO.saveSentClaim(claim, claim.addresses[THEY]);
+      this.claimDAO.saveSentClaim(claim, claim.addresses[THEY]);
     }
   }
 }
 
 const SDK = {
-  init: async (_config: any): Promise<PaymentController> => {
-    let config = _.extend(
-      {
-        serverAccount: environment.serverAddress,
-        account: null,
-        privateKey: null,
-        onTransactionRequestReceived: function(
-          amount: number,
-          address: string
-        ) {
-          return true;
+  init: function(_config: any): Promise<PaymentController> {
+    return new Promise((resolve, reject) => {
+      let config = _.extend(
+        {
+          serverAccount: environment.serverAddress,
+          account: null,
+          privateKey: null,
+          onTransactionRequestReceived: function(
+            amount: number,
+            address: string
+          ) {
+            return true;
+          },
+          onTransactionCompleted: function(
+            amount: number,
+            address: string,
+            claimTransaction: ClaimTransaction
+          ) {
+            console.log("Transaction completed: " + amount);
+          }
         },
-        onTransactionCompleted: function(
-          amount: number,
-          address: string,
-          claimTransaction: ClaimTransaction
-        ) {
-          console.log("Transaction completed: " + amount);
-        },
-        network: new AliceNetwork(),
-        claimDAO: new AliceClaimDAO()
-      },
-      _config
-    );
+        _config
+      );
 
-    Container.set("config", config);
+      Container.set("config", config);
 
-    console.log("ME ALICE", ME, ALICE);
-    if (ME == ALICE) {
-      config.account = await new MetaMaskController(
-        web3,
-        environment
-      ).initMetamask();
-    }
-    config.network.connect();
+      config.network.connect();
 
-    return new PaymentController(config);
+      resolve(new PaymentController(config));
+    });
   }
 };
 
-export default SDK;
+export function init() {
+  return new Promise((resolve, reject) => {
+    new MetaMaskController(
+        web3,
+        environment
+    ).initMetamask().then((account:string)=>{
+      SDK.init({
+        account:account,
+      }).then(()=>{resolve("Test");});
+    });
+  });
+}
 
 // module.exports = {SDK:SDK, ClaimTransaction:ClaimTransaction};

@@ -1,8 +1,8 @@
 import Web3 from "web3";
 
 class MetaMaskController {
-  account: string | undefined;
-  networkId: number | undefined;
+  public account: string | undefined;
+  public networkId: number | undefined;
   resolve: ((account: string | undefined) => void) | undefined;
   ethereum: any;
 
@@ -60,7 +60,7 @@ class MetaMaskController {
     }
   }
 
-  initMetamask(): Promise<void> {
+  initMetamask(): Promise<string> {
     return new Promise((resolve, reject) => {
       console.log("init");
 
