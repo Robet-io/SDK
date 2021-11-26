@@ -21,8 +21,7 @@ class ClaimTransaction {
   protected readonly web3: Web3 = Container.get("web3");
   protected readonly claimDAO: ClaimDAOInterface = Container.get("claimDAO");
 
-  constructor() {
-  }
+  constructor() {}
 
   async createPayment(amount: number, theirAddress: string) {
     // vanilla init
@@ -292,8 +291,8 @@ class ClaimTransaction {
     console.log("_checkSignature", encodedClaim, recovered);
 
     let ret =
-        this.web3.utils.toChecksumAddress(recovered) ===
-        this.web3.utils.toChecksumAddress(this.addresses[THEY]);
+      this.web3.utils.toChecksumAddress(recovered) ===
+      this.web3.utils.toChecksumAddress(this.addresses[THEY]);
     if (!ret) throw "Signature not valid.";
     return ret;
   }

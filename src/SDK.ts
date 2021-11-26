@@ -1,3 +1,4 @@
+import "reflect-metadata";
 const _ = require("lodash");
 const BN = require("bn.js");
 const Web3 = require("web3");
@@ -33,8 +34,8 @@ const VaultContract = new web3.eth.Contract(
 //const RACTokenContract = new web3.eth.Contract(RACTokenABI, environment.racTokenContractAddress)
 
 class PaymentController {
-  protected readonly network:NetworkInterface = Container.get("network");
-  protected readonly claimDAO:ClaimDAOInterface;
+  protected readonly network: NetworkInterface = Container.get("network");
+  protected readonly claimDAO: ClaimDAOInterface;
   constructor(protected config: any) {
     this.claimDAO = new AliceClaimDAO();
     Container.set("claimDAO", this.claimDAO);
@@ -145,14 +146,15 @@ const SDK = {
 
 export function init() {
   return new Promise((resolve, reject) => {
-    new MetaMaskController(
-        web3,
-        environment
-    ).initMetamask().then((account:string)=>{
-      SDK.init({
-        account:account,
-      }).then(()=>{resolve("Test");});
-    });
+    new MetaMaskController(web3, environment)
+      .initMetamask()
+      .then((account: string) => {
+        SDK.init({
+          account: account
+        }).then(() => {
+          resolve("Test");
+        });
+      });
   });
 }
 
