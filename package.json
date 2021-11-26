@@ -69,10 +69,12 @@
     "@metamask/eth-sig-util": "^4.0.0",
     "bn.js": "^5.2.0",
     "body-parser": "^1.19.0",
+    "core-js": "^3.19.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "lodash": "^4.17.21",
     "reflect-metadata": "^0.1.13",
+    "regenerator-runtime": "^0.13.9",
     "typedi": "^0.10.0",
     "web3": "^1.6.0",
     "ws": "^8.2.3"

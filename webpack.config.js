@@ -6,7 +6,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 module.exports = {
   mode: "production",
   devtool: 'source-map',
-  entry: './src/SDK.ts',
+  entry: ["regenerator-runtime/runtime.js", './src/SDK.ts'],
   output: {
     filename: 'SDK.js',
     path: path.resolve(__dirname, 'dist'),
