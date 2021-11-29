@@ -29,12 +29,6 @@ if (isServer()) {
 
 Container.set("web3", web3);
 
-const VaultABI = require("../abi/Vault.json");
-const VaultContract = new web3.eth.Contract(
-  VaultABI,
-  environment.vaultContractAddress
-);
-
 //const RACTokenABI = require("../abi/RACToken.json")
 //const RACTokenContract = new web3.eth.Contract(RACTokenABI, environment.racTokenContractAddress)
 
@@ -90,12 +84,7 @@ class PaymentController {
     await newClaim.createPayment(amount, this.config.serverAccount);
     this.sendClaim(newClaim);
   }
-  async withdraw() {
-    let lastClaim = this.claimDAO.getLastTransaction(this.config.serverAccount);
-    await VaultContract.methods
-      .withdraw(lastClaim)
-      .send({ from: this.config.account });
-  }
+
   protected saveTransaction(newClaim: ClaimTransaction) {
     this.claimDAO.saveTransaction(newClaim, newClaim.addresses[THEY]);
     this.config.onTransactionCompleted(
@@ -162,5 +151,7 @@ export function init() {
       });
   });
 }
+
+init();
 
 // module.exports = {SDK:SDK, ClaimTransaction:ClaimTransaction};
