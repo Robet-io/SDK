@@ -269,7 +269,7 @@ class ClaimTransaction {
     return this;
   }
 
-  async _sign(encodedClaim: any, privateKey) {
+  async _sign(encodedClaim: any) {
     if (ME == ALICE) {
       // @ts-ignore
       this.signatures[ME] = await web3.currentProvider?.request({

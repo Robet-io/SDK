@@ -24,56 +24,54 @@ const VaultContract = new web3.eth.Contract(
 );*/
 
 const SDK1 = {
-    init: function (_config: any): Promise<PaymentController> {
-        return new Promise((resolve, reject) => {
-            let config = extend(
-                {
-                    serverAccount: environment.serverAddress,
-                    account: null,
-                    privateKey: null,
-                    onTransactionRequestReceived: function (
-                        amount: number,
-                        address: string
-                    ) {
-                        return true;
-                    },
-                    onTransactionCompleted: function (
-                        amount: number,
-                        address: string,
-                        claimTransaction: ClaimTransaction
-                    ) {
-                        console.log("Transaction completed: " + amount);
-                    }
-                },
-                _config
-            );
+  init: function(_config: any): Promise<PaymentController> {
+    return new Promise((resolve, reject) => {
+      let config = extend(
+        {
+          serverAccount: environment.serverAddress,
+          account: null,
+          privateKey: null,
+          onTransactionRequestReceived: function(
+            amount: number,
+            address: string
+          ) {
+            return true;
+          },
+          onTransactionCompleted: function(
+            amount: number,
+            address: string,
+            claimTransaction: ClaimTransaction
+          ) {
+            console.log("Transaction completed: " + amount);
+          }
+        },
+        _config
+      );
 
-            Container.set("config", config);
+      Container.set("config", config);
 
-            config.network.connect();
+      config.network.connect();
 
-            resolve(new PaymentController(config));
-        });
-    }
+      resolve(new PaymentController(config));
+    });
+  }
 };
 
-function setup() {
-
-}
+function setup() {}
 
 export type SDKOptions = {
-    chainId: number;
-    chainName: string;
-    rpcUrl: string;
-    vaultContractAddress: string;
-    tokenContractAddress: string;
-    serverAddress: string;
-    serverPrivateKey: string;
-    serverUrl: string;
+  chainId: number;
+  chainName: string;
+  rpcUrl: string;
+  vaultContractAddress: string;
+  tokenContractAddress: string;
+  serverAddress: string;
+  serverPrivateKey: string;
+  serverUrl: string;
 };
 
 export function init() {
-    /*
+  /*
       return new Promise((resolve, reject) => {
           new MetaMaskController(environment)
               .initMetamask()
@@ -88,28 +86,39 @@ export function init() {
 }
 
 export class SDK {
-    private readonly _options: SDKOptions;
+  private readonly _options: SDKOptions;
 
-    constructor() {
-        this._options = {
-            chainId: Number(process.env.CHAIN_ID),
-            chainName: String(process.env.CHAIN_NAME),
-            rpcUrl: String(process.env.RPC_URL),
-            vaultContractAddress: String(process.env.CONTRACT_VAULT_ADDRESS),
-            tokenContractAddress: String(process.env.CONTRACT_TOKEN_ADDRESS),
-            serverAddress: String(process.env.SERVER_ADDRESS),
-            serverPrivateKey: String(process.env.SERVER_PRIVATE_KEY),
-            serverUrl: String(process.env.SERVER_URL)
-        };
+  constructor() {
+    this._options = {
+      chainId: Number(process.env.CHAIN_ID),
+      chainName: String(process.env.CHAIN_NAME),
+      rpcUrl: String(process.env.RPC_URL),
+      vaultContractAddress: String(process.env.CONTRACT_VAULT_ADDRESS),
+      tokenContractAddress: String(process.env.CONTRACT_TOKEN_ADDRESS),
+      serverAddress: String(process.env.SERVER_ADDRESS),
+      serverPrivateKey: String(process.env.SERVER_PRIVATE_KEY),
+      serverUrl: String(process.env.SERVER_URL)
+    };
 
-        Container.set("SDKOptions", this._options);
-    }
+    Container.set("SDKOptions", this._options);
+  }
 
-    init() {
-        // Setup web3
-        const web3 = new Web3(new Web3.providers.HttpProvider(this._options.rpcUrl));
-        Container.set("provider.web3", web3);
+  init(): Promise<any> {
+    // Setup web3
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider(this._options.rpcUrl)
+    );
 
+    Container.set("provider.web3", web3);
 
-    }
+    return new Promise((resolve, reject) => {
+      new MetaMaskController().initMetamask().then((account: string) => {
+        SDK1.init({
+          account: account
+        }).then(() => {
+          resolve("Test");
+        });
+      });
+    });
+  }
 }
