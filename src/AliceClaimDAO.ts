@@ -1,5 +1,5 @@
 import { ClaimTransaction } from "./ClaimTransaction";
-import { ClaimDAOInterface } from "./ClaimDAOInterface";
+import { ClaimDAOInterface } from "./interfaces/ClaimDAOInterface";
 import { THEY } from "./Environment";
 import { Container } from "typedi";
 

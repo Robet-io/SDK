@@ -1,4 +1,4 @@
-import {ClaimTransaction} from "./ClaimTransaction";
+import {ClaimTransaction} from "../ClaimTransaction";
 
 interface ClaimDAOInterface {
     getLastTransaction(address: string): ClaimTransaction;

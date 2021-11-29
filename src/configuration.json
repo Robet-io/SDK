@@ -1,7 +1,7 @@
 {
   "chainId": 97,
   "chainIdHex": "0x61",
-  "rpcUrlTestnet": "https://data-seed-prebsc-1-s1.binance.org",
+  "rpcUrl": "https://data-seed-prebsc-1-s1.binance.org",
   "vaultContractAddress": "0xBC8655Fbb4ec8E3cc9edef00f05841A776907311",
   "racTokenContractAddress": "0xE8DaBa764266A64F66f5661F5cFAb6Ea41D18964",
   "serverAddress": "0xeA085D9698651e76750F07d0dE0464476187b3ca",

@@ -1,166 +1,115 @@
 import "reflect-metadata";
 import "core-js/stable";
 import "regenerator-runtime/runtime";
+import "dotenv/config";
 
-console.log("hello");
-
-const _ = require("lodash");
-const BN = require("bn.js");
-const Web3 = require("web3");
-
-const sigUtil = require("@metamask/eth-sig-util");
-
-import { AliceClaimDAO } from "./AliceClaimDAO";
-import { NetworkInterface } from "./NetworkInterface";
-import { AliceNetwork } from "./AliceNetwork";
-import { MetaMaskController } from "./MetaMaskController";
-import { ALICE, BOB, ME, THEY, isServer, environment } from "./Environment";
-import { ClaimTransaction } from "./ClaimTransaction";
 import { Container } from "typedi";
-import { ClaimDAOInterface } from "./ClaimDAOInterface";
 
-let web3: any;
+import { ME, THEY, environment } from "./Environment";
+import { AliceClaimDAO } from "./AliceClaimDAO";
+import { NetworkInterface } from "./interfaces/NetworkInterface";
+import { MetaMaskController } from "./MetaMaskController";
+import { ClaimTransaction } from "./ClaimTransaction";
+import { ClaimDAOInterface } from "./interfaces/ClaimDAOInterface";
+import { isEmpty, extend } from "lodash";
+import { SDKException } from "./exceptions/SDKException";
+import { PaymentController } from "./PaymentController";
+import Web3 from "web3";
 
-if (isServer()) {
-  web3 = new Web3(new Web3.providers.HttpProvider(environment.rpcUrlTestnet));
-} else {
-  web3 = new Web3(Web3.givenProvider || environment.rpcUrlTestnet);
-}
-
-Container.set("web3", web3);
-
+/*
 const VaultABI = require("../abi/Vault.json");
 const VaultContract = new web3.eth.Contract(
-  VaultABI,
-  environment.vaultContractAddress
-);
+    VaultABI,
+    environment.vaultContractAddress
+);*/
 
-//const RACTokenABI = require("../abi/RACToken.json")
-//const RACTokenContract = new web3.eth.Contract(RACTokenABI, environment.racTokenContractAddress)
+const SDK1 = {
+    init: function (_config: any): Promise<PaymentController> {
+        return new Promise((resolve, reject) => {
+            let config = extend(
+                {
+                    serverAccount: environment.serverAddress,
+                    account: null,
+                    privateKey: null,
+                    onTransactionRequestReceived: function (
+                        amount: number,
+                        address: string
+                    ) {
+                        return true;
+                    },
+                    onTransactionCompleted: function (
+                        amount: number,
+                        address: string,
+                        claimTransaction: ClaimTransaction
+                    ) {
+                        console.log("Transaction completed: " + amount);
+                    }
+                },
+                _config
+            );
 
-class PaymentController {
-  protected readonly network: NetworkInterface = Container.get("network");
-  protected readonly claimDAO: ClaimDAOInterface;
-  constructor(protected config: any) {
-    this.claimDAO = new AliceClaimDAO();
-    Container.set("claimDAO", this.claimDAO);
-  }
-  async onMessageReceived(message: string) {
-    const newClaim = new ClaimTransaction().parse(message);
+            Container.set("config", config);
 
-    if (
-      newClaim.signatures[THEY] &&
-      !newClaim.signatures[ME] &&
-      newClaim.amount < 0
-    ) {
-      // pagamento suo
-      await newClaim.checkAndCountersign();
-      this.saveTransaction(newClaim);
-      this.sendClaim(newClaim);
-    } else if (
-      newClaim.signatures[THEY] &&
-      newClaim.signatures[ME] &&
-      newClaim.amount > 0 &&
-      newClaim.isSentClaim()
-    ) {
-      // controfirma ad un mio pagamento
-      if (await newClaim.checkSignature()) {
-        this.saveTransaction(newClaim);
-      }
-    } else if (
-      !newClaim.signatures[THEY] &&
-      !newClaim.signatures[ME] &&
-      newClaim.amount > 0
-    ) {
-      // proposta di pagamento da parte mia
-      if (
-        !this.config.onTransactionRequestReceived(
-          newClaim.amount,
-          newClaim.addresses[THEY]
-        )
-      ) {
-        throw "Transaction refused.";
-      }
-      await newClaim.checkAndSign();
-      this.sendClaim(newClaim);
+            config.network.connect();
+
+            resolve(new PaymentController(config));
+        });
     }
-  }
-  async pay(amount: number) {
-    let newClaim = new ClaimTransaction();
-    await newClaim.createPayment(amount, this.config.serverAccount);
-    this.sendClaim(newClaim);
-  }
-  async withdraw() {
-    let lastClaim = this.claimDAO.getLastTransaction(this.config.serverAccount);
-    await VaultContract.methods
-      .withdraw(lastClaim)
-      .send({ from: this.config.account });
-  }
-  protected saveTransaction(newClaim: ClaimTransaction) {
-    this.claimDAO.saveTransaction(newClaim, newClaim.addresses[THEY]);
-    this.config.onTransactionCompleted(
-      newClaim.amount,
-      newClaim.addresses[THEY],
-      newClaim
-    );
-    this.claimDAO.deleteLastSentClaim(newClaim.addresses[THEY]);
-  }
+};
 
-  protected sendClaim(claim: ClaimTransaction) {
-    const message = claim.serialize();
-    this.config.network.send(message);
-    if (claim.signatures[ME] && !claim.signatures[THEY]) {
-      this.claimDAO.saveSentClaim(claim, claim.addresses[THEY]);
-    }
-  }
+function setup() {
+
 }
 
-const SDK = {
-  init: function(_config: any): Promise<PaymentController> {
-    return new Promise((resolve, reject) => {
-      let config = _.extend(
-        {
-          serverAccount: environment.serverAddress,
-          account: null,
-          privateKey: null,
-          onTransactionRequestReceived: function(
-            amount: number,
-            address: string
-          ) {
-            return true;
-          },
-          onTransactionCompleted: function(
-            amount: number,
-            address: string,
-            claimTransaction: ClaimTransaction
-          ) {
-            console.log("Transaction completed: " + amount);
-          }
-        },
-        _config
-      );
-
-      Container.set("config", config);
-
-      config.network.connect();
-
-      resolve(new PaymentController(config));
-    });
-  }
+export type SDKOptions = {
+    chainId: number;
+    chainName: string;
+    rpcUrl: string;
+    vaultContractAddress: string;
+    tokenContractAddress: string;
+    serverAddress: string;
+    serverPrivateKey: string;
+    serverUrl: string;
 };
 
 export function init() {
-  return new Promise((resolve, reject) => {
-    new MetaMaskController(web3, environment)
-      .initMetamask()
-      .then((account: string) => {
-        SDK.init({
-          account: account
-        }).then(() => {
-          resolve("Test");
-        });
-      });
-  });
+    /*
+      return new Promise((resolve, reject) => {
+          new MetaMaskController(environment)
+              .initMetamask()
+              .then((account: string) => {
+                  SDK1.init({
+                      account: account
+                  }).then(() => {
+                      resolve("Test");
+                  });
+              });
+      });*/
 }
 
-// module.exports = {SDK:SDK, ClaimTransaction:ClaimTransaction};
+export class SDK {
+    private readonly _options: SDKOptions;
+
+    constructor() {
+        this._options = {
+            chainId: Number(process.env.CHAIN_ID),
+            chainName: String(process.env.CHAIN_NAME),
+            rpcUrl: String(process.env.RPC_URL),
+            vaultContractAddress: String(process.env.CONTRACT_VAULT_ADDRESS),
+            tokenContractAddress: String(process.env.CONTRACT_TOKEN_ADDRESS),
+            serverAddress: String(process.env.SERVER_ADDRESS),
+            serverPrivateKey: String(process.env.SERVER_PRIVATE_KEY),
+            serverUrl: String(process.env.SERVER_URL)
+        };
+
+        Container.set("SDKOptions", this._options);
+    }
+
+    init() {
+        // Setup web3
+        const web3 = new Web3(new Web3.providers.HttpProvider(this._options.rpcUrl));
+        Container.set("provider.web3", web3);
+
+
+    }
+}

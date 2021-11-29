@@ -16,7 +16,7 @@ module.exports = {
   devServer: {
     static: ["dist", "demo"],
     compress: true,
-    port: 9000,
+    port: 9001,
     client: {
       progress: true,
     },

@@ -27,6 +27,7 @@
     "@babel/preset-typescript": "^7.16.0",
     "@gudahtt/typedoc": "^0.23.0",
     "@types/jest": "^27.0.2",
+    "@types/lodash": "^4.14.177",
     "@types/web3": "^1.2.2",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
@@ -67,7 +68,6 @@
   },
   "dependencies": {
     "@metamask/eth-sig-util": "^4.0.0",
-    "bn.js": "^5.2.0",
     "body-parser": "^1.19.0",
     "core-js": "^3.19.1",
     "cors": "^2.8.5",

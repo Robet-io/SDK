@@ -1,10 +1,7 @@
-# ABI directory
-abi/*.json
-abi/*.abi
-
 # Dependency npm
 node_modules
 package-lock.json
+yarn.lock
 
 # Debug log from npm
 npm-debug.log

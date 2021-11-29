@@ -1,4 +1,4 @@
-import { NetworkBase, NetworkInterface } from "./NetworkInterface";
+import { NetworkBase, NetworkInterface } from "./interfaces/NetworkInterface";
 
 class AliceNetwork extends NetworkBase {
   socket: WebSocket | undefined;

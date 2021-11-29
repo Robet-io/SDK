@@ -6,7 +6,7 @@ class MetaMaskController {
   resolve: ((account: string | undefined) => void) | undefined;
   ethereum: any;
 
-  constructor(private web3: Web3, private environment: any) {
+  constructor(private environment: any) {
     // @ts-ignore
     this.ethereum = window.ethereum;
   }
@@ -47,7 +47,7 @@ class MetaMaskController {
             params: [
               {
                 chainId: this.environment.chainIdHex,
-                rpcUrls: [this.environment.rpcUrlTestnet],
+                rpcUrls: [this.environment.rpcUrl],
                 chainName: this.environment.chainName
               }
             ]

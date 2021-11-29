@@ -1,12 +1,14 @@
 import { Container } from "typedi";
 
-const BN = require("bn.js");
-const sigUtil = require("@metamask/eth-sig-util");
-import { ALICE, BOB, ME, THEY, isServer, environment } from "./Environment";
-const _ = require("lodash");
+import sigUtil, { SignTypedDataVersion } from "@metamask/eth-sig-util";
+import { ALICE, BOB, environment, ME, THEY } from "./Environment";
+
+import pick from "lodash/pick";
+import isEqual from "lodash/isEqual";
 
 import Web3 from "web3";
-import { ClaimDAOInterface } from "./ClaimDAOInterface";
+import { ClaimDAOInterface } from "./interfaces/ClaimDAOInterface";
+import { isServer } from "./utils";
 
 class ClaimTransaction {
   id: number = 0;
@@ -75,7 +77,7 @@ class ClaimTransaction {
 
   serialize() {
     return JSON.stringify(
-      _.pick(this, [
+      pick(this, [
         "id",
         "addresses",
         "messageForAlice",
@@ -103,12 +105,15 @@ class ClaimTransaction {
 
     let amount = this.cumulativeDebits[ME] - this.cumulativeDebits[THEY];
     const lastClaim = this.claimDAO.getLastTransaction(this.addresses[THEY]);
-    if (lastClaim) {
-      (amount = ALICE), BOB, ME, THEY, isServer, environment;
-      amount -
-        lastClaim.cumulativeDebits[ME] +
-        lastClaim.cumulativeDebits[THEY];
-    }
+
+    // TODO: what is this???
+    /*if (lastClaim) {
+            (amount = ALICE), BOB, ME, THEY, isServer, environment;
+            amount -
+            lastClaim.cumulativeDebits[ME] +
+            lastClaim.cumulativeDebits[THEY];
+        }*/
+
     this.amount = amount;
 
     console.log("Claim:", this);
@@ -154,8 +159,8 @@ class ClaimTransaction {
         nonce: this.nonce,
         timestamp: this.timestamp,
         messageForAlice: this.messageForAlice,
-        cumulativeDebitAlice: new BN(this.cumulativeDebits[ALICE]).toString(10),
-        cumulativeDebitBob: new BN(this.cumulativeDebits[BOB]).toString(10)
+        cumulativeDebitAlice: BigInt(this.cumulativeDebits[ALICE]).toString(10),
+        cumulativeDebitBob: BigInt(this.cumulativeDebits[BOB]).toString(10)
       }
     };
   }
@@ -177,8 +182,9 @@ class ClaimTransaction {
       this.timestamp < 0 ||
       this.cumulativeDebits[ALICE] < 0 ||
       this.cumulativeDebits[BOB] < 0
-    )
+    ) {
       throw "Claim not valid.";
+    }
 
     if (this.cumulativeDebits[ME] != 0 && this.cumulativeDebits[THEY] != 0) {
       throw "Claim not balanced.";
@@ -215,8 +221,9 @@ class ClaimTransaction {
       if (
         lastClaim.nonce + 1 != this.nonce ||
         lastClaim.timestamp > this.timestamp
-      )
+      ) {
         throw "Claim not sequent.";
+      }
       if (this.id != lastClaim.id) {
         throw "payment channel not valid";
       }
@@ -262,7 +269,7 @@ class ClaimTransaction {
     return this;
   }
 
-  async _sign(encodedClaim: any) {
+  async _sign(encodedClaim: any, privateKey) {
     if (ME == ALICE) {
       // @ts-ignore
       this.signatures[ME] = await web3.currentProvider?.request({
@@ -276,7 +283,7 @@ class ClaimTransaction {
       this.signatures[ME] = sigUtil.signTypedData({
         privateKey: privKey,
         data: encodedClaim,
-        version: "V4"
+        version: SignTypedDataVersion.V4
       });
     }
   }
@@ -285,7 +292,7 @@ class ClaimTransaction {
     const recovered = sigUtil.recoverTypedSignature({
       data: encodedClaim,
       signature: this.signatures[THEY],
-      version: "V4"
+      version: SignTypedDataVersion.V4
     });
 
     console.log("_checkSignature", encodedClaim, recovered);
@@ -310,10 +317,7 @@ class ClaimTransaction {
     ];
     return (
       sentClaim &&
-      _.isEqual(
-        _.pick(this, relevantFields),
-        _.pick(sentClaim, relevantFields)
-      ) &&
+      isEqual(pick(this, relevantFields), pick(sentClaim, relevantFields)) &&
       sentClaim.signatures[ME] == this.signatures[ME]
     );
   }
