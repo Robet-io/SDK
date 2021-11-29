@@ -234,41 +234,6 @@ class ClaimTransaction {
     }
   }
 
-  async checkAndSign() {
-    this.check();
-
-    if (this.amount < 0) {
-      throw "Claim with amount inconsistent with sending policies.";
-    }
-
-    const encodedClaim = this.encode();
-    console.log("Solidity Sha3: " + encodedClaim);
-
-    // Counter sign
-    await this._sign(encodedClaim);
-
-    return this;
-  }
-
-  async checkAndCountersign() {
-    this.check();
-
-    if (this.amount > 0) {
-      throw "Claim with amount inconsistent with sending policies.";
-    }
-
-    const encodedClaim = this.encode();
-    console.log("Solidity Sha3: " + encodedClaim);
-
-    const signValidity = this._checkSignature(encodedClaim);
-    console.log("signValidity: " + signValidity);
-
-    // Counter sign
-    await this._sign(encodedClaim);
-
-    return this;
-  }
-
   async _sign(encodedClaim: any) {
     if (ME == ALICE) {
       // @ts-ignore
@@ -302,24 +267,6 @@ class ClaimTransaction {
       this.web3.utils.toChecksumAddress(this.addresses[THEY]);
     if (!ret) throw "Signature not valid.";
     return ret;
-  }
-
-  isSentClaim() {
-    const sentClaim = this.claimDAO.getLastSentClaim(this.addresses[THEY]);
-    if (!sentClaim) {
-      return false;
-    }
-    const relevantFields = [
-      "addresses",
-      "cumulativeDebits",
-      "nonce",
-      "timestamp"
-    ];
-    return (
-      sentClaim &&
-      isEqual(pick(this, relevantFields), pick(sentClaim, relevantFields)) &&
-      sentClaim.signatures[ME] == this.signatures[ME]
-    );
   }
 }
 

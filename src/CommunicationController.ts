@@ -4,8 +4,10 @@ import { ClaimDAOInterface } from "./interfaces/ClaimDAOInterface";
 import { AliceClaimDAO } from "./AliceClaimDAO";
 import { ClaimTransaction } from "./ClaimTransaction";
 import { ME, THEY } from "./Environment";
+import isEqual from "lodash/isEqual";
+import pick from "lodash/pick";
 
-export class PaymentController {
+export class CommunicationController {
   protected readonly network: NetworkInterface = Container.get("network");
   protected readonly claimDAO: ClaimDAOInterface;
 
@@ -23,14 +25,14 @@ export class PaymentController {
       newClaim.amount < 0
     ) {
       // pagamento suo
-      await newClaim.checkAndCountersign();
+      await this.checkAndCountersign(newClaim);
       this.saveTransaction(newClaim);
       this.sendClaim(newClaim);
     } else if (
       newClaim.signatures[THEY] &&
       newClaim.signatures[ME] &&
       newClaim.amount > 0 &&
-      newClaim.isSentClaim()
+      this.isSentClaim(newClaim)
     ) {
       // controfirma ad un mio pagamento
       if (await newClaim.checkSignature()) {
@@ -50,7 +52,7 @@ export class PaymentController {
       ) {
         throw "Transaction refused.";
       }
-      await newClaim.checkAndSign();
+      await this.checkAndSign(newClaim);
       this.sendClaim(newClaim);
     }
   }
@@ -59,13 +61,6 @@ export class PaymentController {
     let newClaim = new ClaimTransaction();
     await newClaim.createPayment(amount, this.config.serverAccount);
     this.sendClaim(newClaim);
-  }
-
-  async withdraw() {
-    let lastClaim = this.claimDAO.getLastTransaction(this.config.serverAccount);
-    /*await VaultContract.methods
-                        .withdraw(lastClaim)
-                        .send({ from: this.config.account });*/
   }
 
   protected saveTransaction(newClaim: ClaimTransaction) {
@@ -84,5 +79,58 @@ export class PaymentController {
     if (claim.signatures[ME] && !claim.signatures[THEY]) {
       this.claimDAO.saveSentClaim(claim, claim.addresses[THEY]);
     }
+  }
+
+  async checkAndSign(claim: ClaimTransaction) {
+    claim.check();
+
+    if (claim.amount < 0) {
+      throw "Claim with amount inconsistent with sending policies.";
+    }
+
+    const encodedClaim = claim.encode();
+    console.log("Solidity Sha3: " + encodedClaim);
+
+    // Counter sign
+    await claim._sign(encodedClaim);
+
+    return this;
+  }
+
+  async checkAndCountersign(claim: ClaimTransaction) {
+    claim.check();
+
+    if (claim.amount > 0) {
+      throw "Claim with amount inconsistent with sending policies.";
+    }
+
+    const encodedClaim = claim.encode();
+    console.log("Solidity Sha3: " + encodedClaim);
+
+    const signValidity = claim._checkSignature(encodedClaim);
+    console.log("signValidity: " + signValidity);
+
+    // Counter sign
+    await claim._sign(encodedClaim);
+
+    return this;
+  }
+
+  isSentClaim(claim: ClaimTransaction) {
+    const sentClaim = this.claimDAO.getLastSentClaim(claim.addresses[THEY]);
+    if (!sentClaim) {
+      return false;
+    }
+    const relevantFields = [
+      "addresses",
+      "cumulativeDebits",
+      "nonce",
+      "timestamp"
+    ];
+    return (
+      sentClaim &&
+      isEqual(pick(claim, relevantFields), pick(sentClaim, relevantFields)) &&
+      sentClaim.signatures[ME] == claim.signatures[ME]
+    );
   }
 }

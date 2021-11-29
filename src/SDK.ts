@@ -13,7 +13,7 @@ import { ClaimTransaction } from "./ClaimTransaction";
 import { ClaimDAOInterface } from "./interfaces/ClaimDAOInterface";
 import { isEmpty, extend } from "lodash";
 import { SDKException } from "./exceptions/SDKException";
-import { PaymentController } from "./PaymentController";
+import { CommunicationController } from "./CommunicationController";
 import Web3 from "web3";
 
 /*
@@ -24,7 +24,7 @@ const VaultContract = new web3.eth.Contract(
 );*/
 
 const SDK1 = {
-  init: function(_config: any): Promise<PaymentController> {
+  init: function(_config: any): Promise<CommunicationController> {
     return new Promise((resolve, reject) => {
       let config = extend(
         {
@@ -52,7 +52,7 @@ const SDK1 = {
 
       config.network.connect();
 
-      resolve(new PaymentController(config));
+      resolve(new CommunicationController(config));
     });
   }
 };
