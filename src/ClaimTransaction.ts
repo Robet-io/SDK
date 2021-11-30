@@ -1,4 +1,4 @@
-import { Container } from "typedi";
+import { Container, Inject } from "typedi";
 
 import sigUtil, { SignTypedDataVersion } from "@metamask/eth-sig-util";
 import { ALICE, BOB, environment, ME, THEY } from "./Environment";
@@ -8,7 +8,7 @@ import isEqual from "lodash/isEqual";
 
 import Web3 from "web3";
 import { ClaimDAOInterface } from "./interfaces/ClaimDAOInterface";
-import { isServer } from "./utils";
+import { Environment } from "./Environment";
 
 class ClaimTransaction {
   id: number = 0;
@@ -138,6 +138,8 @@ class ClaimTransaction {
       { name: "cumulativeDebitAlice", type: "uint256" },
       { name: "cumulativeDebitBob", type: "uint256" }
     ];
+
+    let environment: Environment = Container.get("env");
 
     const name = "CoinGames Vault";
     const version = "1";

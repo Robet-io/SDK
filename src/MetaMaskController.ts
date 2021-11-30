@@ -1,6 +1,6 @@
 import { Container } from "typedi";
 import Web3 from "web3";
-import { SDKOptions } from "./SDK";
+import { Environment } from "./Environment";
 
 class MetaMaskController {
   public account: string | undefined;
@@ -8,12 +8,12 @@ class MetaMaskController {
   resolve: ((account: string | undefined) => void) | undefined;
   private readonly ethereum: any;
   private readonly web3: Web3;
-  private readonly env: SDKOptions;
+  private readonly env: Environment;
 
   constructor() {
     this.ethereum = (window as any).ethereum;
     this.web3 = Container.get("provider.web3");
-    this.env = Container.get("SDKOptions");
+    this.env = Container.get("env");
   }
 
   async onNetwork() {
