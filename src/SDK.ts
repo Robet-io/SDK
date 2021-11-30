@@ -15,6 +15,7 @@ import { isEmpty, extend } from "lodash";
 import { SDKException } from "./exceptions/SDKException";
 import { CommunicationController } from "./CommunicationController";
 import Web3 from "web3";
+import { AliceNetwork } from "./AliceNetwork";
 
 export function init() {
   /*
@@ -75,11 +76,11 @@ export class SDK {
         _config
       );
 
-      Container.set("config", config);
+      //Container.set("config", config);
 
-      config.network.connect();
+      Container.set("claimDAO", new AliceClaimDAO());
 
-      resolve(new CommunicationController(config));
+      resolve(new CommunicationController(config, new AliceNetwork()));
     });
   }
 }

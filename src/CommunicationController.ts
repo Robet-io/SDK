@@ -8,12 +8,15 @@ import isEqual from "lodash/isEqual";
 import pick from "lodash/pick";
 
 export class CommunicationController {
-  protected readonly network: NetworkInterface = Container.get("network");
+  //protected readonly network: NetworkInterface;
   protected readonly claimDAO: ClaimDAOInterface;
 
-  constructor(protected config: any) {
-    this.claimDAO = new AliceClaimDAO();
-    Container.set("claimDAO", this.claimDAO);
+  constructor(
+    protected config: any,
+    protected readonly network: NetworkInterface
+  ) {
+    this.claimDAO = Container.get("claimDAO");
+    this.network.connect();
   }
 
   async onMessageReceived(message: string) {
