@@ -1,4 +1,5 @@
 import { ClaimDAOInterface, ClaimTransaction, IClaimRequest } from "@coingames/claim-library";
+import { Web3Provider } from "./Web3Provider";
 
 export class AliceClaimDAO implements ClaimDAOInterface {
     constructor(protected account: string) {
@@ -9,7 +10,8 @@ export class AliceClaimDAO implements ClaimDAOInterface {
         if (storageClaim) {
             return new ClaimTransaction(
                 this.account,
-                new AliceClaimDAO(address)
+                new AliceClaimDAO(address),
+                Web3Provider.getInstance()
             ).parse(storageClaim).claim;
         }
         return null;
@@ -23,12 +25,12 @@ export class AliceClaimDAO implements ClaimDAOInterface {
         return this._get(address, "wallet-last-claim");
     }
 
-    saveSentClaim(claim: IClaimRequest, address: string): void {
+    saveSentClaim(claim: ClaimTransaction, address: string): void {
         window.localStorage.setItem("wallet-sent-claim", claim.serialize());
         console.log(claim.serialize());
     }
 
-    saveTransaction(claim: IClaimRequest, address: string): void {
+    saveTransaction(claim: ClaimTransaction, address: string): void {
         window.localStorage.setItem("wallet-last-claim", claim.serialize());
         console.log(claim.serialize());
     }
