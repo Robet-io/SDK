@@ -6,4 +6,6 @@ export function init() {
   return sdk.init();
 }
 
-export function pay() {}
+export function pay(amount: number) {
+  return sdk.pay(amount);
+}

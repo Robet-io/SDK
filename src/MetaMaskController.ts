@@ -1,11 +1,11 @@
 import { Container } from "typedi";
 import Web3 from "web3";
-import { Environment } from "./Environment";
+import { Environment } from "@coingames/claim-library";
 
 class MetaMaskController {
   public account: string | undefined;
   public networkId: number | undefined;
-  resolve: ((account: string | undefined) => void) | undefined;
+  resolve: ((value: string | PromiseLike<string>) => void) | undefined;
   private readonly ethereum: any;
   private readonly web3: Web3;
   private readonly env: Environment;
@@ -31,7 +31,7 @@ class MetaMaskController {
             .then((balance: string) => {
               console.log("Balance: " + balance);
             });
-          if (this.resolve) this.resolve(this.account);
+          if (this.resolve) this.resolve(this.account as string);
         }
       })
       .then(() => {});
@@ -67,6 +67,7 @@ class MetaMaskController {
 
   initMetamask(): Promise<string> {
     return new Promise((resolve, reject) => {
+      this.resolve = resolve;
       console.log("init");
 
       if (typeof this.ethereum !== "undefined") {

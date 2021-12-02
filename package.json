@@ -68,6 +68,7 @@
     ]
   },
   "dependencies": {
+    "@coingames/claim-library": "github:Robet-io/claim-library#common-classes",
     "@metamask/eth-sig-util": "^4.0.0",
     "body-parser": "^1.19.0",
     "core-js": "^3.19.1",

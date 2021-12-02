@@ -5,35 +5,20 @@ import "dotenv/config";
 
 import { Container, Inject } from "typedi";
 
-import { ME, THEY, Environment } from "./Environment";
 import { AliceClaimDAO } from "./AliceClaimDAO";
-import { NetworkInterface } from "./interfaces/NetworkInterface";
 import { MetaMaskController } from "./MetaMaskController";
-import { ClaimTransaction } from "./ClaimTransaction";
-import { ClaimDAOInterface } from "./interfaces/ClaimDAOInterface";
-import { isEmpty, extend } from "lodash";
-import { SDKException } from "./exceptions/SDKException";
-import { CommunicationController } from "./CommunicationController";
+import { extend } from "lodash";
 import Web3 from "web3";
 import { AliceNetwork } from "./AliceNetwork";
-
-export function init() {
-  /*
-        return new Promise((resolve, reject) => {
-            new MetaMaskController(environment)
-                .initMetamask()
-                .then((account: string) => {
-                    SDK1.init({
-                        account: account
-                    }).then(() => {
-                        resolve("Test");
-                    });
-                });
-        });*/
-}
+import {
+  ClaimTransaction,
+  CommunicationController,
+  Environment
+} from "@coingames/claim-library";
 
 export class SDK {
   private readonly environment: Environment;
+  private communicationController: CommunicationController | undefined;
 
   constructor() {
     this.environment = Container.get("env");
@@ -48,17 +33,20 @@ export class SDK {
   init(): Promise<any> {
     return new Promise((resolve, reject) => {
       new MetaMaskController().initMetamask().then((account: string) => {
-        this._init({}).then(() => {
+        this.connectToServer(account).then(() => {
           resolve("Test");
         });
       });
     });
   }
 
-  _init(_config: any): Promise<CommunicationController> {
+  protected connectToServer(account: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      let config = extend(
+      Container.set("claimDAO", new AliceClaimDAO(account));
+
+      this.communicationController = new CommunicationController(
         {
+          account: account,
           onTransactionRequestReceived: function(
             amount: number,
             address: string
@@ -73,14 +61,16 @@ export class SDK {
             console.log("Transaction completed: " + amount);
           }
         },
-        _config
+        new AliceNetwork()
       );
 
-      //Container.set("config", config);
-
-      Container.set("claimDAO", new AliceClaimDAO());
-
-      resolve(new CommunicationController(config, new AliceNetwork()));
+      resolve();
     });
+  }
+
+  pay(amount: number): Promise<void> {
+    return (this.communicationController as CommunicationController).pay(
+      amount
+    );
   }
 }

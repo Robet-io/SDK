@@ -1,4 +1,4 @@
-import { NetworkBase, NetworkInterface } from "./interfaces/NetworkInterface";
+import { NetworkBase } from "@coingames/claim-library";
 
 class AliceNetwork extends NetworkBase {
   socket: WebSocket | undefined;
