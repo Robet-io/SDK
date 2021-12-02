@@ -1,5 +1,5 @@
 //import { buildTypedSignature } from "../dist/libclaim"
-import {SDK, ClaimTransaction} from "../src/SDK"
+//import {SDK, ClaimTransaction} from "../src/SDK"
 //import express from "express";
 import fs from "fs";
 
