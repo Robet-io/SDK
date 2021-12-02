@@ -1,9 +1,9 @@
 {
-  "name": "@coingames/SDK",
+  "name": "@coingames/sdk",
   "version": "0.0.1",
   "description": "SDK",
-  "main": "dist/libclaim.js",
-  "types": "dist/libclaim.d.ts",
+  "main": "dist/SDK.js",
+  "types": "dist/SDK.d.ts",
   "scripts": {
     "build": "tsc --project .",
     "build:web": "npx browserslist@latest --update-db && webpack",
@@ -68,7 +68,7 @@
     ]
   },
   "dependencies": {
-    "@coingames/claim-library": "github:Robet-io/claim-library#common-classes",
+    "@coingames/claim-library": "github:Robet-io/claim-library#fd-test",
     "@metamask/eth-sig-util": "^4.0.0",
     "body-parser": "^1.19.0",
     "core-js": "^3.19.1",

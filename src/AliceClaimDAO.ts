@@ -1,44 +1,39 @@
-import { Container } from "typedi";
-import {
-  ClaimDAOInterface,
-  ClaimTransaction,
-  Environment
-} from "@coingames/claim-library";
+import { ClaimDAOInterface, ClaimTransaction, IClaimRequest } from "@coingames/claim-library";
 
-class AliceClaimDAO implements ClaimDAOInterface {
-  protected readonly environment: Environment = Container.get("env");
-
-  constructor(protected account: string) {}
-
-  _get(address: string, key: string): ClaimTransaction | null {
-    const storageClaim = window.localStorage.getItem(key);
-    if (storageClaim) {
-      return new ClaimTransaction(this.account).parse(storageClaim);
+export class AliceClaimDAO implements ClaimDAOInterface {
+    constructor(protected account: string) {
     }
-    return null;
-  }
 
-  getLastSentClaim(address: string): ClaimTransaction | null {
-    return this._get(address, "wallet-sent-claim");
-  }
+    _get(address: string, key: string): IClaimRequest | null {
+        const storageClaim = window.localStorage.getItem(key);
+        if (storageClaim) {
+            return new ClaimTransaction(
+                this.account,
+                new AliceClaimDAO(address)
+            ).parse(storageClaim).claim;
+        }
+        return null;
+    }
 
-  getLastTransaction(address: string): ClaimTransaction | null {
-    return this._get(address, "wallet-last-claim");
-  }
+    getLastSentClaim(address: string): IClaimRequest | null {
+        return this._get(address, "wallet-sent-claim");
+    }
 
-  saveSentClaim(claim: ClaimTransaction, address: string): void {
-    window.localStorage.setItem("wallet-sent-claim", claim.serialize());
-    console.log(claim.serialize());
-  }
+    getLastTransaction(address: string): IClaimRequest | null {
+        return this._get(address, "wallet-last-claim");
+    }
 
-  saveTransaction(claim: ClaimTransaction, address: string): void {
-    window.localStorage.setItem("wallet-last-claim", claim.serialize());
-    console.log(claim.serialize());
-  }
+    saveSentClaim(claim: IClaimRequest, address: string): void {
+        window.localStorage.setItem("wallet-sent-claim", claim.serialize());
+        console.log(claim.serialize());
+    }
 
-  deleteLastSentClaim(address: string): void {
-    window.localStorage.removeItem("wallet-sent-claim");
-  }
+    saveTransaction(claim: IClaimRequest, address: string): void {
+        window.localStorage.setItem("wallet-last-claim", claim.serialize());
+        console.log(claim.serialize());
+    }
+
+    deleteLastSentClaim(address: string): void {
+        window.localStorage.removeItem("wallet-sent-claim");
+    }
 }
-
-export { AliceClaimDAO };
