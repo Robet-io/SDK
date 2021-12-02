@@ -1,5 +1,6 @@
 import Web3 from "web3";
 import { env } from "@coingames/claim-library";
+import { Web3Provider } from "./Web3Provider";
 
 class MetaMaskController {
     public account: string | undefined;
@@ -10,7 +11,7 @@ class MetaMaskController {
 
     constructor() {
         this.ethereum = (window as any).ethereum;
-        this.web3 = new Web3(Web3.givenProvider || env.get("rpcUrl"));
+        this.web3 = Web3Provider.getInstance();
     }
 
     async onNetwork() {

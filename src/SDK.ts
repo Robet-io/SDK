@@ -6,6 +6,7 @@ import "dotenv/config";
 import { AliceClaimDAO } from "./AliceClaimDAO";
 import { MetaMaskController } from "./MetaMaskController";
 import { AliceNetwork } from "./AliceNetwork";
+import { Web3Provider } from "./Web3Provider";
 import { ClaimTransaction, CommunicationController, env } from "@coingames/claim-library";
 
 export class SDK {
@@ -13,6 +14,8 @@ export class SDK {
 
     constructor() {
         env.setUp({
+            ME: 0,
+            THEY: 1,
             chainId: Number(process.env.CHAIN_ID),
             chainName: String(process.env.CHAIN_NAME),
             rpcUrl: String(process.env.RPC_URL),
@@ -54,7 +57,8 @@ export class SDK {
                     }
                 },
                 new AliceNetwork(),
-                new AliceClaimDAO(account)
+                new AliceClaimDAO(account),
+                Web3Provider.getInstance()
             );
 
             resolve();
