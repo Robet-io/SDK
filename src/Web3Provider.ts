@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import { env } from "@coingames/claim-library";
+import {env} from "./claim-library";
 
 export class Web3Provider {
     private static _instance: Web3;

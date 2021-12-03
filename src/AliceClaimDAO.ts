@@ -1,5 +1,6 @@
-import { ClaimDAOInterface, ClaimTransaction, IClaimRequest } from "@coingames/claim-library";
 import { Web3Provider } from "./Web3Provider";
+import {ClaimDAOInterface, ClaimTransaction, IClaimRequest} from "./claim-library";
+
 
 export class AliceClaimDAO implements ClaimDAOInterface {
     constructor(protected account: string) {

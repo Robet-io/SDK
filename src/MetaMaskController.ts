@@ -1,6 +1,6 @@
 import Web3 from "web3";
-import { env } from "@coingames/claim-library";
 import { Web3Provider } from "./Web3Provider";
+import {env} from "./claim-library";
 
 class MetaMaskController {
     public account: string | undefined;
