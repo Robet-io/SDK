@@ -59,7 +59,7 @@ export class CommunicationController {
             ) {
                 throw new LibException("Transaction refused.");
             }
-            await this.checkAndSign(newClaim.claim);
+            await this.checkAndSign(newClaim);
 
             this.sendClaim(newClaim);
         }
@@ -89,18 +89,15 @@ export class CommunicationController {
         }
     }
 
-    async checkAndSign(claim: IClaimRequest) {
-        claim.check();
+    async checkAndSign(transaction: ClaimTransaction) {
+        transaction.check();
 
-        if (claim.amount < 0) {
+        if (transaction.claim.amount < 0) {
             throw "Claim with amount inconsistent with sending policies.";
         }
 
-        const encodedClaim = claim.encode();
-        console.log("Solidity Sha3: " + encodedClaim);
-
         // Counter sign
-        await claim._sign(encodedClaim);
+        await transaction.sign();
 
         return this;
     }
