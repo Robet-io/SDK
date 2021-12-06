@@ -7,7 +7,8 @@ import { AliceClaimDAO } from "./AliceClaimDAO";
 import { MetaMaskController } from "./MetaMaskController";
 import { AliceNetwork } from "./AliceNetwork";
 import { Web3Provider } from "./Web3Provider";
-import { ClaimTransaction, CommunicationController, env } from "@coingames/claim-library";
+import {ClaimTransaction, CommunicationController, env} from "./claim-library";
+
 
 export class SDK {
     private communicationController: CommunicationController | undefined;

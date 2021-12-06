@@ -1,10 +1,15 @@
-import { NetworkBase } from "@coingames/claim-library";
+import {NetworkInterface, NetworkListener} from "./claim-library";
 
-class AliceNetwork extends NetworkBase {
+
+class AliceNetwork implements NetworkInterface {
     socket: WebSocket | undefined;
+    listener: NetworkListener;
 
     constructor() {
-        super();
+        this.listener = {
+            onMessageReceived(message: string): void {
+            }
+        };
     }
 
     connect() {
@@ -18,12 +23,16 @@ class AliceNetwork extends NetworkBase {
         // Listen for messages
         this.socket.addEventListener("message", async event => {
             console.log("Message from server ", event.data);
-            this.listener.onMessageReceived(event.data);
+                this.listener.onMessageReceived(event.data);
         });
     }
 
     send(message: string) {
         this.socket?.send(message);
+    }
+
+    setListener(listener: NetworkListener): void {
+        this.listener = listener;
     }
 }
 
