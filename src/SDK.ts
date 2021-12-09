@@ -58,7 +58,7 @@ export class SDK {
                     }
                 },
                 new AliceNetwork(),
-                new AliceClaimDAO(account),
+                AliceClaimDAO.getInstance(account),
                 Web3Provider.getInstance()
             );
 

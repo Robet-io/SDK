@@ -1,19 +1,26 @@
 import { Web3Provider } from "./Web3Provider";
-import {ClaimDAOInterface, ClaimTransaction, IClaimRequest} from "./claim-library";
+import {ClaimDAOInterface, ClaimTransaction, env, IClaimRequest} from "./claim-library";
+import Web3 from "web3";
 
 
 export class AliceClaimDAO implements ClaimDAOInterface {
-    constructor(protected account: string) {
+    private constructor(protected account: string) {
+    }
+
+    private static _instance: AliceClaimDAO;
+
+    static getInstance(address:string): AliceClaimDAO {
+        if (typeof this._instance === "undefined") {
+            this._instance = new AliceClaimDAO(address);
+        }
+
+        return this._instance;
     }
 
     _get(address: string, key: string): IClaimRequest | null {
         const storageClaim = window.localStorage.getItem(key);
         if (storageClaim) {
-            return new ClaimTransaction(
-                this.account,
-                new AliceClaimDAO(address),
-                Web3Provider.getInstance()
-            ).parse(storageClaim).claim;
+            return JSON.parse(storageClaim);
         }
         return null;
     }
