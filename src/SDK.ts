@@ -43,6 +43,7 @@ export class SDK {
             this.communicationController = new CommunicationController(
                 {
                     account: account,
+                    theirAccount: env.get("serverAddress"),
                     onTransactionRequestReceived: function (
                         amount: number,
                         address: string

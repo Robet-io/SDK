@@ -7,16 +7,16 @@ const BOB = 1;
 export class env {
     private static _options: IEnvironment;
 
+    static get options(): IEnvironment {
+        return this._options;
+    }
+
     static setUp(options: IEnvironmentOptions) {
         this._options = {
             ALICE: ALICE,
             BOB: BOB,
             ...options
         };
-    }
-
-    static get options(): IEnvironment {
-        return this._options;
     }
 
     static get<K extends keyof IEnvironment>(prop: K): IEnvironment[K] {

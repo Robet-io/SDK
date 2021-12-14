@@ -17,23 +17,23 @@ export class AliceClaimDAO implements ClaimDAOInterface {
         return this._instance;
     }
 
-    _get(address: string, key: string): IClaimRequest | null {
+    async _get(address: string, key: string): Promise<IClaimRequest | undefined> {
         const storageClaim = window.localStorage.getItem(key);
         if (storageClaim) {
             return JSON.parse(storageClaim);
         }
-        return null;
+        return undefined;
     }
 
-    getLastSentClaim(address: string): IClaimRequest | null {
+    async getProposedTransaction(address: string): Promise<IClaimRequest | undefined> {
         return this._get(address, "wallet-sent-claim");
     }
 
-    getLastTransaction(address: string): IClaimRequest | null {
+    async getLastTransaction(address: string): Promise<IClaimRequest | undefined> {
         return this._get(address, "wallet-last-claim");
     }
 
-    saveSentClaim(claim: ClaimTransaction, address: string): void {
+    saveProposedTransaction(claim: ClaimTransaction): void {
         window.localStorage.setItem("wallet-sent-claim", claim.serialize());
         console.log(claim.serialize());
     }
@@ -43,7 +43,7 @@ export class AliceClaimDAO implements ClaimDAOInterface {
         console.log(claim.serialize());
     }
 
-    deleteLastSentClaim(address: string): void {
+    deleteProposedTransaction(address: string): void {
         window.localStorage.removeItem("wallet-sent-claim");
     }
 }

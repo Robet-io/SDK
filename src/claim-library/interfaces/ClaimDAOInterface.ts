@@ -1,14 +1,14 @@
-import { IClaimRequest } from "./IClaimRequest";
 import { ClaimTransaction } from "../ClaimTransaction";
+import { IClaimRequest } from "./IClaimRequest";
 
 export interface ClaimDAOInterface {
-    getLastTransaction(address: string): IClaimRequest | null;
+    getLastTransaction(address: string): Promise<IClaimRequest | undefined>;
 
-    saveTransaction(claim: ClaimTransaction, address: string): void;
+    saveTransaction(claim: ClaimTransaction, address: string): any;
 
-    getLastSentClaim(address: string): IClaimRequest | null;
+    getProposedTransaction(address: string): Promise<IClaimRequest | undefined>;
 
-    saveSentClaim(claim: ClaimTransaction, address: string): void;
+    saveProposedTransaction(claim: ClaimTransaction): void;
 
-    deleteLastSentClaim(address: string): void;
+    deleteProposedTransaction(address: string): void;
 }
