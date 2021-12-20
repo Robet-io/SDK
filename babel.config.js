@@ -1,5 +1,6 @@
-// babel.config.js
+const { NODE_ENV } = process.env
+
 module.exports = {
-  presets: [["@babel/preset-env"], "@babel/preset-typescript"],
-  plugins: []
-};
+  presets: ['@babel/preset-env'],
+  plugins: (NODE_ENV === 'test') ? ['@babel/plugin-transform-runtime'] : []
+}
