@@ -1,7 +1,6 @@
 # Dependency npm
 node_modules
 package-lock.json
-yarn.lock
 
 # Debug log from npm
 npm-debug.log
@@ -18,8 +17,6 @@ npm-debug.log
 # Bundle
 *.bundle.js
 
-dist/
 
 tsconfig.tsbuildinfo
-
-abi/
+coverage

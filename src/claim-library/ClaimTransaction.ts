@@ -1,19 +1,19 @@
-import Web3 from "web3";
-import { env } from "./env";
+/*import Web3 from "web3";
 import { ClaimDAOInterface } from "./interfaces/ClaimDAOInterface";
-import { IClaimRequest } from "./interfaces/IClaimRequest";
 import { LibException } from "./exceptions/LibException";
-import { buildTypedClaim, ISignature, recoverTypedClaimSigner, signTypedClaim } from "./signature";
+import { buildTypedClaim, ISignature, signTypedClaim } from "./signature";
+import { IClaimRequest } from "./interfaces/IClaimRequest";
+import { ClaimTypeEnum } from "./enums/ClaimTypeEnum";
 
 export class ClaimTransaction {
-    private _claim!: IClaimRequest;
-
     constructor(
         protected account: string,
         protected readonly claimDAO: ClaimDAOInterface,
         protected readonly web3: Web3
     ) {
     }
+
+    private _claim!: IClaimRequest;
 
     get claim(): IClaimRequest {
         return this._claim;
@@ -28,7 +28,8 @@ export class ClaimTransaction {
             amount: amount,
             addresses: [this.account, theirAddress],
             cumulativeDebits: [0, 0],
-            signatures: []
+            signatures: [],
+            type: ClaimTypeEnum.TYPE_PLAY
         };
 
         const amountToShow = Math.abs(amount);
@@ -50,9 +51,7 @@ export class ClaimTransaction {
         }
 
         let lastBalance = 0;
-        const lastClaim: IClaimRequest | null = this.claimDAO.getLastTransaction(
-            theirAddress
-        );
+        const lastClaim = await this.claimDAO.getLastTransaction(theirAddress);
         if (lastClaim) {
             this._claim.nonce = lastClaim.nonce + 1;
             this._claim.id = lastClaim.id;
@@ -79,8 +78,8 @@ export class ClaimTransaction {
         return JSON.stringify(this._claim);
     }
 
-    parse(body: string) {
-        const claim = JSON.parse(body);
+    async parse(body: string) {
+        const claim: IClaimRequest = JSON.parse(body);
 
         this._claim = {
             id: Number(claim.id),
@@ -91,15 +90,14 @@ export class ClaimTransaction {
             timestamp: claim.timestamp,
             nonce: claim.nonce,
             signatures: claim.signatures,
+            type: claim.type
         };
 
-        const lastClaim = this.claimDAO.getLastTransaction(
+        const lastClaim = await this.claimDAO.getLastTransaction(
             this._claim.addresses[env.get("THEY")]
         );
 
-        let amount =
-            this._claim.cumulativeDebits[env.get("ME")] -
-            this._claim.cumulativeDebits[env.get("THEY")];
+        let amount = this._claim.cumulativeDebits[env.get("ME")] - this._claim.cumulativeDebits[env.get("THEY")];
 
         if (lastClaim) {
             amount = amount - lastClaim.cumulativeDebits[env.get("ME")] + lastClaim.cumulativeDebits[env.get("THEY")];
@@ -111,17 +109,17 @@ export class ClaimTransaction {
     }
 
     encode(): ISignature {
-        const ret:ISignature = buildTypedClaim(this.claim, {
+        const ret: ISignature = buildTypedClaim(this.claim, {
             name: "CoinGames Vault",
             version: "1",
             chainId: env.get("chainId"),
             verifyingContract: env.get("vaultContractAddress")
         });
-        console.log("encoded",ret);
+        console.log("encoded", ret);
         return ret;
     }
 
-    check() {
+    async check() {
         if (
             this._claim.id < 0 ||
             this._claim.nonce < 1 ||
@@ -164,9 +162,7 @@ export class ClaimTransaction {
             }
         }
 
-        const lastClaim = this.claimDAO.getLastTransaction(
-            this._claim.addresses[env.get("THEY")]
-        );
+        const lastClaim = await this.claimDAO.getLastTransaction(this._claim.addresses[env.get("THEY")]);
 
         if (lastClaim) {
             if (
@@ -203,10 +199,11 @@ export class ClaimTransaction {
         return this;
     }
 
-    checkSignature(): boolean {
+    checkSignature(): void {
         const encodedClaim = this.encode();
         const recovered = recoverTypedClaimSigner(encodedClaim, this._claim.signatures[env.get("THEY")]);
 
         return this.web3.utils.toChecksumAddress(recovered) === this.web3.utils.toChecksumAddress(this._claim.addresses[env.get("THEY")]);
     }
 }
+*/
