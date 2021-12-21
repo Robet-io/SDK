@@ -2,8 +2,9 @@ import { recoverTypedSignature, signTypedData, SignTypedDataVersion } from "@met
 import { MessageTypes } from "@metamask/eth-sig-util/dist/sign-typed-data";
 import { IClaimRequest } from "./interfaces/IClaimRequest";
 import { IClaim } from "./interfaces/IClaim";
-import Web3 from "web3";
-import { env } from "./env";
+import { ALICE, BOB } from "./env";
+import { toChecksumAddress } from "ethereumjs-util";
+import { LibException } from "./exceptions/LibException";
 
 interface IDomain {
     name?: string;
@@ -49,13 +50,13 @@ export function buildTypedClaim(message: IClaimRequest, domain: IDomain): ISigna
         primaryType: "Claim",
         message: {
             id: message.id,
-            alice: message.addresses[env.get("ALICE")],
-            bob: message.addresses[env.get("BOB")],
+            alice: message.addresses[ALICE],
+            bob: message.addresses[BOB],
             nonce: message.nonce,
             timestamp: message.timestamp,
             messageForAlice: message.messageForAlice,
-            cumulativeDebitAlice: message.cumulativeDebits[env.get("ALICE")],
-            cumulativeDebitBob: message.cumulativeDebits[env.get("BOB")],
+            cumulativeDebitAlice: message.cumulativeDebits[ALICE],
+            cumulativeDebitBob: message.cumulativeDebits[BOB],
         }
     };
 }
@@ -82,13 +83,13 @@ export function signTypedClaim(data: ISignature, privKey: string): string {
  */
 export function recoverTypedClaimSigner(
     data: ISignature,
-    signature: string
+    signature: string | undefined
 ): string {
-    const address = recoverTypedSignature({
+    if (signature === undefined) throw new Error("Invalid signature for recover");
+
+    return recoverTypedSignature({
         data,
         signature,
         version: SignTypedDataVersion.V4
     });
-
-    return Web3.utils.toChecksumAddress(address);
 }
