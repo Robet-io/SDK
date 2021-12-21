@@ -20,7 +20,7 @@ export class CommunicationController {
     }
 
     async onMessageReceived(message: string) {
-        const newClaim = new ClaimTransaction(
+        const newClaim = await new ClaimTransaction(
             this.config.account,
             this.claimDAO,
             this.web3
@@ -33,17 +33,17 @@ export class CommunicationController {
         ) {
             // pagamento suo
             await this.checkAndCountersign(newClaim);
-            this.saveTransaction(newClaim);
-            this.sendClaim(newClaim);
+            await this.saveTransaction(newClaim);
+            await this.sendClaim(newClaim);
         } else if (
             newClaim.claim.signatures[env.get("THEY")] &&
             newClaim.claim.signatures[env.get("ME")] &&
             newClaim.claim.amount > 0 &&
-            this.isSentClaim(newClaim.claim)
+            await this.isProposedTransaction(newClaim.claim)
         ) {
             // controfirma ad un mio pagamento
             if (newClaim.checkSignature()) {
-                this.saveTransaction(newClaim);
+                await this.saveTransaction(newClaim);
             }
         } else if (
             !newClaim.claim.signatures[env.get("THEY")] &&
@@ -61,36 +61,18 @@ export class CommunicationController {
             }
             await this.checkAndSign(newClaim);
 
-            this.sendClaim(newClaim);
+            await this.sendClaim(newClaim);
         }
     }
 
     async pay(amount: number) {
         const newClaim = new ClaimTransaction(this.config.account, this.claimDAO, this.web3);
         await newClaim.createPayment(amount, env.get("serverAddress"));
-        this.sendClaim(newClaim);
-    }
-
-    protected saveTransaction(claimTransaction: ClaimTransaction) {
-        this.claimDAO.saveTransaction(claimTransaction, claimTransaction.claim.addresses[env.get("THEY")]);
-        this.config.onTransactionCompleted(
-            claimTransaction.claim.amount,
-            claimTransaction.claim.addresses[env.get("THEY")],
-            claimTransaction.claim
-        );
-        this.claimDAO.deleteLastSentClaim(claimTransaction.claim.addresses[env.get("THEY")]);
-    }
-
-    protected sendClaim(claimTransaction: ClaimTransaction) {
-        const message = claimTransaction.serialize();
-        this.network?.send(message);
-        if (claimTransaction.claim.signatures[env.get("ME")] && !claimTransaction.claim.signatures[env.get("THEY")]) {
-            this.claimDAO.saveSentClaim(claimTransaction, claimTransaction.claim.addresses[env.get("THEY")]);
-        }
+        await this.sendClaim(newClaim);
     }
 
     async checkAndSign(transaction: ClaimTransaction) {
-        transaction.check();
+        await transaction.check();
 
         if (transaction.claim.amount < 0) {
             throw "Claim with amount inconsistent with sending policies.";
@@ -103,7 +85,7 @@ export class CommunicationController {
     }
 
     async checkAndCountersign(claimTransaction: ClaimTransaction) {
-        claimTransaction.check();
+        await claimTransaction.check();
 
         if (claimTransaction.claim.amount > 0) {
             throw new LibException("Claim with amount inconsistent with sending policies.");
@@ -118,8 +100,8 @@ export class CommunicationController {
         return this;
     }
 
-    isSentClaim(claim: IClaimRequest) {
-        const sentClaim = this.claimDAO.getLastSentClaim(claim.addresses[env.get("THEY")]);
+    async isProposedTransaction(claim: IClaimRequest) {
+        const sentClaim = await this.claimDAO.getProposedTransaction(claim.addresses[env.get("THEY")]);
 
         if (!sentClaim) {
             return false;
@@ -137,5 +119,24 @@ export class CommunicationController {
             isEqual(pick(claim, relevantFields), pick(sentClaim, relevantFields)) &&
             sentClaim.signatures[env.get("ME")] === claim.signatures[env.get("ME")]
         );
+    }
+
+    protected async saveTransaction(claimTransaction: ClaimTransaction) {
+        const response = await this.claimDAO.saveTransaction(claimTransaction, claimTransaction.claim.addresses[env.get("THEY")]);
+        console.log("saveTransaction response:", response);
+        this.config.onTransactionCompleted(
+            claimTransaction.claim.amount,
+            claimTransaction.claim.addresses[env.get("THEY")],
+            claimTransaction.claim
+        );
+        this.claimDAO.deleteProposedTransaction(claimTransaction.claim.addresses[env.get("THEY")]);
+    }
+
+    protected async sendClaim(claimTransaction: ClaimTransaction) {
+        const message = claimTransaction.serialize();
+        this.network?.send(message);
+        if (claimTransaction.claim.signatures[env.get("ME")] && !claimTransaction.claim.signatures[env.get("THEY")]) {
+            await this.claimDAO.saveProposedTransaction(claimTransaction);
+        }
     }
 }

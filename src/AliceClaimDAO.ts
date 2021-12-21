@@ -1,7 +1,4 @@
-import { Web3Provider } from "./Web3Provider";
-import {ClaimDAOInterface, ClaimTransaction, env, IClaimRequest} from "./claim-library";
-import Web3 from "web3";
-
+import {ClaimDAOInterface, ClaimTransaction, IClaimRequest} from "./claim-library";
 
 export class AliceClaimDAO implements ClaimDAOInterface {
     private constructor(protected account: string) {
@@ -17,20 +14,24 @@ export class AliceClaimDAO implements ClaimDAOInterface {
         return this._instance;
     }
 
-    _get(address: string, key: string): IClaimRequest | null {
+    _get(address: string, key: string): IClaimRequest | undefined {
         const storageClaim = window.localStorage.getItem(key);
         if (storageClaim) {
             return JSON.parse(storageClaim);
         }
-        return null;
+        return undefined;
     }
 
-    getLastSentClaim(address: string): IClaimRequest | null {
-        return this._get(address, "wallet-sent-claim");
+    getProposedTransaction(address: string): Promise<IClaimRequest | undefined> {
+        return new Promise((resolve, reject) => {
+            resolve(this._get(address, "wallet-sent-claim"));
+        });
     }
 
-    getLastTransaction(address: string): IClaimRequest | null {
-        return this._get(address, "wallet-last-claim");
+    getLastTransaction(address: string): Promise<IClaimRequest | undefined> {
+        return new Promise((resolve, reject) => {
+            resolve(this._get(address, "wallet-last-claim"));
+        });
     }
 
     saveSentClaim(claim: ClaimTransaction, address: string): void {
@@ -39,11 +40,15 @@ export class AliceClaimDAO implements ClaimDAOInterface {
     }
 
     saveTransaction(claim: ClaimTransaction, address: string): void {
-        window.localStorage.setItem("wallet-last-claim", claim.serialize());
-        console.log(claim.serialize());
+
     }
 
-    deleteLastSentClaim(address: string): void {
+    deleteProposedTransaction(address: string): void {
         window.localStorage.removeItem("wallet-sent-claim");
+    }
+
+    saveProposedTransaction(claim: ClaimTransaction): void {
+        window.localStorage.setItem("wallet-last-claim", claim.serialize());
+        console.log(claim.serialize());
     }
 }

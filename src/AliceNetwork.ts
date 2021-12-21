@@ -14,7 +14,7 @@ class AliceNetwork implements NetworkInterface {
 
     connect() {
         // Create WebSocket connection.
-        this.socket = new WebSocket("ws://localhost:8666");
+        this.socket = new WebSocket("ws://localhost:3000/ws");
         // Connection opened
         this.socket.addEventListener("open", event => {
             console.log("Connection established!");

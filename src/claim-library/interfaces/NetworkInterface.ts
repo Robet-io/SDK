@@ -11,10 +11,6 @@ interface NetworkInterface {
 }
 
 abstract class NetworkBase implements NetworkInterface {
-    abstract connect(): void;
-
-    abstract send(message: string): void;
-
     listener: NetworkListener;
 
     protected constructor() {
@@ -23,6 +19,10 @@ abstract class NetworkBase implements NetworkInterface {
             }
         };
     }
+
+    abstract connect(): void;
+
+    abstract send(message: string): void;
 
     setListener(listener: NetworkListener): void {
         this.listener = listener;
