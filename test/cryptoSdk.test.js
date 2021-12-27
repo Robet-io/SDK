@@ -9,12 +9,28 @@ import claimStorage from '../src/modules/claim-library/claimStorage'
 //   + isMetamaskInstalled,
 //   + isRightNet,
 //   + setRightNet
-// pay
+// pay:
+// 1. claim not saved: a) claim is valid, b) not valid
+// 2. claim saved: a) claim is valid, b) not valid
 // payReceived
 
 describe('cryptoSDK library', () => {
-  const address = process.env.ALICE_ADDRESS
+  const ALICE_ADDRESS = process.env.ALICE_ADDRESS
   const privateKey = process.env.ALICE_PRIVATE_KEY
+  const SERVER_ADDRESS = process.env.SERVER_ADDRESS
+
+  const claimToPay = {
+    id: 1,
+    addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
+    amount: -5,
+    cumulativeDebits: [5, 0],
+    messageForAlice: 'You pay: 5 DE.GA',
+    timestamp: 1639145450856,
+    nonce: 1,
+    signatures: [],
+    type: 'ticket.play'
+  }
+  const aliceSignature = '0x329d06eaee0d9cefdf82866136b28873e26d1bfc2ab5be002b18e410dcdbb71b70fbcc3a13738192d78724310dbd39f4a0f16df384e0b5a64e227a15874307011c'
 
   let events
   beforeEach(() => {
@@ -23,6 +39,27 @@ describe('cryptoSDK library', () => {
       // console.log('====== arrived event', event.detail)
       events.push(event.detail)
     })
+  })
+
+  // mock localStorage
+  let mockFridge = {}
+  beforeAll(() => {
+    global.Storage.prototype.setItem = jest.fn((key, value) => {
+      mockFridge[key] = value
+    })
+    global.Storage.prototype.getItem = jest.fn((key) => {
+      const item = mockFridge[key]
+      return item === undefined ? null : item
+    })
+  })
+
+  beforeEach(() => {
+    mockFridge = {}
+  })
+
+  afterAll(() => {
+    global.Storage.prototype.setItem.mockReset()
+    global.Storage.prototype.getItem.mockReset()
   })
 
   describe('Metamask is not installed', () => {
@@ -49,19 +86,33 @@ describe('cryptoSDK library', () => {
       expect(events[0].type).toEqual(eventType.network)
       expect(events[0].error).toBe(true)
     })
+
+    test('setRightNet() - throws error AND returns error event', async () => {
+      const errorMsg = 'Metamask is not installed'
+      await expect(cryptoSDK.setRightNet()).rejects.toThrowError(errorMsg)
+      expect(events[0].type).toEqual(eventType.network)
+      expect(events[0].error).toBe(true)
+    })
+
+    test('pay() - throws error AND arrives error event ', async () => {
+      const errorMsg = 'Metamask is not installed'
+      await expect(cryptoSDK.pay(claimToPay)).rejects.toThrowError(errorMsg)
+      expect(events[0].type).toEqual(eventType.metamaskNotInstalled)
+      expect(events[0].error).toBe(true)
+    })
   })
 
   describe('window.ethereum', () => {
     describe('the chain is right', () => {
       beforeEach(() => {
         window.ethereum = new MockProvider({
-          address, privateKey, chainId: 97
+          address: ALICE_ADDRESS, privateKey, chainId: 97
         })
       })
 
       test('getAddress() returns address', async () => {
         const account = await cryptoSDK.getAddress()
-        expect(account).toEqual({ address })
+        expect(account).toEqual({ address: ALICE_ADDRESS })
       })
 
       test('isMetamaskInstalled() returns true', async () => {
@@ -80,47 +131,167 @@ describe('cryptoSDK library', () => {
       })
 
       describe('pay()', () => {
-        // let's make a mock fridge (storage) for all our tests to use
-        let mockFridge = {}
-
-        beforeAll(() => {
-          global.Storage.prototype.setItem = jest.fn((key, value) => {
-            mockFridge[key] = value
+        describe('1. pay(), no claim saved in localStorage', () => {
+          test('pay() returns signed claim AND emits event AND saves to localStorage', async () => {
+            expect((await cryptoSDK.pay(claimToPay)).signatures[0]).toBe(aliceSignature)
+            expect(events[0].type).toEqual(eventType.claimSigned)
+            expect((await claimStorage.getClaimAlice()).signatures[0]).toBe(aliceSignature)
           })
-          global.Storage.prototype.getItem = jest.fn((key) => {
-            const item = mockFridge[key]
-            return item === undefined ? null : item
+
+          test("pay(), wrong id: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay,
+              id: 2
+            }
+            const errorMsg = 'Invalid claim id: 2'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
+          })
+
+          test("pay(), wrong nonce: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay,
+              nonce: 2
+            }
+            const errorMsg = 'Invalid claim nonce: 2'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
+          })
+
+          test("pay(), wrong server address: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay,
+              addresses: [ALICE_ADDRESS, ALICE_ADDRESS]
+            }
+            const errorMsg = 'Invalid claim Server address: 0x0f671cad8f3dfa3dcf7fcf8cfe17a3cee4259175 - expected: 0xeA085D9698651e76750F07d0dE0464476187b3ca'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
+          })
+
+          test("pay(), wrong Alice debit: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay,
+              cumulativeDebits: [10, 0]
+            }
+            const errorMsg = 'Invalid claim cumulative debit of Alice: 10 - expected: 5'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
+          })
+
+          test("pay(), wrong Server debit: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay,
+              cumulativeDebits: [5, 10]
+            }
+            const errorMsg = 'Invalid claim cumulative debit of Server: 10 - expected: 0'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
           })
         })
 
-        beforeEach(() => {
-          mockFridge = {}
-        })
+        describe('2. pay(), exists a claim saved in localStorage', () => {
+          const claimToPay2 = {
+            id: 1,
+            addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
+            amount: -6,
+            cumulativeDebits: [11, 0],
+            messageForAlice: 'You pay: 6 DE.GA',
+            timestamp: 1639145450856,
+            nonce: 2,
+            signatures: [aliceSignature, ''],
+            type: 'ticket.play'
+          }
+          const aliceSignature2 = '0x940194654d3894e4c443c11a6723bdac84bf1dd231ec1f409375c974d8ea3adb1d4e052db8243f2eff40c37d46f613097a936c02a17d241283ceec718393e5ff1b'
+          beforeEach(() => {
+            const previousClaim = {
+              id: 1,
+              addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
+              amount: -5,
+              cumulativeDebits: [5, 0],
+              messageForAlice: 'You pay: 5 DE.GA',
+              timestamp: 1639145450856,
+              nonce: 1,
+              signatures: [aliceSignature, ''],
+              type: 'ticket.play'
+            }
+            claimStorage.saveConfirmedClaim(previousClaim)
+          })
 
-        afterAll(() => {
-          global.Storage.prototype.setItem.mockReset()
-          global.Storage.prototype.getItem.mockReset()
-        })
+          test('pay() returns signed claim AND emits event AND saves to localStorage', async () => {
+            expect((await cryptoSDK.pay(claimToPay2)).signatures[0]).toBe(aliceSignature2)
+            expect(events[0].type).toEqual(eventType.claimSigned)
+            expect((await claimStorage.getClaimAlice()).nonce).toBe(2)
+          })
 
-        const SERVER_ADDRESS = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
-        const aliceSignature = '0xd01e8fcb4d8f61bd1dee9d8574f6e8339ab3be6831a1b5c8eabfea64d357ca7057853d1b73120990eed58ce5b89fc4bb8e0dc50215981bec4a63e94196c3adb41c'
+          test("pay(), wrong id: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay2,
+              id: 2
+            }
+            const errorMsg = 'Invalid claim id: 2 - last claim id: 1'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
+          })
 
-        const claimToSign = {
-          id: 1,
-          addresses: [address, SERVER_ADDRESS],
-          amount: 5,
-          cumulativeDebits: [0, 5],
-          messageForAlice: 'You receive: 5 DE.GA',
-          timestamp: 1639145450856,
-          nonce: 1,
-          signatures: [],
-          type: 'ticket.play'
-        }
+          test("pay(), wrong nonce: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay2,
+              nonce: 1
+            }
+            const errorMsg = 'Invalid claim nonce: 1 - last claim nonce: 1'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
+          })
 
-        test('pay() returns signed claim AND emits event AND saves to localStorage', async () => {
-          expect((await cryptoSDK.pay(claimToSign)).signatures[0]).toBe(aliceSignature)
-          expect(events[0].type).toEqual(eventType.claimSigned)
-          expect((await claimStorage.getClaimAlice()).signatures[0]).toBe(aliceSignature)
+          test("pay(), wrong server address: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay2,
+              addresses: [ALICE_ADDRESS, ALICE_ADDRESS]
+            }
+            const errorMsg = 'Invalid claim Server address'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
+          })
+
+          test("pay(), wrong Alice debit: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay2,
+              cumulativeDebits: [10, 0]
+            }
+            const errorMsg = 'Invalid claim cumulative debit of Alice:'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
+          })
+
+          test("pay(), wrong Server debit: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay2,
+              cumulativeDebits: [11, 10]
+            }
+            const errorMsg = 'Invalid claim cumulative debit of Server:'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
+          })
         })
       })
     })
@@ -128,7 +299,7 @@ describe('cryptoSDK library', () => {
     describe('the chain is wrong', () => {
       beforeEach(() => {
         window.ethereum = new MockProvider({
-          address, privateKey, chainId: 16
+          address: ALICE_ADDRESS, privateKey, chainId: 16
         })
       })
 
@@ -164,17 +335,17 @@ describe('cryptoSDK library', () => {
         window.ethereum = undefined
         window.web3 = {
           currentProvider: new MockProvider({
-            address, privateKey, chainId: 97
+            address: ALICE_ADDRESS, privateKey, chainId: 97
           }),
           eth: {
-            accounts: [address]
+            accounts: [ALICE_ADDRESS]
           }
         }
       })
 
       test('getAddress() returns address', async () => {
         const account = await cryptoSDK.getAddress()
-        expect(account).toEqual({ address })
+        expect(account).toEqual({ address: ALICE_ADDRESS })
       })
 
       test('isMetamaskInstalled() returns true', async () => {
@@ -192,6 +363,14 @@ describe('cryptoSDK library', () => {
         expect(events[0].type).toEqual(eventType.network)
         expect(events[0].error).toBe(true)
       })
+
+      describe('pay()', () => {
+        test('pay() returns signed claim AND emits event AND saves to localStorage', async () => {
+          expect((await cryptoSDK.pay(claimToPay)).signatures[0]).toBe(aliceSignature)
+          expect(events[0].type).toEqual(eventType.claimSigned)
+          expect((await claimStorage.getClaimAlice()).signatures[0]).toBe(aliceSignature)
+        })
+      })
     })
 
     describe('the chain is wrong', () => {
@@ -199,10 +378,10 @@ describe('cryptoSDK library', () => {
         window.ethereum = undefined
         window.web3 = {
           currentProvider: new MockProvider({
-            address, privateKey, chainId: 21
+            address: ALICE_ADDRESS, privateKey, chainId: 21
           }),
           eth: {
-            accounts: [address]
+            accounts: [ALICE_ADDRESS]
           }
         }
       })

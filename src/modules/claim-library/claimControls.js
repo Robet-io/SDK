@@ -14,7 +14,7 @@ const claim = {
   type: type
 } */
 
-const SERVER_ADDRESS = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
+const SERVER_ADDRESS = '0xeA085D9698651e76750F07d0dE0464476187b3ca'
 
 /**
  *
@@ -30,17 +30,26 @@ const isValidNewClaim = async (claim) => {
     if (lastClaim.nonce + 1 !== claim.nonce) {
       throw new Error(`Invalid claim nonce: ${claim.nonce} - last claim nonce: ${lastClaim.nonce}`)
     }
+    if (claim.addresses[1] !== SERVER_ADDRESS) {
+      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${SERVER_ADDRESS}`)
+    }
 
     // control cumulative debits
     const lastBalance = lastClaim.cumulativeDebits[1] - lastClaim.cumulativeDebits[0]
     const balance = lastBalance + claim.amount
     if (balance > 0) {
+      if (claim.cumulativeDebits[0] !== 0) {
+        throw new Error(`Invalid claim cumulative debit of Alice: ${claim.cumulativeDebits[0]} - expected: 0`)
+      }
       if (claim.cumulativeDebits[1] !== balance) {
         throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - expected: ${balance}`)
       }
     } else {
       if (claim.cumulativeDebits[0] !== -balance) {
         throw new Error(`Invalid claim cumulative debit of Alice: ${claim.cumulativeDebits[0]} - expected: ${-balance}`)
+      }
+      if (claim.cumulativeDebits[1] !== 0) {
+        throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - expected: 0`)
       }
     }
   } else {
@@ -57,12 +66,18 @@ const isValidNewClaim = async (claim) => {
     // control cumulative debits
     const balance = claim.amount
     if (balance > 0) {
+      if (claim.cumulativeDebits[0] !== 0) {
+        throw new Error(`Invalid claim cumulative debit of Alice: ${claim.cumulativeDebits[0]} - expected: 0`)
+      }
       if (claim.cumulativeDebits[1] !== balance) {
         throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - expected: ${balance}`)
       }
     } else {
       if (claim.cumulativeDebits[0] !== -balance) {
         throw new Error(`Invalid claim cumulative debit of Alice: ${claim.cumulativeDebits[0]} - expected: ${-balance}`)
+      }
+      if (claim.cumulativeDebits[1] !== 0) {
+        throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - expected: 0`)
       }
     }
   }
