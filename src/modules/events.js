@@ -22,7 +22,11 @@ const eventType = {
   address: 'address',
   wrongNetworkOnGetAddress: 'wrongNetworkOnGetAddress',
   metamaskNotInstalled: 'metamaskNotInstalled',
-  general: 'general'
+  general: 'general',
+  claimNotSigned: 'claimNotSigned',
+  claimSigned: 'claimSigned',
+  paymentConfirmed: 'paymentConfirmed',
+  paymentNotConfirmed: 'paymentNotConfirmed'
 }
 
 const cryptoEvent = 'cryptoSDK'

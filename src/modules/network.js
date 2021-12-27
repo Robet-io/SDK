@@ -10,16 +10,7 @@ const CURRENCY_SYMBOL = 'BNB'
 const CURRENCY_DECIMALS = 18
 
 const checkRightNetwork = async (rightNet) => {
-  let web3Provider = false
-
-  if (window.ethereum) {
-    web3Provider = window.ethereum
-  } else if (window.web3) {
-    // Legacy dApp browsers...
-    web3Provider = window.web3.currentProvider
-  } else {
-    throw new Error('Metamask is not installed !!!')
-  }
+  const web3Provider = getWeb3Provider()
 
   if (web3Provider) {
     const networkID = Number(await web3Provider.request({ method: 'eth_chainId' }))
@@ -123,10 +114,23 @@ const setRightNet = async () => {
   }
 }
 
+const getWeb3Provider = () => {
+  if (window.ethereum) {
+    return window.ethereum
+  } else if (window.web3) {
+    // Legacy dApp browsers...
+    return window.web3.currentProvider
+  } else {
+    emitErrorEvent(eventType.metamaskNotInstalled, { error: 'Metamask is not installed' })
+    throw new Error('Metamask is not installed')
+  }
+}
+
 export {
   isRightNet,
   checkRightNetwork,
   setRightNet,
   getValidNetworks,
+  getWeb3Provider,
   CHAIN_ID
 }

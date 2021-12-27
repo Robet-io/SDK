@@ -1,4 +1,5 @@
 // import { personalSign, decrypt } from 'eth-sig-util
+import { signTypedData, SignTypedDataVersion } from '@metamask/eth-sig-util'
 
 const provider = (startProps) => {
   const {
@@ -23,11 +24,15 @@ const provider = (startProps) => {
         case 'wallet_addEthereumChain':
           this.chainId = `0x${Number(97).toString(16)}`
           return Promise.resolve(this.chainId)
-        // case 'eth_signTypedData_v4': {
-        //   const privKey = Buffer.from(privateKey, 'hex')
-        //   const signature = ethSigUtil.signTypedMessage(privKey, { data: props.params[0] })
-        //   return Promise.resolve(signature)
-        // }
+        case 'eth_signTypedData_v4': {
+          const privKey = Buffer.from(privateKey, 'hex')
+          const signature = signTypedData({
+            data: JSON.parse(props.params[1]),
+            privateKey: privKey,
+            version: SignTypedDataVersion.V4
+          })
+          return Promise.resolve(signature)
+        }
         case 'eth_sendTransaction': {
           return Promise.reject(new Error('This service can not send transactions.'))
         }
