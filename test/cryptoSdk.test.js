@@ -5,7 +5,7 @@ import MockProvider from './mocks/MetamaskProvider.js'
 import claimStorage from '../src/modules/claim-library/claimStorage'
 import { signClaim } from './utils'
 
-// TODO test this:
+// to test:
 //   + getAddress,
 //   + isMetamaskInstalled,
 //   + isRightNet,
@@ -21,7 +21,7 @@ import { signClaim } from './utils'
 
 describe('cryptoSDK library', () => {
   const ALICE_ADDRESS = process.env.ALICE_ADDRESS
-  const privateKey = process.env.ALICE_PRIVATE_KEY
+  const ALICE_PRIVATE_KEY = process.env.ALICE_PRIVATE_KEY
   const SERVER_ADDRESS = process.env.SERVER_ADDRESS
   const SERVER_PRIVATE_KEY = process.env.SERVER_PRIVATE_KEY
 
@@ -36,7 +36,7 @@ describe('cryptoSDK library', () => {
     signatures: [],
     type: 'ticket.play'
   }
-  const aliceSignature = '0x329d06eaee0d9cefdf82866136b28873e26d1bfc2ab5be002b18e410dcdbb71b70fbcc3a13738192d78724310dbd39f4a0f16df384e0b5a64e227a15874307011c'
+  const aliceSignature = signClaim(claimToPay, ALICE_PRIVATE_KEY)
   const bobSignature = signClaim(claimToPay, SERVER_PRIVATE_KEY)
 
   const claimToPayRecieved = {
@@ -118,7 +118,9 @@ describe('cryptoSDK library', () => {
     describe('the chain is right', () => {
       beforeEach(() => {
         window.ethereum = new MockProvider({
-          address: ALICE_ADDRESS, privateKey, chainId: 97
+          address: ALICE_ADDRESS,
+          privateKey: ALICE_PRIVATE_KEY,
+          chainId: 97
         })
       })
 
@@ -493,7 +495,9 @@ describe('cryptoSDK library', () => {
     describe('the chain is wrong', () => {
       beforeEach(() => {
         window.ethereum = new MockProvider({
-          address: ALICE_ADDRESS, privateKey, chainId: 16
+          address: ALICE_ADDRESS,
+          privateKey: ALICE_PRIVATE_KEY,
+          chainId: 16
         })
       })
 
@@ -545,7 +549,9 @@ describe('cryptoSDK library', () => {
         window.ethereum = undefined
         window.web3 = {
           currentProvider: new MockProvider({
-            address: ALICE_ADDRESS, privateKey, chainId: 97
+            address: ALICE_ADDRESS,
+            privateKey: ALICE_PRIVATE_KEY,
+            chainId: 97
           }),
           eth: {
             accounts: [ALICE_ADDRESS]
@@ -927,7 +933,9 @@ describe('cryptoSDK library', () => {
         window.ethereum = undefined
         window.web3 = {
           currentProvider: new MockProvider({
-            address: ALICE_ADDRESS, privateKey, chainId: 21
+            address: ALICE_ADDRESS,
+            privateKey: ALICE_PRIVATE_KEY,
+            chainId: 21
           }),
           eth: {
             accounts: [ALICE_ADDRESS]
