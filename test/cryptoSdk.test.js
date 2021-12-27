@@ -12,6 +12,7 @@ import claimStorage from '../src/modules/claim-library/claimStorage'
 // pay:
 // 1. claim not saved: a) claim is valid, b) not valid
 // 2. claim saved: a) claim is valid, b) not valid
+// 3. wrong chain
 // payReceived
 
 describe('cryptoSDK library', () => {

@@ -1,6 +1,7 @@
 /* eslint-disable import/no-anonymous-default-export */
 import {
-  getWeb3Provider
+  getWeb3Provider,
+  checkRightNetwork
 } from './network'
 import {
   emitErrorEvent,
@@ -10,6 +11,13 @@ import {
 import claimLibrary from './claim-library'
 
 const pay = async (claim) => {
+  try {
+    await checkRightNetwork()
+  } catch (error) {
+    emitErrorEvent(eventType.claimNotSigned, error)
+    throw error
+  }
+
   const web3Provider = getWeb3Provider()
   try {
     const claimResult = await claimLibrary.pay(web3Provider, claim)
@@ -22,6 +30,13 @@ const pay = async (claim) => {
 }
 
 const payReceived = async (claim) => {
+  try {
+    await checkRightNetwork()
+  } catch (error) {
+    emitErrorEvent(eventType.paymentNotConfirmed, error)
+    throw error
+  }
+
   try {
     await claimLibrary.payReceived(claim)
     emitEvent(eventType.paymentConfirmed, { claim })

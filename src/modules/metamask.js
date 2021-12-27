@@ -8,11 +8,8 @@ import {
   checkRightNetwork,
   getValidNetworks,
   isRightNet,
-  getWeb3Provider,
   CHAIN_ID
 } from './network'
-
-import claimLibrary from './claim-library'
 
 const _handleChainChanged = async (chainId) => {
   try {
@@ -128,7 +125,5 @@ _initMetamask()
 
 export {
   isMetamaskInstalled,
-  getAddress,
-  // signPayClaim
-  // verifySignature
+  getAddress
 }

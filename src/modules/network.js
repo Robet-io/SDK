@@ -9,7 +9,8 @@ const CURRENCY_NAME = 'BNB'
 const CURRENCY_SYMBOL = 'BNB'
 const CURRENCY_DECIMALS = 18
 
-const checkRightNetwork = async (rightNet) => {
+const checkRightNetwork = async () => {
+  const rightNet = getValidNetworks()
   const web3Provider = getWeb3Provider()
 
   if (web3Provider) {
@@ -68,7 +69,7 @@ const getValidNetworks = () => {
 
 const isRightNet = async () => {
   try {
-    const result = await checkRightNetwork(getValidNetworks())
+    const result = await checkRightNetwork()
     emitEvent(eventType.network, result)
     return result
   } catch (error) {
@@ -96,7 +97,7 @@ const setRightNet = async () => {
     /* eslint-disable */
     try {
       await ethereum.request({ method: 'wallet_addEthereumChain', params: data })
-      const isRightNetResult = await checkRightNetwork(getValidNetworks())
+      const isRightNetResult = await checkRightNetwork()
       if (isRightNetResult) {
         emitEvent(eventType.network, 'Success, network is set to the right one')
       } else {
