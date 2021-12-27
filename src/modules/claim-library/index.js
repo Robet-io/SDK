@@ -39,7 +39,6 @@ const domain = {
 /**
  *
  * @param message
- * @param domain
  */
 function _buildTypedClaim (claim) {
   return {
@@ -89,7 +88,6 @@ const _verifySignature = (claim, ofAlice = false) => {
       signature: signature,
       version: SignTypedDataVersion.V4
     })
-    console.log(addressSigner, claim.addresses[signer])
     return addressSigner.toUpperCase() === claim.addresses[signer].toUpperCase()
   } catch (error) {
     return false

@@ -39,14 +39,14 @@ const isValidNewClaim = async (claim) => {
     const balance = lastBalance + claim.amount
     if (balance > 0) {
       if (claim.cumulativeDebits[0] !== 0) {
-        throw new Error(`Invalid claim cumulative debit of Alice: ${claim.cumulativeDebits[0]} - expected: 0`)
+        throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - expected: 0`)
       }
       if (claim.cumulativeDebits[1] !== balance) {
         throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - expected: ${balance}`)
       }
     } else {
       if (claim.cumulativeDebits[0] !== -balance) {
-        throw new Error(`Invalid claim cumulative debit of Alice: ${claim.cumulativeDebits[0]} - expected: ${-balance}`)
+        throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - expected: ${-balance}`)
       }
       if (claim.cumulativeDebits[1] !== 0) {
         throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - expected: 0`)
@@ -67,14 +67,14 @@ const isValidNewClaim = async (claim) => {
     const balance = claim.amount
     if (balance > 0) {
       if (claim.cumulativeDebits[0] !== 0) {
-        throw new Error(`Invalid claim cumulative debit of Alice: ${claim.cumulativeDebits[0]} - expected: 0`)
+        throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - expected: 0`)
       }
       if (claim.cumulativeDebits[1] !== balance) {
         throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - expected: ${balance}`)
       }
     } else {
       if (claim.cumulativeDebits[0] !== -balance) {
-        throw new Error(`Invalid claim cumulative debit of Alice: ${claim.cumulativeDebits[0]} - expected: ${-balance}`)
+        throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - expected: ${-balance}`)
       }
       if (claim.cumulativeDebits[1] !== 0) {
         throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - expected: 0`)
@@ -119,6 +119,12 @@ const _areEqualClaims = (claim, savedClaim) => {
   }
   if (savedClaim.type !== claim.type) {
     throw new Error(`Invalid claim type: ${claim.type} - saved claim type: ${savedClaim.type}`)
+  }
+  if (savedClaim.addresses[0] !== claim.addresses[0]) {
+    throw new Error(`Invalid address of Client: ${claim.addresses[0]} - saved claim: ${savedClaim.addresses[0]}`)
+  }
+  if (savedClaim.addresses[1] !== claim.addresses[1]) {
+    throw new Error(`Invalid address of Server: ${claim.addresses[1]} - saved claim: ${savedClaim.addresses[1]}`)
   }
   return true
 }
