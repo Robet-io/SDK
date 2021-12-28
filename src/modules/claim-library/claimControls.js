@@ -37,21 +37,8 @@ const isValidNewClaim = async (claim) => {
     // control cumulative debits
     const lastBalance = lastClaim.cumulativeDebits[1] - lastClaim.cumulativeDebits[0]
     const balance = lastBalance + claim.amount
-    if (balance > 0) {
-      if (claim.cumulativeDebits[0] !== 0) {
-        throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - expected: 0`)
-      }
-      if (claim.cumulativeDebits[1] !== balance) {
-        throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - expected: ${balance}`)
-      }
-    } else {
-      if (claim.cumulativeDebits[0] !== -balance) {
-        throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - expected: ${-balance}`)
-      }
-      if (claim.cumulativeDebits[1] !== 0) {
-        throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - expected: 0`)
-      }
-    }
+
+    _controlDebits(balance, claim.cumulativeDebits)
   } else {
     if (claim.id !== 1) {
       throw new Error(`Invalid claim id: ${claim.id}`)
@@ -65,23 +52,27 @@ const isValidNewClaim = async (claim) => {
 
     // control cumulative debits
     const balance = claim.amount
-    if (balance > 0) {
-      if (claim.cumulativeDebits[0] !== 0) {
-        throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - expected: 0`)
-      }
-      if (claim.cumulativeDebits[1] !== balance) {
-        throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - expected: ${balance}`)
-      }
-    } else {
-      if (claim.cumulativeDebits[0] !== -balance) {
-        throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - expected: ${-balance}`)
-      }
-      if (claim.cumulativeDebits[1] !== 0) {
-        throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - expected: 0`)
-      }
-    }
+    _controlDebits(balance, claim.cumulativeDebits)
   }
   return true
+}
+
+const _controlDebits = (balance, cumulativeDebits) => {
+  if (balance > 0) {
+    if (cumulativeDebits[0] !== 0) {
+      throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[0]} - expected: 0`)
+    }
+    if (cumulativeDebits[1] !== balance) {
+      throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[1]} - expected: ${balance}`)
+    }
+  } else {
+    if (cumulativeDebits[0] !== -balance) {
+      throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[0]} - expected: ${-balance}`)
+    }
+    if (cumulativeDebits[1] !== 0) {
+      throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[1]} - expected: 0`)
+    }
+  }
 }
 
 /**
