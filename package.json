@@ -1,38 +1,23 @@
 {
   "name": "crypto-sdk",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist/index.js",
-  "module": "dist/index.es.js",
-  "browser": "dist/index.umd.js",
+  "version": "0.0.1",
+  "main": "dist/crypto-sdk.js",
+  "module": "dist/crypto-sdk.es.js",
+  "browser": "dist/crypto-sdk.umd.js",
   "scripts": {
-    "test": "NODE_ENV=test jest",
-    "build": "rollup -c",
-    "watch": "rollup -c -w"
+    "build": "vite build",
+    "test": "jest"
   },
-  "engines": {
-    "node": "12.16.1",
-    "npm": "6.13.4"
-  },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
-    "@babel/core": "^7.13.1",
     "@babel/plugin-transform-runtime": "^7.16.5",
     "@babel/preset-env": "^7.16.5",
-    "@rollup/plugin-commonjs": "^21.0.1",
-    "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^11.2.0",
-    "babel-loader": "^8.2.2",
-    "jest": "^27.4.5",
     "babel-jest": "^27.4.5",
-    "rollup": "^2.39.1",
-    "rollup-plugin-babel": "^4.4.0",
-    "rollup-plugin-terser": "^7.0.2",
-    "standard": "^16.0.4"
+    "dotenv": "^10.0.0",
+    "jest": "^27.4.5",
+    "vite": "^2.7.2"
   },
   "dependencies": {
     "@metamask/eth-sig-util": "^4.0.0",
-    "dotenv": "^10.0.0"
+    "web3": "^1.6.1"
   }
 }

@@ -1,7 +1,10 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { recoverTypedSignature, SignTypedDataVersion } from '@metamask/eth-sig-util'
+// import ethSigUtil from '@metamask/eth-sig-util'
 import claimControls from './claimControls'
 import claimStorage from './claimStorage'
+// import Web3 from 'web3'
+// import { ether } from 'ether'
 
 // TODO bring data from env vars
 const CHAIN_ID = 97
@@ -104,6 +107,8 @@ const pay = async (web3Provider, claim) => {
     quindi se tutto ok FIRMA e manda al client
     che poi mandera al server...
   */
+
+  // const web3 = new Web3(web3Provider)
   const claimIsValid = await claimControls.isValidNewClaim(claim)
   if (claimIsValid) {
     const msg = _buildTypedClaim(claim)

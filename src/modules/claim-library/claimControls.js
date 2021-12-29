@@ -23,6 +23,7 @@ const SERVER_ADDRESS = '0xeA085D9698651e76750F07d0dE0464476187b3ca'
 const isValidNewClaim = async (claim) => {
   // TODO Alice's balance in Vault??
   const lastClaim = await claimStorage.getConfirmedClaim()
+
   if (lastClaim) {
     if (lastClaim.id !== claim.id) {
       throw new Error(`Invalid claim id: ${claim.id} - last claim id: ${lastClaim.id}`)
