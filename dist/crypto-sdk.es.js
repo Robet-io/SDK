@@ -1,3 +1,4 @@
+import { recoverTypedSignature, SignTypedDataVersion } from "@metamask/eth-sig-util";
 const addEventListener = (cb) => {
   document.addEventListener(cryptoEvent, cb);
 };
@@ -390,29 +391,51 @@ const _verifySignature = (claim, ofAlice = false) => {
   if (ofAlice) {
     signer = 0;
   }
-  _buildTypedClaim(claim);
-  claim.signatures[signer];
-  return true;
+  const data = _buildTypedClaim(claim);
+  const signature = claim.signatures[signer];
+  try {
+    const addressSigner = recoverTypedSignature({
+      data,
+      signature,
+      version: SignTypedDataVersion.V4
+    });
+    return addressSigner.toUpperCase() === claim.addresses[signer].toUpperCase();
+  } catch (error) {
+    return false;
+  }
 };
 const pay$1 = async (web3Provider, claim) => {
   const claimIsValid = await claimControls.isValidNewClaim(claim);
   if (claimIsValid) {
-    const msg = _buildTypedClaim(claim);
-    const from = claim.addresses[0];
-    claim.signatures[0] = await web3Provider.request({
-      method: "eth_signTypedData_v4",
-      params: [from, JSON.stringify(msg)],
-      from
-    });
-    claimStorage.saveClaimAlice(claim);
-    return claim;
+    const balanceIsEnough = await _isBalanceEnough();
+    if (balanceIsEnough === true) {
+      await _signClaim(claim, web3Provider);
+      claimStorage.saveClaimAlice(claim);
+      return claim;
+    } else {
+      throw new Error("Not enough balance");
+    }
   }
+};
+const _isBalanceEnough = async (claim, web3Provider) => {
+  return true;
+};
+const _signClaim = async (claim, web3Provider) => {
+  const msg = _buildTypedClaim(claim);
+  const from = claim.addresses[0];
+  claim.signatures[0] = await web3Provider.request({
+    method: "eth_signTypedData_v4",
+    params: [from, JSON.stringify(msg)],
+    from
+  });
 };
 const payReceived$1 = async (claim) => {
   const claimIsValid = await claimControls.isValidClaimAlice(claim);
   if (claimIsValid) {
     if (_verifySignature(claim)) {
       claimStorage.saveConfirmedClaim(claim);
+    } else {
+      throw new Error("Server's signature is not verified");
     }
   }
 };

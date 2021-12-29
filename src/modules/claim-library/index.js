@@ -1,10 +1,7 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { recoverTypedSignature, SignTypedDataVersion } from '@metamask/eth-sig-util'
-// import ethSigUtil from '@metamask/eth-sig-util'
 import claimControls from './claimControls'
 import claimStorage from './claimStorage'
-// import Web3 from 'web3'
-// import { ether } from 'ether'
 
 // TODO bring data from env vars
 const CHAIN_ID = 97
@@ -107,21 +104,42 @@ const pay = async (web3Provider, claim) => {
     quindi se tutto ok FIRMA e manda al client
     che poi mandera al server...
   */
-
-  // const web3 = new Web3(web3Provider)
   const claimIsValid = await claimControls.isValidNewClaim(claim)
   if (claimIsValid) {
-    const msg = _buildTypedClaim(claim)
-    const from = claim.addresses[0]
-    claim.signatures[0] = await web3Provider.request({
-      method: 'eth_signTypedData_v4',
-      params: [from, JSON.stringify(msg)],
-      from: from
-    })
-
-    claimStorage.saveClaimAlice(claim)
-    return claim
+    // control balance
+    const balanceIsEnough = await _isBalanceEnough(claim, web3Provider)
+    if (balanceIsEnough === true) {
+      await _signClaim(claim, web3Provider)
+      claimStorage.saveClaimAlice(claim)
+      return claim
+    } else {
+      throw new Error('Not enough balance')
+    }
   }
+}
+
+const _isBalanceEnough = async (claim, web3Provider) => {
+  // if (claim.amount < 0) {
+  //   // Alice pays
+  //   const balance = await web3Provider.request({
+  //     method: 'eth_call',
+  //     params: [from, JSON.stringify(msg)],
+  //     from: from
+  //   })
+  // } else {
+  //   // Server pays
+  // }
+  return true
+}
+
+const _signClaim = async (claim, web3Provider) => {
+  const msg = _buildTypedClaim(claim)
+  const from = claim.addresses[0]
+  claim.signatures[0] = await web3Provider.request({
+    method: 'eth_signTypedData_v4',
+    params: [from, JSON.stringify(msg)],
+    from: from
+  })
 }
 
 const payReceived = async (claim) => {

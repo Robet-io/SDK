@@ -1,0 +1,3 @@
+const setContract = (address, abi) => {
+    
+}
