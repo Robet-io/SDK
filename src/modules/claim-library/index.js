@@ -2,7 +2,8 @@
 import { recoverTypedSignature, SignTypedDataVersion } from '@metamask/eth-sig-util'
 import claimControls from './claimControls'
 import claimStorage from './claimStorage'
-import getVaultBalance from '../blockchain/getVaultBalance'
+// import getVaultBalance from '../blockchain/getVaultBalance'
+import blockchain from '../blockchain'
 
 const {
   CSDK_CHAIN_ID, CSDK_CHAIN_NAME,
@@ -144,7 +145,7 @@ const _isBalanceEnough = async (claim, web3Provider) => {
  */
 const _checkBalance = async (claim, index, web3Provider) => {
   try {
-    const {balance} = await getVaultBalance(claim.addresses[index], web3Provider)
+    const {balance} = await blockchain.getVaultBalance(claim.addresses[index], web3Provider)
     if (balance >= claim.cumulativeDebits[index]) {
       return true
     } else {

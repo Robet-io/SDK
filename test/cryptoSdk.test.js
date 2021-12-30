@@ -21,18 +21,20 @@ import { signClaim } from './utils'
 /*
 */
 
-
-jest.mock('../src/modules/blockchain/getVaultBalance', () => {
-  return (address) => {
-    if (address === process.env.CSDK_ALICE_ADDRESS_WRONG) {
-      return ({ balance: 1 })
-    } else {
-      return ({ balance: 20 })
+jest.mock('../src/modules/blockchain', () => {
+  return {
+    __esModule: true,
+    default: {
+      getVaultBalance: jest.fn((address) => {
+        if (address === process.env.CSDK_ALICE_ADDRESS_WRONG) {
+          return ({ balance: 1 })
+        } else {
+          return ({ balance: 20 })
+        }
+      })
     }
   }
 })
-
-
 
 describe('cryptoSDK library', () => {
 
