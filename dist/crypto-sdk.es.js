@@ -26,13 +26,13 @@ const eventType = {
   paymentNotConfirmed: "paymentNotConfirmed"
 };
 const cryptoEvent = "cryptoSDK";
-const CHAIN_ID$1 = 97;
-const CHAIN_NAME$1 = "BSC Testnet2";
-const RPC_URL = "https://data-seed-prebsc-1-s1.binance.org";
-const CHAIN_EXPLORER = "https://testnet.bscscan.com/";
-const CURRENCY_NAME = "BNB";
-const CURRENCY_SYMBOL = "BNB";
-const CURRENCY_DECIMALS = 18;
+const CSDK_CHAIN_ID$1 = "1000";
+const CSDK_CHAIN_NAME$1 = "BSC Testnet";
+const CSDK_RPC_URL = "https://data-seed-prebsc-1-s1.binance.org";
+const CSDK_CHAIN_EXPLORER = "https://testnet.bscscan.com/";
+const CSDK_CURRENCY_NAME = "BNB";
+const CSDK_CURRENCY_SYMBOL = "BNB";
+const CSDK_CURRENCY_DECIMALS = "18";
 const checkRightNetwork = async () => {
   const rightNet = getValidNetworks();
   const web3Provider = getWeb3Provider();
@@ -75,14 +75,14 @@ const networksNames = (netId = false) => {
       return names[netId];
     } else {
       console.error(`Network ID ${netId} Not found in the networksNames list`);
-      return networksNames(CHAIN_ID$1);
+      return networksNames(CSDK_CHAIN_ID$1);
     }
   } else {
     return names;
   }
 };
 const getValidNetworks = () => {
-  return [Number(CHAIN_ID$1)];
+  return [Number(CSDK_CHAIN_ID$1)];
 };
 const isRightNet = async () => {
   try {
@@ -97,17 +97,17 @@ const isRightNet = async () => {
 const setRightNet = async () => {
   if (window.ethereum) {
     const ethereum = window.ethereum;
-    const chainIdHex = `0x${Number(CHAIN_ID$1).toString(16)}`;
+    const chainIdHex = `0x${Number(CSDK_CHAIN_ID$1).toString(16)}`;
     const data = [{
       chainId: chainIdHex,
-      chainName: CHAIN_NAME$1,
+      chainName: CSDK_CHAIN_NAME$1,
       nativeCurrency: {
-        name: CURRENCY_NAME,
-        symbol: CURRENCY_SYMBOL,
-        decimals: CURRENCY_DECIMALS
+        name: CSDK_CURRENCY_NAME,
+        symbol: CSDK_CURRENCY_SYMBOL,
+        decimals: CSDK_CURRENCY_DECIMALS
       },
-      rpcUrls: [RPC_URL],
-      blockExplorerUrls: [CHAIN_EXPLORER]
+      rpcUrls: [CSDK_RPC_URL],
+      blockExplorerUrls: [CSDK_CHAIN_EXPLORER]
     }];
     try {
       await ethereum.request({ method: "wallet_addEthereumChain", params: data });
@@ -151,11 +151,10 @@ const _handleChainChanged = async (chainId) => {
   }
 };
 const _initMetamask = () => {
-  console.log('#\xA0#\xA0#\xA0# "10000"', "10000");
-  console.log('#\xA0#\xA0#\xA0#\xA0"10000"', "10000");
+  console.log("#### CSDK_CHAIN_ID", "1000");
   if (window.ethereum) {
     if (!window.ethereum.chainId) {
-      window.ethereum.chainId = CHAIN_ID$1;
+      window.ethereum.chainId = "1000";
     }
     window.ethereum.on("accountsChanged", async (accounts) => {
       console.log("#### - Metamask: accountsChanged - accounts", accounts);
@@ -257,7 +256,7 @@ var claimStorage = {
   saveClaimAlice,
   getClaimAlice
 };
-const SERVER_ADDRESS = "0xeA085D9698651e76750F07d0dE0464476187b3ca";
+const CSDK_SERVER_ADDRESS = "0xeA085D9698651e76750F07d0dE0464476187b3ca";
 const isValidNewClaim = async (claim) => {
   const lastClaim = await claimStorage.getConfirmedClaim();
   if (lastClaim) {
@@ -267,8 +266,8 @@ const isValidNewClaim = async (claim) => {
     if (lastClaim.nonce + 1 !== claim.nonce) {
       throw new Error(`Invalid claim nonce: ${claim.nonce} - last claim nonce: ${lastClaim.nonce}`);
     }
-    if (claim.addresses[1] !== SERVER_ADDRESS) {
-      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${SERVER_ADDRESS}`);
+    if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
+      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`);
     }
     const lastBalance = lastClaim.cumulativeDebits[1] - lastClaim.cumulativeDebits[0];
     const balance = lastBalance + claim.amount;
@@ -280,8 +279,8 @@ const isValidNewClaim = async (claim) => {
     if (claim.nonce !== 1) {
       throw new Error(`Invalid claim nonce: ${claim.nonce}`);
     }
-    if (claim.addresses[1] !== SERVER_ADDRESS) {
-      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${SERVER_ADDRESS}`);
+    if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
+      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`);
     }
     const balance = claim.amount;
     _controlDebits(balance, claim.cumulativeDebits);
@@ -346,28 +345,90 @@ var claimControls = {
   isValidNewClaim,
   isValidClaimAlice
 };
-const callSContract = async (contract, method, params) => {
-  return await contract.methods[method](params).call();
-};
-const initSContract = (web3Provider, contractAddress = vaultAddress, contractAbi) => {
+var abi = [
+  {
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "clientAddress",
+        type: "address"
+      }
+    ],
+    name: "balanceOf",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      }
+    ],
+    name: "balances",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "deposit",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  }
+];
+const vaultAddress = "0xBC8655Fbb4ec8E3cc9edef00f05841A776907311";
+const initContract = (web3Provider, contractAddress = vaultAddress, contractAbi = abi) => {
   const web3 = new Web3(web3Provider);
   const contract = new web3.eth.Contract(contractAbi, contractAddress);
   return contract;
 };
-const getVaultBalance = async (address, web3Provider) => {
-  const contract = initSContract(web3Provider);
-  const web3 = new Web3();
-  const balance = web3.utils.fromWei(await callSContract(contract, "balanceOf", address));
-  return { balance };
+const callMethod = async (contract, method, params) => {
+  return await contract.methods[method](params).call();
 };
-const CHAIN_ID = 97;
-const CHAIN_NAME = "BSC Testnet";
-const CONTRACT_VAULT_ADDRESS = "0xBC8655Fbb4ec8E3cc9edef00f05841A776907311";
+const getVaultBalance = async (address, web3Provider) => {
+  const contract = initContract(web3Provider);
+  const web3 = new Web3();
+  const balance = web3.utils.fromWei(await callMethod(contract, "balanceOf", address));
+  return balance;
+};
+var blockchain = {
+  getVaultBalance
+};
+const CSDK_CHAIN_ID = "1000";
+const CSDK_CHAIN_NAME = "BSC Testnet";
+const CSDK_CONTRACT_VAULT_ADDRESS = "0xBC8655Fbb4ec8E3cc9edef00f05841A776907311";
 const domain = {
-  name: CHAIN_NAME,
+  name: CSDK_CHAIN_NAME,
   version: "1",
-  chainId: CHAIN_ID,
-  verifyingContract: CONTRACT_VAULT_ADDRESS
+  chainId: CSDK_CHAIN_ID,
+  verifyingContract: CSDK_CONTRACT_VAULT_ADDRESS
 };
 function _buildTypedClaim(claim) {
   return {
@@ -421,7 +482,7 @@ const _verifySignature = (claim, ofAlice = false) => {
     return false;
   }
 };
-const pay$1 = async (web3Provider, claim) => {
+const pay$1 = async (claim, web3Provider) => {
   const claimIsValid = await claimControls.isValidNewClaim(claim);
   if (claimIsValid) {
     const balanceIsEnough = await _isBalanceEnough(claim, web3Provider);
@@ -440,7 +501,7 @@ const _isBalanceEnough = async (claim, web3Provider) => {
 };
 const _checkBalance = async (claim, index, web3Provider) => {
   try {
-    const { balance } = await getVaultBalance(claim.addresses[index], web3Provider);
+    const { balance } = await blockchain.getVaultBalance(claim.addresses[index], web3Provider);
     if (balance >= claim.cumulativeDebits[index]) {
       return true;
     } else {
@@ -482,7 +543,7 @@ const pay = async (claim) => {
   }
   const web3Provider = getWeb3Provider();
   try {
-    const claimResult = await claimLibrary.pay(web3Provider, claim);
+    const claimResult = await claimLibrary.pay(claim, web3Provider);
     emitEvent(eventType.claimSigned, { claim: claimResult });
     return claimResult;
   } catch (error) {

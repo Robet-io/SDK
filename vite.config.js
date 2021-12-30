@@ -1,16 +1,15 @@
-import { defineConfig } from "vite"
-import path from "path"
 
-export default defineConfig(({mode}) => {
-  const dotEnvFile = mode ? `./.env.${mode}` : './.env' 
+/* eslint-disable */
+import { defineConfig } from 'vite'
+import path from 'path'
+
+export default defineConfig(({ mode }) => {
+  const dotEnvFile = mode ? `./.env.${mode}` : './.env'
   console.log('dotEnvFile', dotEnvFile)
   require('dotenv').config({ path: dotEnvFile })
-  
+
   return {
     define: {
-      "process.env.CSDK_CHAIN_ID": `"${process.env.CSDK_CHAIN_ID}"`,
-      "process.env.CSDK_CHAIN_ID": `"${process.env.CSDK_CHAIN_ID}"`,
-
       "process.env.CSDK_ALICE_ADDRESS": `"${process.env.CSDK_ALICE_ADDRESS}"`,
       "process.env.CSDK_ALICE_PRIVATE_KEY": `"${process.env.CSDK_ALICE_PRIVATE_KEY}"`,
 
@@ -32,8 +31,8 @@ export default defineConfig(({mode}) => {
     },
     build: {
       lib: {
-        entry: path.resolve(__dirname, "src/index.js"),
-        name: 'cryptoSDK',
+        entry: path.resolve(__dirname, 'src/index.js'),
+        name: 'cryptoSDK'
         // fileName: (format) => `crypto-sdk.${format}.js`
       },
       rollupOptions: {
@@ -49,11 +48,11 @@ export default defineConfig(({mode}) => {
           }
         }
       }
-    },
+    }
   }
 })
 
-/* 
+/*
 module.exports = defineConfig({
   build: {
     lib: {

@@ -1,12 +1,13 @@
 import { emitEvent, emitErrorEvent, eventType } from './events'
 
 // TODO: bring the chain_id (process.env ?? - )
-const {
-  CSDK_CHAIN_ID, CSDK_CHAIN_NAME,
-  CSDK_RPC_URL, CSDK_CHAIN_EXPLORER,
-  CSDK_CURRENCY_NAME, CSDK_CURRENCY_SYMBOL,
-  CSDK_CURRENCY_DECIMALS
-} = process.env
+const CSDK_CHAIN_ID = process.env.CSDK_CHAIN_ID
+const CSDK_CHAIN_NAME = process.env.CSDK_CHAIN_NAME
+const CSDK_RPC_URL = process.env.CSDK_RPC_URL
+const CSDK_CHAIN_EXPLORER = process.env.CSDK_CHAIN_EXPLORER
+const CSDK_CURRENCY_NAME = process.env.CSDK_CURRENCY_NAME
+const CSDK_CURRENCY_SYMBOL = process.env.CSDK_CURRENCY_SYMBOL
+const CSDK_CURRENCY_DECIMALS = process.env.CSDK_CURRENCY_DECIMALS
 
 const checkRightNetwork = async () => {
   const rightNet = getValidNetworks()

@@ -5,10 +5,9 @@ import claimStorage from './claimStorage'
 // import getVaultBalance from '../blockchain/getVaultBalance'
 import blockchain from '../blockchain'
 
-const {
-  CSDK_CHAIN_ID, CSDK_CHAIN_NAME,
-  CSDK_CONTRACT_VAULT_ADDRESS
-} = process.env
+const CSDK_CHAIN_ID = process.env.CSDK_CHAIN_ID
+const CSDK_CHAIN_NAME = process.env.CSDK_CHAIN_NAME
+const CSDK_CONTRACT_VAULT_ADDRESS = process.env.CSDK_CONTRACT_VAULT_ADDRESS
 
 // const claimType = {
 //   TYPE_REFUND: 'ticket.refund',
@@ -20,13 +19,12 @@ const {
 // TODO
 /*
 
-*/
 const win = async () => {
   // Ricevo claim di vincita firmato solo da SERVER BOB
   // Verifico e in caso controfirmo e mando al client
   // Salvo anche su local storage
 }
-
+*/
 const domain = {
   name: CSDK_CHAIN_NAME,
   version: '1',
@@ -145,7 +143,7 @@ const _isBalanceEnough = async (claim, web3Provider) => {
  */
 const _checkBalance = async (claim, index, web3Provider) => {
   try {
-    const {balance} = await blockchain.getVaultBalance(claim.addresses[index], web3Provider)
+    const { balance } = await blockchain.getVaultBalance(claim.addresses[index], web3Provider)
     if (balance >= claim.cumulativeDebits[index]) {
       return true
     } else {

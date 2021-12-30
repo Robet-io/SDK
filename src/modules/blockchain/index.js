@@ -2,9 +2,7 @@
 import Web3 from 'web3'
 import abi from './abi/VaultSimple.json'
 
-// import getVaultBalance from './getVaultBalance'
-
-const vaultAddress = '0x92B182F9D931fe2a1399430D1b7D0187849797ef'
+const vaultAddress = process.env.CSDK_CONTRACT_VAULT_ADDRESS
 
 const initContract = (web3Provider, contractAddress = vaultAddress, contractAbi = abi) => {
   const web3 = new Web3(web3Provider)
@@ -26,4 +24,3 @@ const getVaultBalance = async (address, web3Provider) => {
 export default {
   getVaultBalance
 }
-
