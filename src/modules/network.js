@@ -1,13 +1,12 @@
 import { emitEvent, emitErrorEvent, eventType } from './events'
 
 // TODO: bring the chain_id (process.env ?? - )
-const CHAIN_ID = 97
-const CHAIN_NAME = 'BSC Testnet2'
-const RPC_URL = 'https://data-seed-prebsc-1-s1.binance.org'
-const CHAIN_EXPLORER = 'https://testnet.bscscan.com/'
-const CURRENCY_NAME = 'BNB'
-const CURRENCY_SYMBOL = 'BNB'
-const CURRENCY_DECIMALS = 18
+const {
+  CSDK_CHAIN_ID, CSDK_CHAIN_NAME,
+  CSDK_RPC_URL, CSDK_CHAIN_EXPLORER,
+  CSDK_CURRENCY_NAME, CSDK_CURRENCY_SYMBOL,
+  CSDK_CURRENCY_DECIMALS
+} = process.env
 
 const checkRightNetwork = async () => {
   const rightNet = getValidNetworks()
@@ -55,7 +54,7 @@ const networksNames = (netId = false) => {
       return names[netId]
     } else {
       console.error(`Network ID ${netId} Not found in the networksNames list`)
-      return networksNames(CHAIN_ID)
+      return networksNames(CSDK_CHAIN_ID)
     }
   } else {
     return names
@@ -64,7 +63,7 @@ const networksNames = (netId = false) => {
 
 const getValidNetworks = () => {
   // TODO array - two nets
-  return [Number(CHAIN_ID)]
+  return [Number(CSDK_CHAIN_ID)]
 }
 
 const isRightNet = async () => {
@@ -81,18 +80,18 @@ const isRightNet = async () => {
 const setRightNet = async () => {
   if (window.ethereum) {
     const ethereum = window.ethereum
-    const chainIdHex = `0x${Number(CHAIN_ID).toString(16)}`
+    const chainIdHex = `0x${Number(CSDK_CHAIN_ID).toString(16)}`
     const data = [{
       chainId: chainIdHex, // '0x61'
-      chainName: CHAIN_NAME,
+      chainName: CSDK_CHAIN_NAME,
       nativeCurrency:
         {
-          name: CURRENCY_NAME,
-          symbol: CURRENCY_SYMBOL,
-          decimals: CURRENCY_DECIMALS
+          name: CSDK_CURRENCY_NAME,
+          symbol: CSDK_CURRENCY_SYMBOL,
+          decimals: CSDK_CURRENCY_DECIMALS
         },
-      rpcUrls: [RPC_URL],
-      blockExplorerUrls: [CHAIN_EXPLORER]
+      rpcUrls: [CSDK_RPC_URL],
+      blockExplorerUrls: [CSDK_CHAIN_EXPLORER]
     }]
     /* eslint-disable */
     try {
@@ -132,6 +131,5 @@ export {
   checkRightNetwork,
   setRightNet,
   getValidNetworks,
-  getWeb3Provider,
-  CHAIN_ID
+  getWeb3Provider
 }

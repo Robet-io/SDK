@@ -14,14 +14,13 @@ const claim = {
   type: type
 } */
 
-const SERVER_ADDRESS = '0xeA085D9698651e76750F07d0dE0464476187b3ca'
+const CSDK_SERVER_ADDRESS = process.env.CSDK_SERVER_ADDRESS
 
 /**
  *
  * @param {obj} claim new claim for Alice
  */
 const isValidNewClaim = async (claim) => {
-  // TODO Alice's balance in Vault??
   const lastClaim = await claimStorage.getConfirmedClaim()
   if (lastClaim) {
     if (lastClaim.id !== claim.id) {
@@ -30,8 +29,8 @@ const isValidNewClaim = async (claim) => {
     if (lastClaim.nonce + 1 !== claim.nonce) {
       throw new Error(`Invalid claim nonce: ${claim.nonce} - last claim nonce: ${lastClaim.nonce}`)
     }
-    if (claim.addresses[1] !== SERVER_ADDRESS) {
-      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${SERVER_ADDRESS}`)
+    if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
+      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`)
     }
 
     // control cumulative debits
@@ -46,8 +45,8 @@ const isValidNewClaim = async (claim) => {
     if (claim.nonce !== 1) {
       throw new Error(`Invalid claim nonce: ${claim.nonce}`)
     }
-    if (claim.addresses[1] !== SERVER_ADDRESS) {
-      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${SERVER_ADDRESS}`)
+    if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
+      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`)
     }
 
     // control cumulative debits
@@ -57,6 +56,11 @@ const isValidNewClaim = async (claim) => {
   return true
 }
 
+/**
+ *
+ * @param {int} balance
+ * @param {array} cumulativeDebits
+ */
 const _controlDebits = (balance, cumulativeDebits) => {
   if (balance > 0) {
     if (cumulativeDebits[0] !== 0) {
@@ -92,6 +96,11 @@ const isValidClaimAlice = async (claim) => {
   return isValid
 }
 
+/**
+ *
+ * @param {obj} claim
+ * @param {obj} savedClaim
+ */
 const _areEqualClaims = (claim, savedClaim) => {
   if (savedClaim.id !== claim.id) {
     throw new Error(`Invalid claim id: ${claim.id} - saved claim id: ${savedClaim.id}`)
@@ -122,22 +131,6 @@ const _areEqualClaims = (claim, savedClaim) => {
 
 // const _isEmpty = (obj) => {
 //   return Object.keys(obj).length === 0
-// }
-
-// const verifySignature = async (claim, ofAlice = false) => {
-//   let signer = 1
-//   if (ofAlice) {
-//     signer = 0
-//   }
-//   const data = _buildTypedClaim(claim)
-//   const signature = claim.signatures[signer]
-//   const addressSigner = recoverTypedSignature({
-//     data: data,
-//     signature: signature,
-//     version: SignTypedDataVersion.V4
-//   })
-//   console.log(addressSigner, claim.addresses[signer])
-//   return addressSigner === claim.addresses[signer]
 // }
 
 export default {

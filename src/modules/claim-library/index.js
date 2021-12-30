@@ -2,15 +2,12 @@
 import { recoverTypedSignature, SignTypedDataVersion } from '@metamask/eth-sig-util'
 import claimControls from './claimControls'
 import claimStorage from './claimStorage'
+import getVaultBalance from '../blockchain/getVaultBalance'
 
-// TODO bring data from env vars
-const CHAIN_ID = 97
-const CHAIN_NAME = 'BSC Testnet'
-// const RPC_URL = 'https://data-seed-prebsc-1-s1.binance.org'
-const CONTRACT_VAULT_ADDRESS = '0xBC8655Fbb4ec8E3cc9edef00f05841A776907311'
-// const CONTRACT_TOKEN_ADDRESS = '0xE8DaBa764266A64F66f5661F5cFAb6Ea41D18964'
-// const SERVER_ADDRESS = '0xeA085D9698651e76750F07d0dE0464476187b3ca'
-// const SERVER_URL = 'http://localhost:8081'
+const {
+  CSDK_CHAIN_ID, CSDK_CHAIN_NAME,
+  CSDK_CONTRACT_VAULT_ADDRESS
+} = process.env
 
 // const claimType = {
 //   TYPE_REFUND: 'ticket.refund',
@@ -30,15 +27,15 @@ const win = async () => {
 }
 
 const domain = {
-  name: CHAIN_NAME,
+  name: CSDK_CHAIN_NAME,
   version: '1',
-  chainId: CHAIN_ID,
-  verifyingContract: CONTRACT_VAULT_ADDRESS
+  chainId: CSDK_CHAIN_ID,
+  verifyingContract: CSDK_CONTRACT_VAULT_ADDRESS
 }
 
 /**
  *
- * @param message
+ * @param {obj} claim
  */
 function _buildTypedClaim (claim) {
   return {
@@ -75,6 +72,11 @@ function _buildTypedClaim (claim) {
   }
 }
 
+/**
+ *
+ * @param {obj} claim
+ * @param {boolean} ofAlice = false
+ */
 const _verifySignature = (claim, ofAlice = false) => {
   let signer = 1
   if (ofAlice) {
@@ -94,7 +96,12 @@ const _verifySignature = (claim, ofAlice = false) => {
   }
 }
 
-const pay = async (web3Provider, claim) => {
+/**
+ *
+ * @param {obj} claim New claim for sign
+ * @param {obj} web3Provider
+ */
+const pay = async (claim, web3Provider) => {
   /*
     Pago quindi firmo un claim che il server mi ha preparato....
 
@@ -104,9 +111,10 @@ const pay = async (web3Provider, claim) => {
     quindi se tutto ok FIRMA e manda al client
     che poi mandera al server...
   */
+  //  TODO check the type of claim??
+
   const claimIsValid = await claimControls.isValidNewClaim(claim)
   if (claimIsValid) {
-    // control balance
     const balanceIsEnough = await _isBalanceEnough(claim, web3Provider)
     if (balanceIsEnough === true) {
       await _signClaim(claim, web3Provider)
@@ -118,20 +126,40 @@ const pay = async (web3Provider, claim) => {
   }
 }
 
+/**
+ *
+ * @param {obj} claim
+ * @param {obj} web3Provider
+ */
 const _isBalanceEnough = async (claim, web3Provider) => {
-  // if (claim.amount < 0) {
-  //   // Alice pays
-  //   const balance = await web3Provider.request({
-  //     method: 'eth_call',
-  //     params: [from, JSON.stringify(msg)],
-  //     from: from
-  //   })
-  // } else {
-  //   // Server pays
-  // }
-  return true
+  const index = claim.amount < 0 ? 0 : 1
+  return await _checkBalance(claim, index, web3Provider)
 }
 
+/**
+ *
+ * @param {obj} claim New claim for sign
+ * @param {int} index 0 = Client, 1 = Server
+ * @param {obj} web3Provider
+ */
+const _checkBalance = async (claim, index, web3Provider) => {
+  try {
+    const {balance} = await getVaultBalance(claim.addresses[index], web3Provider)
+    if (balance >= claim.cumulativeDebits[index]) {
+      return true
+    } else {
+      return false
+    }
+  } catch (error) {
+    throw new Error("Can't get balance from Vault")
+  }
+}
+
+/**
+ *
+ * @param {obj} claim
+ * @param {obj} web3Provider
+ */
 const _signClaim = async (claim, web3Provider) => {
   const msg = _buildTypedClaim(claim)
   const from = claim.addresses[0]
@@ -142,6 +170,10 @@ const _signClaim = async (claim, web3Provider) => {
   })
 }
 
+/**
+ *
+ * @param {obj} claim
+ */
 const payReceived = async (claim) => {
   // Arriva la ricevuta del server controfirmata
   // Verifico e salvo su localstorage come ultimo claim

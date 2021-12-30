@@ -11,6 +11,10 @@ import {
   CHAIN_ID
 } from './network'
 
+/**
+ *
+ * @param {int} chainId
+ */
 const _handleChainChanged = async (chainId) => {
   try {
     const checkIsRightNet = await isRightNet()
@@ -24,6 +28,11 @@ const _handleChainChanged = async (chainId) => {
   }
 }
 const _initMetamask = () => {
+  // TODO delete
+  console.log('####process.env.CSDK_CHAIN_ID', process.env.CSDK_CHAIN_ID)
+  
+  
+  // console.log('- - - - - control env', process.env)
   if (window.ethereum) {
     if (!window.ethereum.chainId) {
       window.ethereum.chainId = CHAIN_ID
@@ -116,7 +125,6 @@ const getAddress = async () => {
     return { address }
   } catch (error) {
     emitErrorEvent(eventType.address, error)
-    // return { error }
     throw new Error(error)
   }
 }

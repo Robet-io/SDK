@@ -10,6 +10,10 @@ import {
 } from './events'
 import claimLibrary from './claim-library'
 
+/**
+ *
+ * @param {obj} claim
+ */
 const pay = async (claim) => {
   try {
     await checkRightNetwork()
@@ -20,7 +24,7 @@ const pay = async (claim) => {
 
   const web3Provider = getWeb3Provider()
   try {
-    const claimResult = await claimLibrary.pay(web3Provider, claim)
+    const claimResult = await claimLibrary.pay(claim, web3Provider)
     emitEvent(eventType.claimSigned, { claim: claimResult })
     return claimResult
   } catch (error) {
@@ -29,6 +33,10 @@ const pay = async (claim) => {
   }
 }
 
+/**
+ *
+ * @param {obj} claim
+ */
 const payReceived = async (claim) => {
   try {
     await checkRightNetwork()

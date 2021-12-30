@@ -6,6 +6,7 @@
   "browser": "dist/crypto-sdk.umd.js",
   "scripts": {
     "build": "vite build",
+    "build-mainnet": "vite build --mode mainnet",
     "test": "jest"
   },
   "devDependencies": {
@@ -14,6 +15,7 @@
     "babel-jest": "^27.4.5",
     "dotenv": "^10.0.0",
     "jest": "^27.4.5",
+    "standard": "^16.0.4",
     "vite": "^2.7.2"
   },
   "dependencies": {

@@ -1,7 +1,7 @@
 /* eslint-env jest */
 import { eventType, addEventListener } from '../src/modules/events'
 import cryptoSDK from '../src/index'
-import MockProvider from './mocks/MetamaskProvider.js'
+import MetamaskProvider from './mocks/MetamaskProvider.js'
 import claimStorage from '../src/modules/claim-library/claimStorage'
 import { signClaim } from './utils'
 
@@ -17,13 +17,32 @@ import { signClaim } from './utils'
 // + payReceived
 //    + 1. claim not saved: a) claim is valid, b) not valid
 //    + 2. claim saved: a) claim is valid, b) not valid
-//    + 3. wrong chain
+//    + 3. wrong chain 
+/*
+*/
+
+
+jest.mock('../src/modules/blockchain/getVaultBalance', () => {
+  return (address) => {
+    if (address === process.env.CSDK_ALICE_ADDRESS_WRONG) {
+      return ({ balance: 1 })
+    } else {
+      return ({ balance: 20 })
+    }
+  }
+})
+
+
 
 describe('cryptoSDK library', () => {
-  const ALICE_ADDRESS = process.env.ALICE_ADDRESS
-  const ALICE_PRIVATE_KEY = process.env.ALICE_PRIVATE_KEY
-  const SERVER_ADDRESS = process.env.SERVER_ADDRESS
-  const SERVER_PRIVATE_KEY = process.env.SERVER_PRIVATE_KEY
+
+  const ALICE_ADDRESS = process.env.CSDK_ALICE_ADDRESS
+  const ALICE_PRIVATE_KEY = process.env.CSDK_ALICE_PRIVATE_KEY
+  const ALICE_ADDRESS_WRONG = process.env.CSDK_ALICE_ADDRESS_WRONG
+  const ALICE_PRIVATE_KEY_WRONG = process.env.CSDK_ALICE_PRIVATE_KEY_WRONG
+
+  const SERVER_ADDRESS = process.env.CSDK_SERVER_ADDRESS
+  const SERVER_PRIVATE_KEY = process.env.CSDK_SERVER_PRIVATE_KEY
 
   const claimToPay = {
     id: 1,
@@ -117,7 +136,7 @@ describe('cryptoSDK library', () => {
   describe('window.ethereum', () => {
     describe('the chain is right', () => {
       beforeEach(() => {
-        window.ethereum = new MockProvider({
+        window.ethereum = new MetamaskProvider({
           address: ALICE_ADDRESS,
           privateKey: ALICE_PRIVATE_KEY,
           chainId: 97
@@ -146,10 +165,23 @@ describe('cryptoSDK library', () => {
 
       describe('pay()', () => {
         describe('1. pay(), no claim saved in localStorage', () => {
+
           test('pay() returns signed claim AND emits event AND saves to localStorage', async () => {
             expect((await cryptoSDK.pay(claimToPay)).signatures[0]).toBe(aliceSignature)
             expect(events[0].type).toEqual(eventType.claimSigned)
             expect((await claimStorage.getClaimAlice()).signatures[0]).toBe(aliceSignature)
+          })
+
+          test("pay() when balance is not enough: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay,
+              addresses: [ALICE_ADDRESS_WRONG, SERVER_ADDRESS]
+            }
+            const errorMsg = 'Not enough balance'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
           })
 
           test("pay(), wrong id: throws error AND emits error event AND doesn't save to localStorage", async () => {
@@ -245,6 +277,18 @@ describe('cryptoSDK library', () => {
             expect((await cryptoSDK.pay(claimToPay2)).signatures[0]).toBe(aliceSignature2)
             expect(events[0].type).toEqual(eventType.claimSigned)
             expect((await claimStorage.getClaimAlice()).nonce).toBe(2)
+          })
+
+          test("pay() when balance is not enough: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPay2NotValid = {
+              ...claimToPay2,
+              addresses: [ALICE_ADDRESS_WRONG, SERVER_ADDRESS]
+            }
+            const errorMsg = 'Not enough balance'
+            await expect(cryptoSDK.pay(claimToPay2NotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
           })
 
           test("pay(), wrong id: throws error AND emits error event AND doesn't save to localStorage", async () => {
@@ -494,7 +538,7 @@ describe('cryptoSDK library', () => {
 
     describe('the chain is wrong', () => {
       beforeEach(() => {
-        window.ethereum = new MockProvider({
+        window.ethereum = new MetamaskProvider({
           address: ALICE_ADDRESS,
           privateKey: ALICE_PRIVATE_KEY,
           chainId: 16
@@ -548,7 +592,7 @@ describe('cryptoSDK library', () => {
       beforeEach(() => {
         window.ethereum = undefined
         window.web3 = {
-          currentProvider: new MockProvider({
+          currentProvider: new MetamaskProvider({
             address: ALICE_ADDRESS,
             privateKey: ALICE_PRIVATE_KEY,
             chainId: 97
@@ -932,7 +976,7 @@ describe('cryptoSDK library', () => {
       beforeEach(() => {
         window.ethereum = undefined
         window.web3 = {
-          currentProvider: new MockProvider({
+          currentProvider: new MetamaskProvider({
             address: ALICE_ADDRESS,
             privateKey: ALICE_PRIVATE_KEY,
             chainId: 21

@@ -1,4 +1,4 @@
-const addEventListener = (cb) => {
+const addEventListener = cb => {
   document.addEventListener(cryptoEvent, cb)
 }
 

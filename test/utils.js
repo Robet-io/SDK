@@ -1,10 +1,10 @@
 import { signTypedData, SignTypedDataVersion } from '@metamask/eth-sig-util'
 
 const domain = {
-  name: process.env.CHAIN_NAME,
+  name: process.env.CSDK_CHAIN_NAME,
   version: '1',
-  chainId: process.env.CHAIN_ID,
-  verifyingContract: process.env.CONTRACT_VAULT_ADDRESS
+  chainId: process.env.CSDK_CHAIN_ID,
+  verifyingContract: process.env.CSDK_CONTRACT_VAULT_ADDRESS
 }
 
 function _buildTypedClaim (claim) {

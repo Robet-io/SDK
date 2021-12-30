@@ -1,4 +1,5 @@
 import { recoverTypedSignature, SignTypedDataVersion } from "@metamask/eth-sig-util";
+import Web3 from "web3";
 const addEventListener = (cb) => {
   document.addEventListener(cryptoEvent, cb);
 };
@@ -150,6 +151,8 @@ const _handleChainChanged = async (chainId) => {
   }
 };
 const _initMetamask = () => {
+  console.log('#\xA0#\xA0#\xA0# "10000"', "10000");
+  console.log('#\xA0#\xA0#\xA0#\xA0"10000"', "10000");
   if (window.ethereum) {
     if (!window.ethereum.chainId) {
       window.ethereum.chainId = CHAIN_ID$1;
@@ -343,6 +346,20 @@ var claimControls = {
   isValidNewClaim,
   isValidClaimAlice
 };
+const callSContract = async (contract, method, params) => {
+  return await contract.methods[method](params).call();
+};
+const initSContract = (web3Provider, contractAddress = vaultAddress, contractAbi) => {
+  const web3 = new Web3(web3Provider);
+  const contract = new web3.eth.Contract(contractAbi, contractAddress);
+  return contract;
+};
+const getVaultBalance = async (address, web3Provider) => {
+  const contract = initSContract(web3Provider);
+  const web3 = new Web3();
+  const balance = web3.utils.fromWei(await callSContract(contract, "balanceOf", address));
+  return { balance };
+};
 const CHAIN_ID = 97;
 const CHAIN_NAME = "BSC Testnet";
 const CONTRACT_VAULT_ADDRESS = "0xBC8655Fbb4ec8E3cc9edef00f05841A776907311";
@@ -407,7 +424,7 @@ const _verifySignature = (claim, ofAlice = false) => {
 const pay$1 = async (web3Provider, claim) => {
   const claimIsValid = await claimControls.isValidNewClaim(claim);
   if (claimIsValid) {
-    const balanceIsEnough = await _isBalanceEnough();
+    const balanceIsEnough = await _isBalanceEnough(claim, web3Provider);
     if (balanceIsEnough === true) {
       await _signClaim(claim, web3Provider);
       claimStorage.saveClaimAlice(claim);
@@ -418,7 +435,20 @@ const pay$1 = async (web3Provider, claim) => {
   }
 };
 const _isBalanceEnough = async (claim, web3Provider) => {
-  return true;
+  const index = claim.amount < 0 ? 0 : 1;
+  return await _checkBalance(claim, index, web3Provider);
+};
+const _checkBalance = async (claim, index, web3Provider) => {
+  try {
+    const { balance } = await getVaultBalance(claim.addresses[index], web3Provider);
+    if (balance >= claim.cumulativeDebits[index]) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    throw new Error("Can't get balance from Vault");
+  }
 };
 const _signClaim = async (claim, web3Provider) => {
   const msg = _buildTypedClaim(claim);
