@@ -26,7 +26,7 @@ const eventType = {
   paymentNotConfirmed: "paymentNotConfirmed"
 };
 const cryptoEvent = "cryptoSDK";
-const CSDK_CHAIN_ID$1 = "1000";
+const CSDK_CHAIN_ID$1 = "97";
 const CSDK_CHAIN_NAME$1 = "BSC Testnet";
 const CSDK_RPC_URL = "https://data-seed-prebsc-1-s1.binance.org";
 const CSDK_CHAIN_EXPLORER = "https://testnet.bscscan.com/";
@@ -151,10 +151,10 @@ const _handleChainChanged = async (chainId) => {
   }
 };
 const _initMetamask = () => {
-  console.log("#### CSDK_CHAIN_ID", "1000");
+  console.log("#### CSDK_CHAIN_ID", "97");
   if (window.ethereum) {
     if (!window.ethereum.chainId) {
-      window.ethereum.chainId = "1000";
+      window.ethereum.chainId = "97";
     }
     window.ethereum.on("accountsChanged", async (accounts) => {
       console.log("#### - Metamask: accountsChanged - accounts", accounts);
@@ -421,7 +421,7 @@ const getVaultBalance = async (address, web3Provider) => {
 var blockchain = {
   getVaultBalance
 };
-const CSDK_CHAIN_ID = "1000";
+const CSDK_CHAIN_ID = "97";
 const CSDK_CHAIN_NAME = "BSC Testnet";
 const CSDK_CONTRACT_VAULT_ADDRESS = "0xBC8655Fbb4ec8E3cc9edef00f05841A776907311";
 const domain = {
