@@ -30,7 +30,6 @@ const _initMetamask = () => {
   // TODO delete
   console.log('#### CSDK_CHAIN_ID', process.env.CSDK_CHAIN_ID)
 
-  // console.log('- - - - - control env', process.env)
   if (window.ethereum) {
     if (!window.ethereum.chainId) {
       window.ethereum.chainId = process.env.CSDK_CHAIN_ID

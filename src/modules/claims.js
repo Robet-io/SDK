@@ -54,7 +54,31 @@ const payReceived = async (claim) => {
   }
 }
 
+/**
+ *
+ * @param {obj} claim
+ */
+const win = async (claim) => {
+  try {
+    await checkRightNetwork()
+  } catch (error) {
+    emitErrorEvent(eventType.winNotConfirmed, error)
+    throw error
+  }
+
+  const web3Provider = getWeb3Provider()
+  try {
+    const claimResult = await claimLibrary.win(claim, web3Provider)
+    emitEvent(eventType.winClaimSigned, { claim: claimResult })
+    return claimResult
+  } catch (error) {
+    emitErrorEvent(eventType.winNotConfirmed, error)
+    throw error
+  }
+}
+
 export {
   pay,
-  payReceived
+  payReceived,
+  win
 }

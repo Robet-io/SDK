@@ -2,7 +2,6 @@
 import { recoverTypedSignature, SignTypedDataVersion } from '@metamask/eth-sig-util'
 import claimControls from './claimControls'
 import claimStorage from './claimStorage'
-// import getVaultBalance from '../blockchain/getVaultBalance'
 import blockchain from '../blockchain'
 
 const CSDK_CHAIN_ID = process.env.CSDK_CHAIN_ID
@@ -16,15 +15,31 @@ const CSDK_CONTRACT_VAULT_ADDRESS = process.env.CSDK_CONTRACT_VAULT_ADDRESS
 //   TYPE_WITHDRAW: 'wallet.withdraw'
 // }
 
-// TODO
-/*
-
-const win = async () => {
+/**
+ *
+ * @param {obj} claim
+ */
+const win = async (claim, web3Provider) => {
   // Ricevo claim di vincita firmato solo da SERVER BOB
   // Verifico e in caso controfirmo e mando al client
   // Salvo anche su local storage
+
+  const claimIsValid = await claimControls.isValidNewClaim(claim)
+  if (claimIsValid) {
+    if (!_verifySignature(claim)) {
+      throw new Error("Server's signature is not verified")
+    }
+    const balanceIsEnough = await _isBalanceEnough(claim, web3Provider)
+    if (balanceIsEnough === true) {
+      await _signClaim(claim, web3Provider)
+      claimStorage.saveConfirmedClaim(claim)
+      return claim
+    } else {
+      throw new Error("Server's balance is not enough")
+    }
+  }
 }
-*/
+
 const domain = {
   name: CSDK_CHAIN_NAME,
   version: '1',
@@ -36,7 +51,7 @@ const domain = {
  *
  * @param {obj} claim
  */
-function _buildTypedClaim (claim) {
+const _buildTypedClaim = claim => {
   return {
     types: {
       EIP712Domain: [
@@ -188,5 +203,6 @@ const payReceived = async (claim) => {
 
 export default {
   pay,
-  payReceived
+  payReceived,
+  win
 }

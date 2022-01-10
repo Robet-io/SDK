@@ -7,7 +7,8 @@ import {
 
 import {
   pay,
-  payReceived
+  payReceived,
+  win
 } from './modules/claims'
 
 const cryptoSDK = {
@@ -17,7 +18,8 @@ const cryptoSDK = {
   setRightNet,
   addEventListener,
   pay,
-  payReceived
+  payReceived,
+  win
 }
 
 export default cryptoSDK

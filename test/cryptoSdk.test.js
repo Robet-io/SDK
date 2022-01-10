@@ -17,9 +17,8 @@ import { signClaim } from './utils'
 // + payReceived
 //    + 1. claim not saved: a) claim is valid, b) not valid
 //    + 2. claim saved: a) claim is valid, b) not valid
-//    + 3. wrong chain 
-/*
-*/
+//    + 3. wrong chain
+// win
 
 jest.mock('../src/modules/blockchain', () => {
   return {
@@ -28,6 +27,8 @@ jest.mock('../src/modules/blockchain', () => {
       getVaultBalance: jest.fn((address) => {
         if (address === process.env.CSDK_ALICE_ADDRESS_WRONG) {
           return ({ balance: 1 })
+        // } else if (address === process.env.CSDK_SERVER_ADDRESS) {
+        //   return ({ balance: 1 })
         } else {
           return ({ balance: 20 })
         }
@@ -37,11 +38,10 @@ jest.mock('../src/modules/blockchain', () => {
 })
 
 describe('cryptoSDK library', () => {
-
   const ALICE_ADDRESS = process.env.CSDK_ALICE_ADDRESS
   const ALICE_PRIVATE_KEY = process.env.CSDK_ALICE_PRIVATE_KEY
   const ALICE_ADDRESS_WRONG = process.env.CSDK_ALICE_ADDRESS_WRONG
-  const ALICE_PRIVATE_KEY_WRONG = process.env.CSDK_ALICE_PRIVATE_KEY_WRONG
+  // const ALICE_PRIVATE_KEY_WRONG = process.env.CSDK_ALICE_PRIVATE_KEY_WRONG
 
   const SERVER_ADDRESS = process.env.CSDK_SERVER_ADDRESS
   const SERVER_PRIVATE_KEY = process.env.CSDK_SERVER_PRIVATE_KEY
@@ -64,6 +64,22 @@ describe('cryptoSDK library', () => {
     ...claimToPay,
     signatures: [aliceSignature, bobSignature]
   }
+
+  const claimWin = {
+    id: 1,
+    addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
+    amount: 10,
+    cumulativeDebits: [0, 5],
+    messageForAlice: 'You receive: 10 DE.GA',
+    timestamp: 1639145450856,
+    nonce: 2,
+    signatures: [],
+    type: 'ticket.win'
+  }
+
+  const bobSignatureWin = signClaim(claimWin, SERVER_PRIVATE_KEY)
+  const aliceSignatureWin = signClaim(claimWin, ALICE_PRIVATE_KEY)
+  claimWin.signatures = ['', bobSignatureWin]
 
   let events
   beforeEach(() => {
@@ -133,6 +149,13 @@ describe('cryptoSDK library', () => {
       expect(events[0].type).toEqual(eventType.metamaskNotInstalled)
       expect(events[0].error).toBe(true)
     })
+
+    test('win() - throws error AND arrives error event ', async () => {
+      const errorMsg = 'Metamask is not installed'
+      await expect(cryptoSDK.win(claimWin)).rejects.toThrowError(errorMsg)
+      expect(events[0].type).toEqual(eventType.metamaskNotInstalled)
+      expect(events[0].error).toBe(true)
+    })
   })
 
   describe('window.ethereum', () => {
@@ -167,7 +190,6 @@ describe('cryptoSDK library', () => {
 
       describe('pay()', () => {
         describe('1. pay(), no claim saved in localStorage', () => {
-
           test('pay() returns signed claim AND emits event AND saves to localStorage', async () => {
             expect((await cryptoSDK.pay(claimToPay)).signatures[0]).toBe(aliceSignature)
             expect(events[0].type).toEqual(eventType.claimSigned)
@@ -536,6 +558,197 @@ describe('cryptoSDK library', () => {
           })
         })
       })
+
+      describe('1. win(), exists a claim saved in localStorage', () => {
+        beforeEach(async () => {
+          await claimStorage.saveConfirmedClaim(claimToPayRecieved)
+        })
+
+        test('win() returns signed claim AND emits event AND saves to localStorage', async () => {
+          expect((await cryptoSDK.win(claimWin)).signatures[0]).toBe(aliceSignatureWin)
+          expect(events[0].type).toEqual(eventType.winClaimSigned)
+          expect((await claimStorage.getConfirmedClaim()).signatures[0]).toBe(aliceSignatureWin)
+        })
+
+        // test("win() when balance of Server is not enough: throws error AND emits error event AND doesn't save to localStorage", async () => {
+        //   const claimNotValid = {
+        //     ...claimWin
+        //   }
+        //   const errorMsg = "Server's balance is not enough"
+        //   await expect(cryptoSDK.win(claimNotValid)).rejects.toThrowError(errorMsg)
+        //   expect(events[0].type).toEqual(eventType.winNotConfirmed)
+        //   expect(events[0].error).toBe(true)
+        //   expect((await claimStorage.getConfirmedClaim()).nonce).toBe(1)
+        // })
+
+        test("win(), wrong id: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWin,
+            id: 2
+          }
+          const errorMsg = 'Invalid claim id: 2'
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect((await claimStorage.getConfirmedClaim()).nonce).toBe(1)
+        })
+
+        test("win(), wrong nonce: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWin,
+            nonce: 3
+          }
+          const errorMsg = 'Invalid claim nonce: 3'
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect((await claimStorage.getConfirmedClaim()).nonce).toBe(1)
+        })
+
+        test("win(), wrong server address: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWin,
+            addresses: [ALICE_ADDRESS, ALICE_ADDRESS]
+          }
+          const errorMsg = 'Invalid claim Server address'
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect((await claimStorage.getConfirmedClaim()).nonce).toBe(1)
+        })
+
+        test("win(), wrong Alice debit: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWin,
+            cumulativeDebits: [10, 0]
+          }
+          const errorMsg = 'Invalid claim cumulative debit of Client: 10 - expected: 0'
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect((await claimStorage.getConfirmedClaim()).nonce).toBe(1)
+        })
+
+        test("win(), wrong Server debit: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWin,
+            cumulativeDebits: [0, 10]
+          }
+          const errorMsg = 'Invalid claim cumulative debit of Server: 10 - expected: 5'
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect((await claimStorage.getConfirmedClaim()).nonce).toBe(1)
+        })
+
+        test("win(), wrong server signature: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWin,
+            signatures: ['', bobSignature]
+          }
+          const errorMsg = "Server's signature is not verified"
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect((await claimStorage.getConfirmedClaim()).nonce).toBe(1)
+        })
+      })
+
+      describe('2. win(), no claim saved in localStorage', () => {
+        const claimWinFirst = {
+          id: 1,
+          addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
+          amount: 10,
+          cumulativeDebits: [0, 10],
+          messageForAlice: 'You receive: 10 DE.GA',
+          timestamp: 1639145450856,
+          nonce: 1,
+          signatures: [],
+          type: 'ticket.win'
+        }
+
+        const bobSignatureWinFirst = signClaim(claimWinFirst, SERVER_PRIVATE_KEY)
+        const aliceSignatureWinFirst = signClaim(claimWinFirst, ALICE_PRIVATE_KEY)
+        claimWinFirst.signatures = ['', bobSignatureWinFirst]
+
+        test('win() returns signed claim AND emits event AND saves to localStorage', async () => {
+          expect((await cryptoSDK.win(claimWinFirst)).signatures[0]).toBe(aliceSignatureWinFirst)
+          expect(events[0].type).toEqual(eventType.winClaimSigned)
+          expect((await claimStorage.getConfirmedClaim()).signatures[0]).toBe(aliceSignatureWinFirst)
+        })
+
+        test("win(), wrong id: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWinFirst,
+            id: 2
+          }
+          const errorMsg = 'Invalid claim id: 2'
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect(await claimStorage.getClaimAlice()).toBe(null)
+        })
+
+        test("win(), wrong nonce: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWinFirst,
+            nonce: 3
+          }
+          const errorMsg = 'Invalid claim nonce: 3'
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect(await claimStorage.getClaimAlice()).toBe(null)
+        })
+
+        test("win(), wrong server address: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWinFirst,
+            addresses: [ALICE_ADDRESS, ALICE_ADDRESS]
+          }
+          const errorMsg = 'Invalid claim Server address'
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect(await claimStorage.getClaimAlice()).toBe(null)
+        })
+
+        test("win(), wrong Alice debit: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWinFirst,
+            cumulativeDebits: [10, 0]
+          }
+          const errorMsg = 'Invalid claim cumulative debit of Client: 10 - expected: 0'
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect(await claimStorage.getClaimAlice()).toBe(null)
+        })
+
+        test("win(), wrong Server debit: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWinFirst,
+            cumulativeDebits: [0, 5]
+          }
+          const errorMsg = 'Invalid claim cumulative debit of Server: 5 - expected: 10'
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect(await claimStorage.getClaimAlice()).toBe(null)
+        })
+
+        test("win(), wrong server signature: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWinFirst,
+            signatures: ['', bobSignature]
+          }
+          const errorMsg = "Server's signature is not verified"
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect(await claimStorage.getClaimAlice()).toBe(null)
+        })
+      })
     })
 
     describe('the chain is wrong', () => {
@@ -583,6 +796,14 @@ describe('cryptoSDK library', () => {
         const errorMsg = 'Please change your network on Metamask. Valid networks are:'
         await expect(cryptoSDK.payReceived(claimToPayRecieved)).rejects.toThrowError(errorMsg)
         expect(events[0].type).toEqual(eventType.paymentNotConfirmed)
+        expect(events[0].error).toBe(true)
+        expect(await claimStorage.getConfirmedClaim()).toBe(null)
+      })
+
+      test("win() throws error AND emits error event AND doesn't save to localStorage", async () => {
+        const errorMsg = 'Please change your network on Metamask. Valid networks are:'
+        await expect(cryptoSDK.win(claimWin)).rejects.toThrowError(errorMsg)
+        expect(events[0].type).toEqual(eventType.winNotConfirmed)
         expect(events[0].error).toBe(true)
         expect(await claimStorage.getConfirmedClaim()).toBe(null)
       })
