@@ -18,6 +18,7 @@ const CSDK_CONTRACT_VAULT_ADDRESS = process.env.CSDK_CONTRACT_VAULT_ADDRESS
 /**
  *
  * @param {obj} claim
+ * @param {obj} web3Provider
  */
 const win = async (claim, web3Provider) => {
   // Ricevo claim di vincita firmato solo da SERVER BOB
@@ -127,8 +128,10 @@ const pay = async (claim, web3Provider) => {
   */
   //  TODO check the type of claim??
 
+  // check if the claim wasn't already signed
+  const claimWasntSigned = await _isAliceClaimNotSigned(claim)
   const claimIsValid = await claimControls.isValidNewClaim(claim)
-  if (claimIsValid) {
+  if (claimIsValid && claimWasntSigned) {
     const balanceIsEnough = await _isBalanceEnough(claim, web3Provider)
     if (balanceIsEnough === true) {
       await _signClaim(claim, web3Provider)
@@ -137,6 +140,19 @@ const pay = async (claim, web3Provider) => {
     } else {
       throw new Error('Not enough balance')
     }
+  }
+}
+
+/**
+ *
+ * @param {obj} claim
+ */
+const _isAliceClaimNotSigned = async (claim) => {
+  const lastAliceClaim = await claimStorage.getClaimAlice()
+  if (lastAliceClaim && lastAliceClaim.id === claim.id && lastAliceClaim.nonce >= claim.nonce) {
+    throw new Error(`Claim with nonce ${claim.nonce} is already signed`)
+  } else {
+    return true
   }
 }
 
