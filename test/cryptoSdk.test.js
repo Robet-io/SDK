@@ -237,7 +237,7 @@ describe('cryptoSDK library', () => {
               ...claimToPay,
               addresses: [ALICE_ADDRESS, ALICE_ADDRESS]
             }
-            const errorMsg = 'Invalid claim Server address: 0x0f671cad8f3dfa3dcf7fcf8cfe17a3cee4259175 - expected: 0xeA085D9698651e76750F07d0dE0464476187b3ca'
+            const errorMsg = 'Invalid address of Server: 0x0f671cad8f3dfa3dcf7fcf8cfe17a3cee4259175 - expected: 0xeA085D9698651e76750F07d0dE0464476187b3ca'
             await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.claimNotSigned)
             expect(events[0].error).toBe(true)
@@ -344,7 +344,7 @@ describe('cryptoSDK library', () => {
               ...claimToPay2,
               addresses: [ALICE_ADDRESS, ALICE_ADDRESS]
             }
-            const errorMsg = 'Invalid claim Server address'
+            const errorMsg = 'Invalid address of Server'
             await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.claimNotSigned)
             expect(events[0].error).toBe(true)
@@ -414,7 +414,7 @@ describe('cryptoSDK library', () => {
               ...claimToPayRecieved,
               addresses: [ALICE_ADDRESS, ALICE_ADDRESS]
             }
-            const errorMsg = 'Invalid claim Server address: 0x0f671cad8f3dfa3dcf7fcf8cfe17a3cee4259175 - expected: 0xeA085D9698651e76750F07d0dE0464476187b3ca'
+            const errorMsg = 'Invalid address of Server: 0x0f671cad8f3dfa3dcf7fcf8cfe17a3cee4259175 - expected: 0xeA085D9698651e76750F07d0dE0464476187b3ca'
             await expect(cryptoSDK.payReceived(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.paymentNotConfirmed)
             expect(events[0].error).toBe(true)
@@ -478,7 +478,7 @@ describe('cryptoSDK library', () => {
               ...claimToPayRecieved,
               id: 2
             }
-            const errorMsg = 'Invalid claim id: 2 - saved claim id: 1'
+            const errorMsg = 'Invalid claim id:'
             await expect(cryptoSDK.payReceived(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.paymentNotConfirmed)
             expect(events[0].error).toBe(true)
@@ -490,7 +490,7 @@ describe('cryptoSDK library', () => {
               ...claimToPayRecieved,
               nonce: 2
             }
-            const errorMsg = 'Invalid claim nonce: 2 - saved claim nonce: 1'
+            const errorMsg = 'Invalid claim nonce:'
             await expect(cryptoSDK.payReceived(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.paymentNotConfirmed)
             expect(events[0].error).toBe(true)
@@ -512,7 +512,7 @@ describe('cryptoSDK library', () => {
           test("payReceived(), wrong Client address: throws error AND emits error event AND doesn't save to localStorage", async () => {
             const claimToPayNotValid = {
               ...claimToPayRecieved,
-              addresses: ['123', ALICE_ADDRESS]
+              addresses: ['123', SERVER_ADDRESS]
             }
             const errorMsg = 'Invalid address of Client'
             await expect(cryptoSDK.payReceived(claimToPayNotValid)).rejects.toThrowError(errorMsg)
@@ -610,7 +610,7 @@ describe('cryptoSDK library', () => {
             ...claimWin,
             addresses: [ALICE_ADDRESS, ALICE_ADDRESS]
           }
-          const errorMsg = 'Invalid claim Server address'
+          const errorMsg = 'Invalid address of Server'
           await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
           expect(events[0].type).toEqual(eventType.winNotConfirmed)
           expect(events[0].error).toBe(true)
@@ -706,7 +706,7 @@ describe('cryptoSDK library', () => {
             ...claimWinFirst,
             addresses: [ALICE_ADDRESS, ALICE_ADDRESS]
           }
-          const errorMsg = 'Invalid claim Server address'
+          const errorMsg = 'Invalid address of Server'
           await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
           expect(events[0].type).toEqual(eventType.winNotConfirmed)
           expect(events[0].error).toBe(true)
@@ -884,7 +884,7 @@ describe('cryptoSDK library', () => {
               ...claimToPay,
               addresses: [ALICE_ADDRESS, ALICE_ADDRESS]
             }
-            const errorMsg = 'Invalid claim Server address: 0x0f671cad8f3dfa3dcf7fcf8cfe17a3cee4259175 - expected: 0xeA085D9698651e76750F07d0dE0464476187b3ca'
+            const errorMsg = 'Invalid address of Server: 0x0f671cad8f3dfa3dcf7fcf8cfe17a3cee4259175 - expected: 0xeA085D9698651e76750F07d0dE0464476187b3ca'
             await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.claimNotSigned)
             expect(events[0].error).toBe(true)
@@ -955,7 +955,7 @@ describe('cryptoSDK library', () => {
               ...claimToPay2,
               id: 2
             }
-            const errorMsg = 'Invalid claim id: 2 - last claim id: 1'
+            const errorMsg = 'Invalid claim id:'
             await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.claimNotSigned)
             expect(events[0].error).toBe(true)
@@ -967,7 +967,7 @@ describe('cryptoSDK library', () => {
               ...claimToPay2,
               nonce: 1
             }
-            const errorMsg = 'Invalid claim nonce: 1 - last claim nonce: 1'
+            const errorMsg = 'Invalid claim nonce:'
             await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.claimNotSigned)
             expect(events[0].error).toBe(true)
@@ -979,7 +979,7 @@ describe('cryptoSDK library', () => {
               ...claimToPay2,
               addresses: [ALICE_ADDRESS, ALICE_ADDRESS]
             }
-            const errorMsg = 'Invalid claim Server address'
+            const errorMsg = 'Invalid address of Server'
             await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.claimNotSigned)
             expect(events[0].error).toBe(true)
@@ -1049,7 +1049,7 @@ describe('cryptoSDK library', () => {
               ...claimToPayRecieved,
               addresses: [ALICE_ADDRESS, ALICE_ADDRESS]
             }
-            const errorMsg = 'Invalid claim Server address: 0x0f671cad8f3dfa3dcf7fcf8cfe17a3cee4259175 - expected: 0xeA085D9698651e76750F07d0dE0464476187b3ca'
+            const errorMsg = 'Invalid address of Server: 0x0f671cad8f3dfa3dcf7fcf8cfe17a3cee4259175 - expected: 0xeA085D9698651e76750F07d0dE0464476187b3ca'
             await expect(cryptoSDK.payReceived(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.paymentNotConfirmed)
             expect(events[0].error).toBe(true)
@@ -1113,7 +1113,7 @@ describe('cryptoSDK library', () => {
               ...claimToPayRecieved,
               id: 2
             }
-            const errorMsg = 'Invalid claim id: 2 - saved claim id: 1'
+            const errorMsg = 'Invalid claim id'
             await expect(cryptoSDK.payReceived(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.paymentNotConfirmed)
             expect(events[0].error).toBe(true)
@@ -1125,7 +1125,7 @@ describe('cryptoSDK library', () => {
               ...claimToPayRecieved,
               nonce: 2
             }
-            const errorMsg = 'Invalid claim nonce: 2 - saved claim nonce: 1'
+            const errorMsg = 'Invalid claim nonce'
             await expect(cryptoSDK.payReceived(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.paymentNotConfirmed)
             expect(events[0].error).toBe(true)
@@ -1147,7 +1147,7 @@ describe('cryptoSDK library', () => {
           test("payReceived(), wrong Client address: throws error AND emits error event AND doesn't save to localStorage", async () => {
             const claimToPayNotValid = {
               ...claimToPayRecieved,
-              addresses: ['123', ALICE_ADDRESS]
+              addresses: ['123', SERVER_ADDRESS]
             }
             const errorMsg = 'Invalid address of Client'
             await expect(cryptoSDK.payReceived(claimToPayNotValid)).rejects.toThrowError(errorMsg)

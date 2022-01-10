@@ -30,7 +30,7 @@ const isValidNewClaim = async (claim) => {
       throw new Error(`Invalid claim nonce: ${claim.nonce} - last claim nonce: ${lastClaim.nonce}`)
     }
     if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
-      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`)
+      throw new Error(`Invalid address of Server: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`)
     }
 
     // control cumulative debits
@@ -46,7 +46,7 @@ const isValidNewClaim = async (claim) => {
       throw new Error(`Invalid claim nonce: ${claim.nonce}`)
     }
     if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
-      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`)
+      throw new Error(`Invalid address of Server: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`)
     }
 
     // control cumulative debits
@@ -84,14 +84,12 @@ const _controlDebits = (balance, cumulativeDebits) => {
  * @param {obj} claim claim Alice, countersigned by Bob
  */
 const isValidClaimAlice = async (claim) => {
-  const savedClaim = await claimStorage.getClaimAlice()
-  let isValid = false
-  if (savedClaim) {
-    isValid = _areEqualClaims(claim, savedClaim)
-  } else {
-    // claim Alice wasn't saved
-    // check if it's a new claim
-    isValid = await isValidNewClaim(claim)
+  let isValid = await isValidNewClaim(claim)
+  if (isValid) {
+    const savedClaim = await claimStorage.getClaimAlice()
+    if (savedClaim) {
+      isValid = _areEqualClaims(claim, savedClaim)
+    }
   }
   return isValid
 }
