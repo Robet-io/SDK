@@ -27,7 +27,13 @@ export default defineConfig(({ mode }) => {
       "process.env.CSDK_CHAIN_EXPLORER": `"${process.env.CSDK_CHAIN_EXPLORER}"`,
       "process.env.CSDK_CURRENCY_NAME": `"${process.env.CSDK_CURRENCY_NAME}"`,
       "process.env.CSDK_CURRENCY_SYMBOL": `"${process.env.CSDK_CURRENCY_SYMBOL}"`,
-      "process.env.CSDK_CURRENCY_DECIMALS": `"${process.env.CSDK_CURRENCY_DECIMALS}"`
+      "process.env.CSDK_CURRENCY_DECIMALS": `"${process.env.CSDK_CURRENCY_DECIMALS}"`,
+
+      "process.env.CSDK_TYPE_REFUND": `"${process.env.CSDK_TYPE_REFUND}"`,
+      "process.env.CSDK_TYPE_WIN": `"${process.env.CSDK_TYPE_WIN}"`,
+      "process.env.CSDK_TYPE_PLAY": `"${process.env.CSDK_TYPE_PLAY}"`,
+      "process.env.CSDK_TYPE_WITHDRAW": `"${process.env.CSDK_TYPE_WITHDRAW}"`
+
     },
     build: {
       lib: {

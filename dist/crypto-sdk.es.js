@@ -23,7 +23,9 @@ const eventType = {
   claimNotSigned: "claimNotSigned",
   claimSigned: "claimSigned",
   paymentConfirmed: "paymentConfirmed",
-  paymentNotConfirmed: "paymentNotConfirmed"
+  paymentNotConfirmed: "paymentNotConfirmed",
+  winClaimSigned: "winClaimSigned",
+  winNotConfirmed: "winNotConfirmed"
 };
 const cryptoEvent = "cryptoSDK";
 const CSDK_CHAIN_ID$1 = "97";
@@ -267,7 +269,7 @@ const isValidNewClaim = async (claim) => {
       throw new Error(`Invalid claim nonce: ${claim.nonce} - last claim nonce: ${lastClaim.nonce}`);
     }
     if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
-      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`);
+      throw new Error(`Invalid address of Server: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`);
     }
     const lastBalance = lastClaim.cumulativeDebits[1] - lastClaim.cumulativeDebits[0];
     const balance = lastBalance + claim.amount;
@@ -280,7 +282,7 @@ const isValidNewClaim = async (claim) => {
       throw new Error(`Invalid claim nonce: ${claim.nonce}`);
     }
     if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
-      throw new Error(`Invalid claim Server address: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`);
+      throw new Error(`Invalid address of Server: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`);
     }
     const balance = claim.amount;
     _controlDebits(balance, claim.cumulativeDebits);
@@ -305,12 +307,12 @@ const _controlDebits = (balance, cumulativeDebits) => {
   }
 };
 const isValidClaimAlice = async (claim) => {
-  const savedClaim = await claimStorage.getClaimAlice();
-  let isValid = false;
-  if (savedClaim) {
-    isValid = _areEqualClaims(claim, savedClaim);
-  } else {
-    isValid = await isValidNewClaim(claim);
+  let isValid = await isValidNewClaim(claim);
+  if (isValid) {
+    const savedClaim = await claimStorage.getClaimAlice();
+    if (savedClaim) {
+      isValid = _areEqualClaims(claim, savedClaim);
+    }
   }
   return isValid;
 };
@@ -416,7 +418,7 @@ const getVaultBalance = async (address, web3Provider) => {
   const contract = initContract(web3Provider);
   const web3 = new Web3();
   const balance = web3.utils.fromWei(await callMethod(contract, "balanceOf", address));
-  return balance;
+  return { balance };
 };
 var blockchain = {
   getVaultBalance
@@ -424,13 +426,29 @@ var blockchain = {
 const CSDK_CHAIN_ID = "97";
 const CSDK_CHAIN_NAME = "BSC Testnet";
 const CSDK_CONTRACT_VAULT_ADDRESS = "0xBC8655Fbb4ec8E3cc9edef00f05841A776907311";
+const win$1 = async (claim, web3Provider) => {
+  const claimIsValid = await claimControls.isValidNewClaim(claim);
+  if (claimIsValid) {
+    if (!_verifySignature(claim)) {
+      throw new Error("Server's signature is not verified");
+    }
+    const balanceIsEnough = await _isBalanceEnough(claim, web3Provider);
+    if (balanceIsEnough === true) {
+      await _signClaim(claim, web3Provider);
+      claimStorage.saveConfirmedClaim(claim);
+      return claim;
+    } else {
+      throw new Error("Server's balance is not enough");
+    }
+  }
+};
 const domain = {
   name: CSDK_CHAIN_NAME,
   version: "1",
   chainId: CSDK_CHAIN_ID,
   verifyingContract: CSDK_CONTRACT_VAULT_ADDRESS
 };
-function _buildTypedClaim(claim) {
+const _buildTypedClaim = (claim) => {
   return {
     types: {
       EIP712Domain: [
@@ -463,7 +481,7 @@ function _buildTypedClaim(claim) {
       cumulativeDebitBob: claim.cumulativeDebits[1]
     }
   };
-}
+};
 const _verifySignature = (claim, ofAlice = false) => {
   let signer = 1;
   if (ofAlice) {
@@ -483,8 +501,9 @@ const _verifySignature = (claim, ofAlice = false) => {
   }
 };
 const pay$1 = async (claim, web3Provider) => {
+  const claimWasntSigned = await _isAliceClaimNotSigned(claim);
   const claimIsValid = await claimControls.isValidNewClaim(claim);
-  if (claimIsValid) {
+  if (claimIsValid && claimWasntSigned) {
     const balanceIsEnough = await _isBalanceEnough(claim, web3Provider);
     if (balanceIsEnough === true) {
       await _signClaim(claim, web3Provider);
@@ -493,6 +512,14 @@ const pay$1 = async (claim, web3Provider) => {
     } else {
       throw new Error("Not enough balance");
     }
+  }
+};
+const _isAliceClaimNotSigned = async (claim) => {
+  const lastAliceClaim = await claimStorage.getClaimAlice();
+  if (lastAliceClaim && lastAliceClaim.id === claim.id && lastAliceClaim.nonce >= claim.nonce) {
+    throw new Error(`Claim with nonce ${claim.nonce} is already signed`);
+  } else {
+    return true;
   }
 };
 const _isBalanceEnough = async (claim, web3Provider) => {
@@ -532,7 +559,8 @@ const payReceived$1 = async (claim) => {
 };
 var claimLibrary = {
   pay: pay$1,
-  payReceived: payReceived$1
+  payReceived: payReceived$1,
+  win: win$1
 };
 const pay = async (claim) => {
   try {
@@ -566,13 +594,55 @@ const payReceived = async (claim) => {
     throw error;
   }
 };
+const win = async (claim) => {
+  try {
+    await checkRightNetwork();
+  } catch (error) {
+    emitErrorEvent(eventType.winNotConfirmed, error);
+    throw error;
+  }
+  const web3Provider = getWeb3Provider();
+  try {
+    const claimResult = await claimLibrary.win(claim, web3Provider);
+    emitEvent(eventType.winClaimSigned, { claim: claimResult });
+    return claimResult;
+  } catch (error) {
+    emitErrorEvent(eventType.winNotConfirmed, error);
+    throw error;
+  }
+};
+var claims = {
+  pay,
+  payReceived,
+  win
+};
+const receiveMsg = async (msg) => {
+  if (msg) {
+    const claim = JSON.parse(msg);
+    if (claim && claim.type === "ticket.play") {
+      if (!claim.signatures[0] && !claim.signatures[1]) {
+        const signedClaim = await claims.pay(claim);
+        return { signedClaim };
+      } else if (claim.signatures[0] && claim.signatures[1]) {
+        await claims.payReceived(claim);
+      }
+    } else if (claim && claim.type === "ticket.win") {
+      if (!claim.signatures[0] && claim.signatures[1]) {
+        const signedClaim = await claims.win(claim);
+        return { signedClaim };
+      }
+    }
+  }
+};
 const cryptoSDK = {
   getAddress,
   isMetamaskInstalled,
   isRightNet,
   setRightNet,
   addEventListener,
-  pay,
-  payReceived
+  pay: claims.pay,
+  payReceived: claims.payReceived,
+  win: claims.win,
+  receiveMsg
 };
 export { cryptoSDK as default };

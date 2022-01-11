@@ -21,10 +21,11 @@ const CSDK_CONTRACT_VAULT_ADDRESS = process.env.CSDK_CONTRACT_VAULT_ADDRESS
  * @param {obj} web3Provider
  */
 const win = async (claim, web3Provider) => {
-  // Ricevo claim di vincita firmato solo da SERVER BOB
-  // Verifico e in caso controfirmo e mando al client
-  // Salvo anche su local storage
-
+  /*
+    TODO check type?
+    Is there any check on the smart contract level that require check here on the claim type?
+    If not no check here is necessary. MUST Check the smart contract.
+  */
   const claimIsValid = await claimControls.isValidNewClaim(claim)
   if (claimIsValid) {
     if (!_verifySignature(claim)) {
@@ -117,15 +118,6 @@ const _verifySignature = (claim, ofAlice = false) => {
  * @param {obj} web3Provider
  */
 const pay = async (claim, web3Provider) => {
-  /*
-    Pago quindi firmo un claim che il server mi ha preparato....
-
-    fare i controlli su local storage
-    per verificare che ID e nonce siano corretti
-
-    quindi se tutto ok FIRMA e manda al client
-    che poi mandera al server...
-  */
   //  TODO check the type of claim??
 
   // check if the claim wasn't already signed

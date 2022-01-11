@@ -77,7 +77,7 @@ const win = async (claim) => {
   }
 }
 
-export {
+export default {
   pay,
   payReceived,
   win
