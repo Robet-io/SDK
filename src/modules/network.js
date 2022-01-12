@@ -1,25 +1,17 @@
 import { emitEvent, emitErrorEvent, eventType } from './events'
 
 // TODO: bring the chain_id (process.env ?? - )
-const CHAIN_ID = 97
-const CHAIN_NAME = 'BSC Testnet2'
-const RPC_URL = 'https://data-seed-prebsc-1-s1.binance.org'
-const CHAIN_EXPLORER = 'https://testnet.bscscan.com/'
-const CURRENCY_NAME = 'BNB'
-const CURRENCY_SYMBOL = 'BNB'
-const CURRENCY_DECIMALS = 18
+const CSDK_CHAIN_ID = process.env.CSDK_CHAIN_ID
+const CSDK_CHAIN_NAME = process.env.CSDK_CHAIN_NAME
+const CSDK_RPC_URL = process.env.CSDK_RPC_URL
+const CSDK_CHAIN_EXPLORER = process.env.CSDK_CHAIN_EXPLORER
+const CSDK_CURRENCY_NAME = process.env.CSDK_CURRENCY_NAME
+const CSDK_CURRENCY_SYMBOL = process.env.CSDK_CURRENCY_SYMBOL
+const CSDK_CURRENCY_DECIMALS = process.env.CSDK_CURRENCY_DECIMALS
 
-const checkRightNetwork = async (rightNet) => {
-  let web3Provider = false
-
-  if (window.ethereum) {
-    web3Provider = window.ethereum
-  } else if (window.web3) {
-    // Legacy dApp browsers...
-    web3Provider = window.web3.currentProvider
-  } else {
-    throw new Error('Metamask is not installed !!!')
-  }
+const checkRightNetwork = async () => {
+  const rightNet = getValidNetworks()
+  const web3Provider = getWeb3Provider()
 
   if (web3Provider) {
     const networkID = Number(await web3Provider.request({ method: 'eth_chainId' }))
@@ -63,7 +55,7 @@ const networksNames = (netId = false) => {
       return names[netId]
     } else {
       console.error(`Network ID ${netId} Not found in the networksNames list`)
-      return networksNames(CHAIN_ID)
+      return networksNames(CSDK_CHAIN_ID)
     }
   } else {
     return names
@@ -72,12 +64,12 @@ const networksNames = (netId = false) => {
 
 const getValidNetworks = () => {
   // TODO array - two nets
-  return [Number(CHAIN_ID)]
+  return [Number(CSDK_CHAIN_ID)]
 }
 
 const isRightNet = async () => {
   try {
-    const result = await checkRightNetwork(getValidNetworks())
+    const result = await checkRightNetwork()
     emitEvent(eventType.network, result)
     return result
   } catch (error) {
@@ -89,23 +81,23 @@ const isRightNet = async () => {
 const setRightNet = async () => {
   if (window.ethereum) {
     const ethereum = window.ethereum
-    const chainIdHex = `0x${Number(CHAIN_ID).toString(16)}`
+    const chainIdHex = `0x${Number(CSDK_CHAIN_ID).toString(16)}`
     const data = [{
       chainId: chainIdHex, // '0x61'
-      chainName: CHAIN_NAME,
+      chainName: CSDK_CHAIN_NAME,
       nativeCurrency:
         {
-          name: CURRENCY_NAME,
-          symbol: CURRENCY_SYMBOL,
-          decimals: CURRENCY_DECIMALS
+          name: CSDK_CURRENCY_NAME,
+          symbol: CSDK_CURRENCY_SYMBOL,
+          decimals: CSDK_CURRENCY_DECIMALS
         },
-      rpcUrls: [RPC_URL],
-      blockExplorerUrls: [CHAIN_EXPLORER]
+      rpcUrls: [CSDK_RPC_URL],
+      blockExplorerUrls: [CSDK_CHAIN_EXPLORER]
     }]
     /* eslint-disable */
     try {
       await ethereum.request({ method: 'wallet_addEthereumChain', params: data })
-      const isRightNetResult = await checkRightNetwork(getValidNetworks())
+      const isRightNetResult = await checkRightNetwork()
       if (isRightNetResult) {
         emitEvent(eventType.network, 'Success, network is set to the right one')
       } else {
@@ -123,10 +115,22 @@ const setRightNet = async () => {
   }
 }
 
+const getWeb3Provider = () => {
+  if (window.ethereum) {
+    return window.ethereum
+  } else if (window.web3) {
+    // Legacy dApp browsers...
+    return window.web3.currentProvider
+  } else {
+    emitErrorEvent(eventType.metamaskNotInstalled, { error: 'Metamask is not installed' })
+    throw new Error('Metamask is not installed')
+  }
+}
+
 export {
   isRightNet,
   checkRightNetwork,
   setRightNet,
   getValidNetworks,
-  CHAIN_ID
+  getWeb3Provider
 }

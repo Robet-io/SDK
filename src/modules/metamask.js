@@ -7,10 +7,13 @@ import {
 import {
   checkRightNetwork,
   getValidNetworks,
-  isRightNet,
-  CHAIN_ID
+  isRightNet
 } from './network'
 
+/**
+ *
+ * @param {int} chainId
+ */
 const _handleChainChanged = async (chainId) => {
   try {
     const checkIsRightNet = await isRightNet()
@@ -24,9 +27,12 @@ const _handleChainChanged = async (chainId) => {
   }
 }
 const _initMetamask = () => {
+  // TODO delete
+  console.log('#### CSDK_CHAIN_ID', process.env.CSDK_CHAIN_ID)
+
   if (window.ethereum) {
     if (!window.ethereum.chainId) {
-      window.ethereum.chainId = CHAIN_ID
+      window.ethereum.chainId = process.env.CSDK_CHAIN_ID
     }
 
     // events subscription
@@ -87,6 +93,7 @@ const _getAccount = async () => {
     throw new Error('Metamask is not installed')
   }
 }
+
 const isMetamaskInstalled = () => {
   if (window.ethereum || window.web3) {
     return true
@@ -99,7 +106,6 @@ const getAddress = async () => {
   if (!isMetamaskInstalled()) {
     const errorMessage = 'Metamask is not installed, unable to get user address'
     emitErrorEvent(eventType.metamaskNotInstalled, errorMessage)
-    // return { error }
     throw new Error(errorMessage)
   }
 
@@ -108,7 +114,6 @@ const getAddress = async () => {
     await checkRightNetwork(netId)
   } catch (error) {
     emitErrorEvent(eventType.wrongNetworkOnGetAddress, error)
-    // return { error }
     throw new Error(error)
   }
 
@@ -117,34 +122,13 @@ const getAddress = async () => {
     return { address }
   } catch (error) {
     emitErrorEvent(eventType.address, error)
-    // return { error }
     throw new Error(error)
   }
-}
-
-const signMsg = async (msg, from) => {
-  let web3Provider
-  if (window.ethereum) {
-    web3Provider = window.ethereum
-  } else if (window.web3) {
-    // Legacy dApp browsers...
-    web3Provider = window.web3.currentProvider
-  } else {
-    throw new Error('Metamask is not installed !!!')
-  }
-
-  const signature = await web3Provider.request({
-    method: 'eth_signTypedData_v4',
-    params: [from, JSON.stringify(msg)],
-    from: from
-  })
-  return signature
 }
 
 _initMetamask()
 
 export {
   isMetamaskInstalled,
-  getAddress,
-  signMsg
+  getAddress
 }

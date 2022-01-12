@@ -1,4 +1,4 @@
-const addEventListener = (cb) => {
+const addEventListener = cb => {
   document.addEventListener(cryptoEvent, cb)
 }
 
@@ -22,7 +22,13 @@ const eventType = {
   address: 'address',
   wrongNetworkOnGetAddress: 'wrongNetworkOnGetAddress',
   metamaskNotInstalled: 'metamaskNotInstalled',
-  general: 'general'
+  general: 'general',
+  claimNotSigned: 'claimNotSigned',
+  claimSigned: 'claimSigned',
+  paymentConfirmed: 'paymentConfirmed',
+  paymentNotConfirmed: 'paymentNotConfirmed',
+  winClaimSigned: 'winClaimSigned',
+  winNotConfirmed: 'winNotConfirmed'
 }
 
 const cryptoEvent = 'cryptoSDK'

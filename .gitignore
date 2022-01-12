@@ -7,6 +7,8 @@ npm-debug.log
 
 # local env variables
 .env
+.env.mainnet
+.env.production
 
 # macOS
 .DS_Store
