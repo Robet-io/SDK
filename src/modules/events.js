@@ -28,7 +28,10 @@ const eventType = {
   paymentConfirmed: 'paymentConfirmed',
   paymentNotConfirmed: 'paymentNotConfirmed',
   winClaimSigned: 'winClaimSigned',
-  winNotConfirmed: 'winNotConfirmed'
+  winNotConfirmed: 'winNotConfirmed',
+  challengNotSigned: 'challengNotSigned',
+  claimSynced: 'claimSynced',
+  claimNotSynced: 'claimNotSynced'
 }
 
 const cryptoEvent = 'cryptoSDK'

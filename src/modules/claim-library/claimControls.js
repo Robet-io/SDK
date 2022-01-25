@@ -88,7 +88,7 @@ const isValidClaimAlice = async (claim) => {
   if (isValid) {
     const savedClaim = await claimStorage.getClaimAlice()
     if (savedClaim) {
-      isValid = _areEqualClaims(claim, savedClaim)
+      isValid = areEqualClaims(claim, savedClaim)
     }
   }
   return isValid
@@ -99,16 +99,16 @@ const isValidClaimAlice = async (claim) => {
  * @param {obj} claim
  * @param {obj} savedClaim
  */
-const _areEqualClaims = (claim, savedClaim) => {
+const areEqualClaims = (claim, savedClaim) => {
   if (savedClaim.id !== claim.id) {
     throw new Error(`Invalid claim id: ${claim.id} - saved claim id: ${savedClaim.id}`)
   }
   if (savedClaim.nonce !== claim.nonce) {
     throw new Error(`Invalid claim nonce: ${claim.nonce} - saved claim nonce: ${savedClaim.nonce}`)
   }
-  if (savedClaim.amount !== claim.amount) {
-    throw new Error(`Invalid claim amount: ${claim.amount} - saved claim amount: ${savedClaim.amount}`)
-  }
+  // if (savedClaim.amount !== claim.amount) {
+  //   throw new Error(`Invalid claim amount: ${claim.amount} - saved claim amount: ${savedClaim.amount}`)
+  // }
   if (savedClaim.cumulativeDebits[0] !== claim.cumulativeDebits[0]) {
     throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - saved claim: ${savedClaim.cumulativeDebits[0]}`)
   }
@@ -124,6 +124,9 @@ const _areEqualClaims = (claim, savedClaim) => {
   if (savedClaim.addresses[1] !== claim.addresses[1]) {
     throw new Error(`Invalid address of Server: ${claim.addresses[1]} - saved claim: ${savedClaim.addresses[1]}`)
   }
+  if (savedClaim.timestamp !== claim.timestamp) {
+    throw new Error(`Invalid timestamp of Server: ${claim.timestamp} - saved claim: ${savedClaim.timestamp}`)
+  }
   return true
 }
 
@@ -133,5 +136,6 @@ const _areEqualClaims = (claim, savedClaim) => {
 
 export default {
   isValidNewClaim,
-  isValidClaimAlice
+  isValidClaimAlice,
+  areEqualClaims
 }

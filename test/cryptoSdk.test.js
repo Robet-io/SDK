@@ -18,7 +18,8 @@ import { signClaim } from './utils'
 //    + 1. claim not saved: a) claim is valid, b) not valid
 //    + 2. claim saved: a) claim is valid, b) not valid
 //    + 3. wrong chain
-// win
+// + win
+// login via Metamask
 
 jest.mock('../src/modules/blockchain', () => {
   return {
@@ -80,6 +81,8 @@ describe('cryptoSDK library', () => {
   const bobSignatureWin = signClaim(claimWin, SERVER_PRIVATE_KEY)
   const aliceSignatureWin = signClaim(claimWin, ALICE_PRIVATE_KEY)
   claimWin.signatures = ['', bobSignatureWin]
+
+  const challenge = '624c73aa97dc207439572a5401372995e0206eec3f692a8215a606759deac5c7'
 
   let events
   beforeEach(() => {
@@ -153,6 +156,13 @@ describe('cryptoSDK library', () => {
     test('win() - throws error AND arrives error event ', async () => {
       const errorMsg = 'Metamask is not installed'
       await expect(cryptoSDK.win(claimWin)).rejects.toThrowError(errorMsg)
+      expect(events[0].type).toEqual(eventType.metamaskNotInstalled)
+      expect(events[0].error).toBe(true)
+    })
+
+    test('Login via Metamask - throws error AND arrives error event metamaskNotInstalled', async () => {
+      const errorMsg = 'Metamask is not installed'
+      await expect(cryptoSDK.signChallenge(challenge)).rejects.toThrowError(errorMsg)
       expect(events[0].type).toEqual(eventType.metamaskNotInstalled)
       expect(events[0].error).toBe(true)
     })
@@ -748,6 +758,10 @@ describe('cryptoSDK library', () => {
           expect(events[0].error).toBe(true)
           expect(await claimStorage.getClaimAlice()).toBe(null)
         })
+      })
+
+      describe('Login via Metamask', () => {
+
       })
     })
 

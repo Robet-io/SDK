@@ -77,8 +77,29 @@ const win = async (claim) => {
   }
 }
 
+/**
+ *
+ * @param {obj} claim
+ */
+const lastClaim = async (msg) => {
+  const claim = JSON.parse(msg)
+  if (claim.error) {
+    emitErrorEvent(eventType.claimNotSynced, claim)
+    return true
+  }
+  const trueOrClaim = await claimLibrary.lastClaim(claim)
+  console.log('true or claim', trueOrClaim)
+  if (trueOrClaim === true) {
+    emitEvent(eventType.claimSynced)
+  } else {
+    emitErrorEvent(eventType.claimNotSynced, { lastClaim: trueOrClaim })
+  }
+  return trueOrClaim
+}
+
 export default {
   pay,
   payReceived,
-  win
+  win,
+  lastClaim
 }

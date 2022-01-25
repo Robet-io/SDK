@@ -4,6 +4,7 @@ import {
   isMetamaskInstalled,
   getAddress
 } from './modules/metamask'
+import token from './modules/token'
 
 import claims from './modules/claims'
 
@@ -35,7 +36,11 @@ const cryptoSDK = {
   pay: claims.pay,
   payReceived: claims.payReceived,
   win: claims.win,
-  receiveMsg
+  receiveMsg,
+  signChallenge: token.signChallenge,
+  setToken: token.setToken,
+  getToken: token.getToken,
+  lastClaim: claims.lastClaim
 }
 
 export default cryptoSDK

@@ -1,5 +1,5 @@
 // import { personalSign, decrypt } from 'eth-sig-util
-import { signTypedData, SignTypedDataVersion } from '@metamask/eth-sig-util'
+import { signTypedData, SignTypedDataVersion, personalSign } from '@metamask/eth-sig-util'
 
 const provider = (startProps) => {
   const {
@@ -35,6 +35,14 @@ const provider = (startProps) => {
         }
         case 'eth_sendTransaction': {
           return Promise.reject(new Error('This service can not send transactions.'))
+        }
+        case 'personal_sign': {
+          const privKey = Buffer.from(privateKey, 'hex')
+          const signature = personalSign({
+            data: JSON.parse(props.params[1]),
+            privateKey: privKey
+          })
+          return Promise.resolve(signature)
         }
         // case 'eth_decrypt': {
         //   const stripped = props.params[0].substring(2)

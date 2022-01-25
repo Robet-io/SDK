@@ -209,8 +209,35 @@ const payReceived = async (claim) => {
   }
 }
 
+/**
+ *
+ * @param {obj} claim
+ */
+const lastClaim = async (claim) => {
+  const confirmedClaim = await claimStorage.getConfirmedClaim()
+  if (!confirmedClaim) {
+    claimStorage.saveConfirmedClaim(claim)
+    return true
+  } else {
+    try {
+      const areEqual = claimControls.areEqualClaims(claim, confirmedClaim)
+      if (areEqual === true &&
+        claim.signatures[0] === confirmedClaim.signatures[0] &&
+        claim.signatures[1] === confirmedClaim.signatures[1]
+      ) {
+        return true
+      } else {
+        return { lastClaim: confirmedClaim }
+      }
+    } catch (error) {
+      return { lastClaim: confirmedClaim }
+    }
+  }
+}
+
 export default {
   pay,
   payReceived,
-  win
+  win,
+  lastClaim
 }

@@ -1,3 +1,4 @@
+import Web3 from 'web3'
 import {
   emitErrorEvent,
   emitEvent,
@@ -7,7 +8,8 @@ import {
 import {
   checkRightNetwork,
   getValidNetworks,
-  isRightNet
+  isRightNet,
+  getWeb3Provider
 } from './network'
 
 /**
@@ -126,9 +128,25 @@ const getAddress = async () => {
   }
 }
 
+const personalSign = async (data, address) => {
+  await checkRightNetwork()
+
+  const web3Provider = getWeb3Provider()
+  const web3 = new Web3()
+  const response = await web3Provider.request({
+    method: 'personal_sign',
+    params: [
+      web3.utils.toHex(data),
+      address
+    ]
+  })
+  return response
+}
+
 _initMetamask()
 
 export {
   isMetamaskInstalled,
-  getAddress
+  getAddress,
+  personalSign
 }
