@@ -20,6 +20,7 @@ import { signClaim, signChallenge } from './utils'
 //    + 3. wrong chain
 // + win
 // + login via Metamask, sign challenge, save token with exp.date, isLogged()
+// exchange of claims on websocket open
 
 jest.mock('../src/modules/blockchain', () => {
   return {
@@ -780,6 +781,78 @@ describe('cryptoSDK library', () => {
 
         test("isLogged() returns false if there's no token saved", async () => {
           expect(await cryptoSDK.isLogged()).toBe(false)
+        })
+      })
+
+      describe('Last claim exchange', () => {
+        // no claim on server, no claim on client
+        test('no claim on server, no claim on client - ok, nothing saved', async () => {
+          const handshakeServer = {
+            handshake: null
+          }
+          expect(await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))).toBe(true)
+          expect(await claimStorage.getConfirmedClaim()).toBe(null)
+        })
+
+        // no claim on server, claim on client
+        test("no claim on server, claim on client - returns client's claim", async () => {
+          const handshakeServer = {
+            handshake: null
+          }
+
+          await claimStorage.saveConfirmedClaim(claimToPayRecieved)
+          const handshakeClient = await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))
+          expect(handshakeClient.handshake.nonce).toBe(claimToPayRecieved.nonce)
+        })
+
+        // claim on server, no claim on client
+        test("claim on server, no claim on client - ok, server's claim is saved", async () => {
+          const handshakeServer = {
+            handshake: claimToPayRecieved
+          }
+
+          expect(await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))).toBe(true)
+          expect((await claimStorage.getConfirmedClaim()).signatures[1]).toBe(bobSignature)
+        })
+
+        // claim on server, newer claim on client
+        test("claim on server, newer claim on client - returns client's claim", async () => {
+          const handshakeServer = {
+            handshake: claimToPayRecieved
+          }
+
+          await claimStorage.saveConfirmedClaim(claimWin)
+
+          const handshakeClient = await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))
+          expect(handshakeClient.handshake.nonce).toBe(claimWin.nonce)
+        })
+
+        // claim on server, different claim on client
+        test("claim on server, different claim on client - returns client's claim", async () => {
+          const handshakeServer = {
+            handshake: claimToPayRecieved
+          }
+
+          const claimClient = {
+            ...claimToPayRecieved,
+            timestamp: 1639145450890
+          }
+
+          await claimStorage.saveConfirmedClaim(claimClient)
+
+          const handshakeClient = await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))
+          expect(handshakeClient.handshake.timestamp).toBe(claimClient.timestamp)
+        })
+
+        // claim on server, the same claim on client
+        test('claim on server, the same claim on client - ok', async () => {
+          const handshakeServer = {
+            handshake: claimToPayRecieved
+          }
+
+          await claimStorage.saveConfirmedClaim(claimToPayRecieved)
+
+          expect(await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))).toBe(true)
         })
       })
     })
