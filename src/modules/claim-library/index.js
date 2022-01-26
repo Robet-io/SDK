@@ -3,10 +3,7 @@ import { recoverTypedSignature, SignTypedDataVersion } from '@metamask/eth-sig-u
 import claimControls from './claimControls'
 import claimStorage from './claimStorage'
 import blockchain from '../blockchain'
-
-const CSDK_CHAIN_ID = process.env.CSDK_CHAIN_ID
-const CSDK_CHAIN_NAME = process.env.CSDK_CHAIN_NAME
-const CSDK_CONTRACT_VAULT_ADDRESS = process.env.CSDK_CONTRACT_VAULT_ADDRESS
+import { domain } from '../domain'
 
 // const claimType = {
 //   TYPE_REFUND: 'ticket.refund',
@@ -40,13 +37,6 @@ const win = async (claim, web3Provider) => {
       throw new Error("Server's balance is not enough")
     }
   }
-}
-
-const domain = {
-  name: CSDK_CHAIN_NAME,
-  version: '1',
-  chainId: CSDK_CHAIN_ID,
-  verifyingContract: CSDK_CONTRACT_VAULT_ADDRESS
 }
 
 /**
@@ -197,8 +187,6 @@ const _signClaim = async (claim, web3Provider) => {
  * @param {obj} claim
  */
 const payReceived = async (claim) => {
-  // Arriva la ricevuta del server controfirmata
-  // Verifico e salvo su localstorage come ultimo claim
   const claimIsValid = await claimControls.isValidClaimAlice(claim)
   if (claimIsValid) {
     if (_verifySignature(claim)) {
@@ -215,9 +203,24 @@ const payReceived = async (claim) => {
  */
 const lastClaim = async (claim) => {
   const confirmedClaim = await claimStorage.getConfirmedClaim()
-  if (!confirmedClaim) {
+  if (!confirmedClaim && claim === null) {
+    return true
+  } if (!confirmedClaim && claim && claim.nonce) {
     claimStorage.saveConfirmedClaim(claim)
     return true
+  } else if (confirmedClaim && claim === null) {
+    return { handshake: confirmedClaim }
+  } else if (claim.id >= confirmedClaim.id &&
+    claim.nonce > confirmedClaim.nonce) {
+    // && claim.timestamp > confirmedClaim.timestamp) {
+    // newer claim
+    if (_verifySignature(claim, true) &&
+      _verifySignature(claim)) {
+      claimStorage.saveConfirmedClaim(claim)
+      return true
+    } else {
+      return { handshake: confirmedClaim }
+    }
   } else {
     try {
       const areEqual = claimControls.areEqualClaims(claim, confirmedClaim)
@@ -227,10 +230,10 @@ const lastClaim = async (claim) => {
       ) {
         return true
       } else {
-        return { lastClaim: confirmedClaim }
+        return { handshake: confirmedClaim }
       }
     } catch (error) {
-      return { lastClaim: confirmedClaim }
+      return { handshake: confirmedClaim }
     }
   }
 }

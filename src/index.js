@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 import { addEventListener } from './modules/events'
 import { isRightNet, setRightNet } from './modules/network'
 import {
@@ -10,18 +11,24 @@ import claims from './modules/claims'
 
 const receiveMsg = async (msg) => {
   if (msg) {
-    const claim = JSON.parse(msg)
-    if (claim && claim.type === process.env.CSDK_TYPE_PLAY) {
-      if (!claim.signatures[0] && !claim.signatures[1]) {
-        const signedClaim = await claims.pay(claim)
-        return { signedClaim }
-      } else if (claim.signatures[0] && claim.signatures[1]) {
-        await claims.payReceived(claim)
-      }
-    } else if (claim && claim.type === process.env.CSDK_TYPE_WIN) {
-      if (!claim.signatures[0] && claim.signatures[1]) {
-        const signedClaim = await claims.win(claim)
-        return { signedClaim }
+    const message = JSON.parse(msg)
+    if (message.hasOwnProperty('handshake')) {
+      // handshake
+      return await claims.lastClaim(message.handshake)
+    } else {
+      const claim = message
+      if (claim && claim.type === process.env.CSDK_TYPE_PLAY) {
+        if (!claim.signatures[0] && !claim.signatures[1]) {
+          const signedClaim = await claims.pay(claim)
+          return { signedClaim }
+        } else if (claim.signatures[0] && claim.signatures[1]) {
+          await claims.payReceived(claim)
+        }
+      } else if (claim && claim.type === process.env.CSDK_TYPE_WIN) {
+        if (!claim.signatures[0] && claim.signatures[1]) {
+          const signedClaim = await claims.win(claim)
+          return { signedClaim }
+        }
       }
     }
   }
@@ -40,6 +47,7 @@ const cryptoSDK = {
   signChallenge: token.signChallenge,
   setToken: token.setToken,
   getToken: token.getToken,
+  isLogged: token.isLogged,
   lastClaim: claims.lastClaim
 }
 

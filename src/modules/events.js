@@ -29,7 +29,8 @@ const eventType = {
   paymentNotConfirmed: 'paymentNotConfirmed',
   winClaimSigned: 'winClaimSigned',
   winNotConfirmed: 'winNotConfirmed',
-  challengNotSigned: 'challengNotSigned',
+  challengeSigned: 'challengeSigned',
+  challengeNotSigned: 'challengeNotSigned',
   claimSynced: 'claimSynced',
   claimNotSynced: 'claimNotSynced'
 }

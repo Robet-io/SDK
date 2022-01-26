@@ -15,7 +15,6 @@ const callMethod = async (contract, method, params) => {
 }
 
 const getVaultBalance = async (address, web3Provider) => {
-  // TODO delete mock of data
   return { balance: 40 }
   const contract = initContract(web3Provider)
   const web3 = new Web3()

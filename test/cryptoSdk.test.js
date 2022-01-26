@@ -3,7 +3,7 @@ import { eventType, addEventListener } from '../src/modules/events'
 import cryptoSDK from '../src/index'
 import MetamaskProvider from './mocks/MetamaskProvider.js'
 import claimStorage from '../src/modules/claim-library/claimStorage'
-import { signClaim } from './utils'
+import { signClaim, signChallenge } from './utils'
 
 // to test:
 //   + getAddress,
@@ -19,7 +19,7 @@ import { signClaim } from './utils'
 //    + 2. claim saved: a) claim is valid, b) not valid
 //    + 3. wrong chain
 // + win
-// login via Metamask
+// + login via Metamask, sign challenge, save token with exp.date, isLogged()
 
 jest.mock('../src/modules/blockchain', () => {
   return {
@@ -83,6 +83,7 @@ describe('cryptoSDK library', () => {
   claimWin.signatures = ['', bobSignatureWin]
 
   const challenge = '624c73aa97dc207439572a5401372995e0206eec3f692a8215a606759deac5c7'
+  const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJGdW50ZWNoIiwiaWF0IjoxNjQyNzgwOTcyLCJleHAiOjE2NzQzMTY5NzIsImF1ZCI6ImRlY2VudHJhbGl6ZWRnYW1ibGluZy5pbyIsInN1YiI6ImFkbWluQGRlY2VudHJhbGl6ZWRnYW1ibGluZy5pbyIsImlkIjoiMSIsImFkZHJlc3MiOiIweGFjYzhjYjhkM2M4ZmNjZDhmYzVmNTExYTkwMmQzMTA1NzRkZTk3NjcifQ.Ny1PEq0c6Gvjyr9q8BV2vta2owoLfVLc9anKCQuNoI-QTucnHzPQl7gTsG43XesPMWeZYEAWRPySRdXLkczzlw'
 
   let events
   beforeEach(() => {
@@ -761,7 +762,25 @@ describe('cryptoSDK library', () => {
       })
 
       describe('Login via Metamask', () => {
+        test('signChallenge() returns signature', async () => {
+          const signature = await cryptoSDK.signChallenge(challenge)
+          expect(signature).toEqual(signChallenge(challenge, ALICE_PRIVATE_KEY))
+        })
 
+        test('setToken() saves token in localStorage', async () => {
+          await cryptoSDK.setToken(token)
+          expect(await cryptoSDK.getToken()).toBe(token)
+          expect(await cryptoSDK.getToken()).toBe(token)
+        })
+
+        test('isLogged() returns true after setToken()', async () => {
+          await cryptoSDK.setToken(token)
+          expect(await cryptoSDK.isLogged()).toBe(true)
+        })
+
+        test("isLogged() returns false if there's no token saved", async () => {
+          expect(await cryptoSDK.isLogged()).toBe(false)
+        })
       })
     })
 
@@ -820,6 +839,13 @@ describe('cryptoSDK library', () => {
         expect(events[0].type).toEqual(eventType.winNotConfirmed)
         expect(events[0].error).toBe(true)
         expect(await claimStorage.getConfirmedClaim()).toBe(null)
+      })
+
+      test('Login via Metamask - throws error AND arrives error event challengeNotSigned', async () => {
+        const errorMsg = 'Please change your network on Metamask'
+        await expect(cryptoSDK.signChallenge(challenge)).rejects.toThrowError(errorMsg)
+        expect(events[0].type).toEqual(eventType.challengeNotSigned)
+        expect(events[0].error).toBe(true)
       })
     })
   })

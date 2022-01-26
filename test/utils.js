@@ -51,3 +51,37 @@ export const signClaim = (claim, privateKey) => {
   })
   return signature
 }
+
+const _buildTypedSignin = (challenge) => {
+  const message = {
+    method: 'signin',
+    text: challenge
+  }
+  return {
+    types: {
+      EIP712Domain: [
+        { name: 'name', type: 'string' },
+        { name: 'version', type: 'string' },
+        { name: 'chainId', type: 'uint256' },
+        { name: 'verifyingContract', type: 'address' }
+      ],
+      Signin: [
+        { name: 'method', type: 'string' },
+        { name: 'text', type: 'string' }
+      ]
+    },
+    domain,
+    primaryType: 'Signin',
+    message
+  }
+}
+
+export const signChallenge = (challenge, privateKey) => {
+  const privKey = Buffer.from(privateKey, 'hex')
+  const signature = signTypedData({
+    data: _buildTypedSignin(challenge),
+    privateKey: privKey,
+    version: SignTypedDataVersion.V4
+  })
+  return signature
+}

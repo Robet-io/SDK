@@ -1,4 +1,5 @@
 /* eslint-disable import/no-anonymous-default-export */
+/* eslint-disable no-prototype-builtins */
 import {
   getWeb3Provider,
   checkRightNetwork
@@ -81,16 +82,15 @@ const win = async (claim) => {
  *
  * @param {obj} claim
  */
-const lastClaim = async (msg) => {
-  const claim = JSON.parse(msg)
-  if (claim.error) {
-    emitErrorEvent(eventType.claimNotSynced, claim)
+const lastClaim = async (claim) => {
+  if (claim && claim.hasOwnProperty('error')) {
+    emitErrorEvent(eventType.claimNotSynced, claim.error)
     return true
   }
   const trueOrClaim = await claimLibrary.lastClaim(claim)
   console.log('true or claim', trueOrClaim)
   if (trueOrClaim === true) {
-    emitEvent(eventType.claimSynced)
+    emitEvent(eventType.claimSynced, 'Claims are synced')
   } else {
     emitErrorEvent(eventType.claimNotSynced, { lastClaim: trueOrClaim })
   }
