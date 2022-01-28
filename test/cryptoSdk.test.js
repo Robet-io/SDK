@@ -20,7 +20,7 @@ import { signClaim, signChallenge } from './utils'
 //    + 3. wrong chain
 // + win
 // + login via Metamask, sign challenge, save token with exp.date, isLogged()
-// exchange of claims on websocket open
+// + exchange of claims on websocket open
 
 jest.mock('../src/modules/blockchain', () => {
   return {
@@ -293,7 +293,7 @@ describe('cryptoSDK library', () => {
             signatures: [aliceSignature, ''],
             type: 'ticket.play'
           }
-          const aliceSignature2 = '0x940194654d3894e4c443c11a6723bdac84bf1dd231ec1f409375c974d8ea3adb1d4e052db8243f2eff40c37d46f613097a936c02a17d241283ceec718393e5ff1b'
+          const aliceSignature2 = signClaim(claimToPay2, ALICE_PRIVATE_KEY)
           beforeEach(() => {
             const previousClaim = {
               id: 1,
@@ -790,7 +790,7 @@ describe('cryptoSDK library', () => {
           const handshakeServer = {
             handshake: null
           }
-          expect(await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))).toBe(true)
+          expect(await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))).toBe(undefined)
           expect(await claimStorage.getConfirmedClaim()).toBe(null)
         })
 
@@ -811,7 +811,7 @@ describe('cryptoSDK library', () => {
             handshake: claimToPayRecieved
           }
 
-          expect(await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))).toBe(true)
+          expect(await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))).toBe(undefined)
           expect((await claimStorage.getConfirmedClaim()).signatures[1]).toBe(bobSignature)
         })
 
@@ -852,7 +852,7 @@ describe('cryptoSDK library', () => {
 
           await claimStorage.saveConfirmedClaim(claimToPayRecieved)
 
-          expect(await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))).toBe(true)
+          expect(await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))).toBe(undefined)
         })
       })
     })
@@ -1041,7 +1041,7 @@ describe('cryptoSDK library', () => {
             signatures: [aliceSignature, ''],
             type: 'ticket.play'
           }
-          const aliceSignature2 = '0x940194654d3894e4c443c11a6723bdac84bf1dd231ec1f409375c974d8ea3adb1d4e052db8243f2eff40c37d46f613097a936c02a17d241283ceec718393e5ff1b'
+          const aliceSignature2 = signClaim(claimToPay2, ALICE_PRIVATE_KEY)
           beforeEach(() => {
             const previousClaim = {
               id: 1,

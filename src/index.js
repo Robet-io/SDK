@@ -14,20 +14,20 @@ const receiveMsg = async (msg) => {
     const message = JSON.parse(msg)
     if (message.hasOwnProperty('handshake')) {
       // handshake
-      return await claims.lastClaim(message.handshake)
+      return claims.lastClaim(message.handshake)
     } else {
       const claim = message
       if (claim && claim.type === process.env.CSDK_TYPE_PLAY) {
         if (!claim.signatures[0] && !claim.signatures[1]) {
           const signedClaim = await claims.pay(claim)
-          return { signedClaim }
+          return signedClaim
         } else if (claim.signatures[0] && claim.signatures[1]) {
           await claims.payReceived(claim)
         }
       } else if (claim && claim.type === process.env.CSDK_TYPE_WIN) {
         if (!claim.signatures[0] && claim.signatures[1]) {
           const signedClaim = await claims.win(claim)
-          return { signedClaim }
+          return signedClaim
         }
       }
     }

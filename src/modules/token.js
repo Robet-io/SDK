@@ -54,19 +54,24 @@ const authToken = 'authToken'
 const expireToken = 'expireToken'
 const expirationPeriod = 1200000 // 20min * 60 * 1000
 
-const setToken = async (token) => {
-  await localStorage.setItem(authToken, token)
-  await localStorage.setItem(expireToken, Date.now() + expirationPeriod)
+const setToken = (token) => {
+  try {
+    localStorage.setItem(authToken, token)
+    localStorage.setItem(expireToken, Date.now() + expirationPeriod)
+    emitEvent(eventType.token, 'JWT token received')
+  } catch (error) {
+    emitErrorEvent(eventType.token, error)
+  }
 }
 
-const getToken = async () => {
-  return await localStorage.getItem(authToken)
+const getToken = () => {
+  return localStorage.getItem(authToken)
 }
 
-const isLogged = async () => {
-  const token = await getToken()
+const isLogged = () => {
+  const token = getToken()
   if (token) {
-    const expirationTime = await localStorage.getItem(expireToken)
+    const expirationTime = localStorage.getItem(expireToken)
     if (expirationTime && expirationTime > Date.now()) {
       return true
     }

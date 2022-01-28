@@ -25,7 +25,12 @@ const eventType = {
   paymentConfirmed: "paymentConfirmed",
   paymentNotConfirmed: "paymentNotConfirmed",
   winClaimSigned: "winClaimSigned",
-  winNotConfirmed: "winNotConfirmed"
+  winNotConfirmed: "winNotConfirmed",
+  challengeSigned: "challengeSigned",
+  challengeNotSigned: "challengeNotSigned",
+  claimSynced: "claimSynced",
+  claimNotSynced: "claimNotSynced",
+  token: "jwtToken"
 };
 const cryptoEvent = "cryptoSDK";
 const CSDK_CHAIN_ID$1 = "97";
@@ -153,7 +158,6 @@ const _handleChainChanged = async (chainId) => {
   }
 };
 const _initMetamask = () => {
-  console.log("#### CSDK_CHAIN_ID", "97");
   if (window.ethereum) {
     if (!window.ethereum.chainId) {
       window.ethereum.chainId = "97";
@@ -235,7 +239,91 @@ const getAddress = async () => {
     throw new Error(error);
   }
 };
+const signTypedData = async (msg, from) => {
+  await checkRightNetwork();
+  const web3Provider = getWeb3Provider();
+  const response = await web3Provider.request({
+    method: "eth_signTypedData_v4",
+    params: [from, JSON.stringify(msg)],
+    from
+  });
+  return response;
+};
 _initMetamask();
+const CSDK_CHAIN_ID = "97";
+const CSDK_CHAIN_NAME = "BSC Testnet";
+const CSDK_CONTRACT_VAULT_ADDRESS = "0xA0Af3739fBC126C287D2fd0b5372d939Baa36B17";
+const domain = {
+  name: CSDK_CHAIN_NAME,
+  version: "1",
+  chainId: CSDK_CHAIN_ID,
+  verifyingContract: CSDK_CONTRACT_VAULT_ADDRESS
+};
+const _buildTypedSignin = (challenge) => {
+  const message = {
+    method: "signin",
+    text: challenge
+  };
+  return {
+    types: {
+      EIP712Domain: [
+        { name: "name", type: "string" },
+        { name: "version", type: "string" },
+        { name: "chainId", type: "uint256" },
+        { name: "verifyingContract", type: "address" }
+      ],
+      Signin: [
+        { name: "method", type: "string" },
+        { name: "text", type: "string" }
+      ]
+    },
+    domain,
+    primaryType: "Signin",
+    message
+  };
+};
+const signChallenge = async (challenge, address) => {
+  const msg = _buildTypedSignin(challenge);
+  try {
+    const response = await signTypedData(msg, address);
+    emitEvent(eventType.challengeSigned, { signature: response });
+    return response;
+  } catch (error) {
+    emitErrorEvent(eventType.challengeNotSigned, error);
+    throw error;
+  }
+};
+const authToken = "authToken";
+const expireToken = "expireToken";
+const expirationPeriod = 12e5;
+const setToken = (token2) => {
+  try {
+    localStorage.setItem(authToken, token2);
+    localStorage.setItem(expireToken, Date.now() + expirationPeriod);
+    emitEvent(eventType.token, "JWT token received");
+  } catch (error) {
+    emitErrorEvent(eventType.token, error);
+  }
+};
+const getToken = () => {
+  return localStorage.getItem(authToken);
+};
+const isLogged = () => {
+  const token2 = getToken();
+  if (token2) {
+    const expirationTime = localStorage.getItem(expireToken);
+    if (expirationTime && expirationTime > Date.now()) {
+      return true;
+    }
+  }
+  return false;
+};
+var token = {
+  signChallenge,
+  setToken,
+  getToken,
+  isLogged
+};
 const savedClameType = {
   claimConfirmed: "claimConfirmed",
   claimAlice: "claimAlice"
@@ -243,14 +331,14 @@ const savedClameType = {
 const saveConfirmedClaim = (claim) => {
   localStorage.setItem(savedClameType.claimConfirmed, JSON.stringify(claim));
 };
-const getConfirmedClaim = async () => {
-  return JSON.parse(await localStorage.getItem(savedClameType.claimConfirmed));
+const getConfirmedClaim = () => {
+  return JSON.parse(localStorage.getItem(savedClameType.claimConfirmed));
 };
 const saveClaimAlice = (claim) => {
   localStorage.setItem(savedClameType.claimAlice, JSON.stringify(claim));
 };
-const getClaimAlice = async () => {
-  return JSON.parse(await localStorage.getItem(savedClameType.claimAlice));
+const getClaimAlice = () => {
+  return JSON.parse(localStorage.getItem(savedClameType.claimAlice));
 };
 var claimStorage = {
   saveConfirmedClaim,
@@ -260,18 +348,18 @@ var claimStorage = {
 };
 const CSDK_SERVER_ADDRESS = "0xeA085D9698651e76750F07d0dE0464476187b3ca";
 const isValidNewClaim = async (claim) => {
-  const lastClaim = await claimStorage.getConfirmedClaim();
-  if (lastClaim) {
-    if (lastClaim.id !== claim.id) {
-      throw new Error(`Invalid claim id: ${claim.id} - last claim id: ${lastClaim.id}`);
+  const lastClaim2 = await claimStorage.getConfirmedClaim();
+  if (lastClaim2) {
+    if (lastClaim2.id !== claim.id) {
+      throw new Error(`Invalid claim id: ${claim.id} - last claim id: ${lastClaim2.id}`);
     }
-    if (lastClaim.nonce + 1 !== claim.nonce) {
-      throw new Error(`Invalid claim nonce: ${claim.nonce} - last claim nonce: ${lastClaim.nonce}`);
+    if (lastClaim2.nonce + 1 !== claim.nonce) {
+      throw new Error(`Invalid claim nonce: ${claim.nonce} - last claim nonce: ${lastClaim2.nonce}`);
     }
     if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
       throw new Error(`Invalid address of Server: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`);
     }
-    const lastBalance = lastClaim.cumulativeDebits[1] - lastClaim.cumulativeDebits[0];
+    const lastBalance = lastClaim2.cumulativeDebits[1] - lastClaim2.cumulativeDebits[0];
     const balance = lastBalance + claim.amount;
     _controlDebits(balance, claim.cumulativeDebits);
   } else {
@@ -311,20 +399,17 @@ const isValidClaimAlice = async (claim) => {
   if (isValid) {
     const savedClaim = await claimStorage.getClaimAlice();
     if (savedClaim) {
-      isValid = _areEqualClaims(claim, savedClaim);
+      isValid = areEqualClaims(claim, savedClaim);
     }
   }
   return isValid;
 };
-const _areEqualClaims = (claim, savedClaim) => {
+const areEqualClaims = (claim, savedClaim) => {
   if (savedClaim.id !== claim.id) {
     throw new Error(`Invalid claim id: ${claim.id} - saved claim id: ${savedClaim.id}`);
   }
   if (savedClaim.nonce !== claim.nonce) {
     throw new Error(`Invalid claim nonce: ${claim.nonce} - saved claim nonce: ${savedClaim.nonce}`);
-  }
-  if (savedClaim.amount !== claim.amount) {
-    throw new Error(`Invalid claim amount: ${claim.amount} - saved claim amount: ${savedClaim.amount}`);
   }
   if (savedClaim.cumulativeDebits[0] !== claim.cumulativeDebits[0]) {
     throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - saved claim: ${savedClaim.cumulativeDebits[0]}`);
@@ -341,11 +426,15 @@ const _areEqualClaims = (claim, savedClaim) => {
   if (savedClaim.addresses[1] !== claim.addresses[1]) {
     throw new Error(`Invalid address of Server: ${claim.addresses[1]} - saved claim: ${savedClaim.addresses[1]}`);
   }
+  if (savedClaim.timestamp !== claim.timestamp) {
+    throw new Error(`Invalid timestamp of Server: ${claim.timestamp} - saved claim: ${savedClaim.timestamp}`);
+  }
   return true;
 };
 var claimControls = {
   isValidNewClaim,
-  isValidClaimAlice
+  isValidClaimAlice,
+  areEqualClaims
 };
 var abi = [
   {
@@ -405,7 +494,7 @@ var abi = [
     type: "function"
   }
 ];
-const vaultAddress = "0xBC8655Fbb4ec8E3cc9edef00f05841A776907311";
+const vaultAddress = "0xA0Af3739fBC126C287D2fd0b5372d939Baa36B17";
 const initContract = (web3Provider, contractAddress = vaultAddress, contractAbi = abi) => {
   const web3 = new Web3(web3Provider);
   const contract = new web3.eth.Contract(contractAbi, contractAddress);
@@ -423,9 +512,6 @@ const getVaultBalance = async (address, web3Provider) => {
 var blockchain = {
   getVaultBalance
 };
-const CSDK_CHAIN_ID = "97";
-const CSDK_CHAIN_NAME = "BSC Testnet";
-const CSDK_CONTRACT_VAULT_ADDRESS = "0xBC8655Fbb4ec8E3cc9edef00f05841A776907311";
 const win$1 = async (claim, web3Provider) => {
   const claimIsValid = await claimControls.isValidNewClaim(claim);
   if (claimIsValid) {
@@ -441,12 +527,6 @@ const win$1 = async (claim, web3Provider) => {
       throw new Error("Server's balance is not enough");
     }
   }
-};
-const domain = {
-  name: CSDK_CHAIN_NAME,
-  version: "1",
-  chainId: CSDK_CHAIN_ID,
-  verifyingContract: CSDK_CONTRACT_VAULT_ADDRESS
 };
 const _buildTypedClaim = (claim) => {
   return {
@@ -557,10 +637,41 @@ const payReceived$1 = async (claim) => {
     }
   }
 };
+const lastClaim$1 = (claim) => {
+  const confirmedClaim = claimStorage.getConfirmedClaim();
+  if (!confirmedClaim && claim === null) {
+    return true;
+  }
+  if (!confirmedClaim && claim && claim.nonce) {
+    claimStorage.saveConfirmedClaim(claim);
+    return true;
+  } else if (confirmedClaim && claim === null) {
+    return { handshake: confirmedClaim };
+  } else if (claim.id >= confirmedClaim.id && claim.nonce > confirmedClaim.nonce) {
+    if (_verifySignature(claim, true) && _verifySignature(claim)) {
+      claimStorage.saveConfirmedClaim(claim);
+      return true;
+    } else {
+      return { handshake: confirmedClaim };
+    }
+  } else {
+    try {
+      const areEqual = claimControls.areEqualClaims(claim, confirmedClaim);
+      if (areEqual === true && claim.signatures[0] === confirmedClaim.signatures[0] && claim.signatures[1] === confirmedClaim.signatures[1]) {
+        return true;
+      } else {
+        return { handshake: confirmedClaim };
+      }
+    } catch (error) {
+      return { handshake: confirmedClaim };
+    }
+  }
+};
 var claimLibrary = {
   pay: pay$1,
   payReceived: payReceived$1,
-  win: win$1
+  win: win$1,
+  lastClaim: lastClaim$1
 };
 const pay = async (claim) => {
   try {
@@ -611,25 +722,44 @@ const win = async (claim) => {
     throw error;
   }
 };
+const lastClaim = (claim) => {
+  if (claim && claim.hasOwnProperty("error")) {
+    emitErrorEvent(eventType.claimNotSynced, claim.error);
+    return;
+  }
+  const trueOrClaim = claimLibrary.lastClaim(claim);
+  if (trueOrClaim === true) {
+    emitEvent(eventType.claimSynced, "Claims are synced");
+  } else {
+    emitErrorEvent(eventType.claimNotSynced, { lastClaim: trueOrClaim });
+    return trueOrClaim;
+  }
+};
 var claims = {
   pay,
   payReceived,
-  win
+  win,
+  lastClaim
 };
 const receiveMsg = async (msg) => {
   if (msg) {
-    const claim = JSON.parse(msg);
-    if (claim && claim.type === "ticket.play") {
-      if (!claim.signatures[0] && !claim.signatures[1]) {
-        const signedClaim = await claims.pay(claim);
-        return { signedClaim };
-      } else if (claim.signatures[0] && claim.signatures[1]) {
-        await claims.payReceived(claim);
-      }
-    } else if (claim && claim.type === "ticket.win") {
-      if (!claim.signatures[0] && claim.signatures[1]) {
-        const signedClaim = await claims.win(claim);
-        return { signedClaim };
+    const message = JSON.parse(msg);
+    if (message.hasOwnProperty("handshake")) {
+      return claims.lastClaim(message.handshake);
+    } else {
+      const claim = message;
+      if (claim && claim.type === "ticket.play") {
+        if (!claim.signatures[0] && !claim.signatures[1]) {
+          const signedClaim = await claims.pay(claim);
+          return signedClaim;
+        } else if (claim.signatures[0] && claim.signatures[1]) {
+          await claims.payReceived(claim);
+        }
+      } else if (claim && claim.type === "ticket.win") {
+        if (!claim.signatures[0] && claim.signatures[1]) {
+          const signedClaim = await claims.win(claim);
+          return signedClaim;
+        }
       }
     }
   }
@@ -643,6 +773,11 @@ const cryptoSDK = {
   pay: claims.pay,
   payReceived: claims.payReceived,
   win: claims.win,
-  receiveMsg
+  receiveMsg,
+  signChallenge: token.signChallenge,
+  setToken: token.setToken,
+  getToken: token.getToken,
+  isLogged: token.isLogged,
+  lastClaim: claims.lastClaim
 };
 export { cryptoSDK as default };

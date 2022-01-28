@@ -11,16 +11,16 @@ const saveConfirmedClaim = claim => {
   localStorage.setItem(savedClameType.claimConfirmed, JSON.stringify(claim))
 }
 
-const getConfirmedClaim = async () => {
-  return JSON.parse(await localStorage.getItem(savedClameType.claimConfirmed))
+const getConfirmedClaim = () => {
+  return JSON.parse(localStorage.getItem(savedClameType.claimConfirmed))
 }
 
 const saveClaimAlice = claim => {
   localStorage.setItem(savedClameType.claimAlice, JSON.stringify(claim))
 }
 
-const getClaimAlice = async () => {
-  return JSON.parse(await localStorage.getItem(savedClameType.claimAlice))
+const getClaimAlice = () => {
+  return JSON.parse(localStorage.getItem(savedClameType.claimAlice))
 }
 
 export default {

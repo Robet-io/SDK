@@ -82,19 +82,18 @@ const win = async (claim) => {
  *
  * @param {obj} claim
  */
-const lastClaim = async (claim) => {
+const lastClaim = (claim) => {
   if (claim && claim.hasOwnProperty('error')) {
     emitErrorEvent(eventType.claimNotSynced, claim.error)
-    return true
+    return
   }
-  const trueOrClaim = await claimLibrary.lastClaim(claim)
-  console.log('true or claim', trueOrClaim)
+  const trueOrClaim = claimLibrary.lastClaim(claim)
   if (trueOrClaim === true) {
     emitEvent(eventType.claimSynced, 'Claims are synced')
   } else {
     emitErrorEvent(eventType.claimNotSynced, { lastClaim: trueOrClaim })
+    return trueOrClaim
   }
-  return trueOrClaim
 }
 
 export default {

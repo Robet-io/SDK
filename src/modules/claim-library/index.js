@@ -201,8 +201,8 @@ const payReceived = async (claim) => {
  *
  * @param {obj} claim
  */
-const lastClaim = async (claim) => {
-  const confirmedClaim = await claimStorage.getConfirmedClaim()
+const lastClaim = (claim) => {
+  const confirmedClaim = claimStorage.getConfirmedClaim()
   if (!confirmedClaim && claim === null) {
     return true
   } if (!confirmedClaim && claim && claim.nonce) {

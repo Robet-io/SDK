@@ -32,7 +32,8 @@ const eventType = {
   challengeSigned: 'challengeSigned',
   challengeNotSigned: 'challengeNotSigned',
   claimSynced: 'claimSynced',
-  claimNotSynced: 'claimNotSynced'
+  claimNotSynced: 'claimNotSynced',
+  token: 'jwtToken'
 }
 
 const cryptoEvent = 'cryptoSDK'
