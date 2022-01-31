@@ -1,4 +1,3 @@
-// import { personalSign, decrypt } from 'eth-sig-util
 import { signTypedData, SignTypedDataVersion, personalSign } from '@metamask/eth-sig-util'
 
 const provider = (startProps) => {
@@ -51,6 +50,7 @@ const provider = (startProps) => {
         //   return Promise.resolve(decrypt(data, privateKey))
         // }
         default:
+          /* eslint-disable prefer-promise-reject-errors */
           return Promise.reject(`The method ${props.method} is not implemented by the mock provider.`)
       }
     },

@@ -1,6 +1,5 @@
 import { emitEvent, emitErrorEvent, eventType } from './events'
 
-// TODO: bring the chain_id (process.env ?? - )
 const CSDK_CHAIN_ID = process.env.CSDK_CHAIN_ID
 const CSDK_CHAIN_NAME = process.env.CSDK_CHAIN_NAME
 const CSDK_RPC_URL = process.env.CSDK_RPC_URL
@@ -63,7 +62,6 @@ const networksNames = (netId = false) => {
 }
 
 const getValidNetworks = () => {
-  // TODO array - two nets
   return [Number(CSDK_CHAIN_ID)]
 }
 
@@ -83,7 +81,7 @@ const setRightNet = async () => {
     const ethereum = window.ethereum
     const chainIdHex = `0x${Number(CSDK_CHAIN_ID).toString(16)}`
     const data = [{
-      chainId: chainIdHex, // '0x61'
+      chainId: chainIdHex,
       chainName: CSDK_CHAIN_NAME,
       nativeCurrency:
         {

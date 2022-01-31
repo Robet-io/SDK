@@ -25,15 +25,16 @@ const eventType = {
   general: 'general',
   claimNotSigned: 'claimNotSigned',
   claimSigned: 'claimSigned',
-  paymentConfirmed: 'paymentConfirmed',
-  paymentNotConfirmed: 'paymentNotConfirmed',
+  claimConfirmed: 'claimConfirmed',
+  claimNotConfirmed: 'claimNotConfirmed',
   winClaimSigned: 'winClaimSigned',
   winNotConfirmed: 'winNotConfirmed',
   challengeSigned: 'challengeSigned',
   challengeNotSigned: 'challengeNotSigned',
   claimSynced: 'claimSynced',
   claimNotSynced: 'claimNotSynced',
-  token: 'jwtToken'
+  token: 'jwtToken',
+  withdraw: 'withdraw'
 }
 
 const cryptoEvent = 'cryptoSDK'

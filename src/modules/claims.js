@@ -10,6 +10,7 @@ import {
   eventType
 } from './events'
 import claimLibrary from './claim-library'
+import blockchain from './blockchain'
 
 /**
  *
@@ -34,6 +35,17 @@ const pay = async (claim) => {
   }
 }
 
+// TODO delete
+const getVaultBalance = async (address) => {
+  const web3Provider = getWeb3Provider()
+  try {
+    const balance = await blockchain.getVaultBalance(address, web3Provider)
+    return balance
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 /**
  *
  * @param {obj} claim
@@ -42,15 +54,15 @@ const payReceived = async (claim) => {
   try {
     await checkRightNetwork()
   } catch (error) {
-    emitErrorEvent(eventType.paymentNotConfirmed, error)
+    emitErrorEvent(eventType.claimNotConfirmed, error)
     throw error
   }
 
   try {
     await claimLibrary.payReceived(claim)
-    emitEvent(eventType.paymentConfirmed, { claim })
+    emitEvent(eventType.claimConfirmed, { claim })
   } catch (error) {
-    emitErrorEvent(eventType.paymentNotConfirmed, { error, claim })
+    emitErrorEvent(eventType.claimNotConfirmed, { error, claim })
     throw error
   }
 }
@@ -96,9 +108,56 @@ const lastClaim = (claim) => {
   }
 }
 
+/**
+ *
+ * @param {obj} claim
+ */
+const signWithdraw = async (claim) => {
+  try {
+    await checkRightNetwork()
+  } catch (error) {
+    emitErrorEvent(eventType.claimNotSigned, error)
+    throw error
+  }
+
+  const web3Provider = getWeb3Provider()
+  try {
+    const claimResult = await claimLibrary.signWithdraw(claim, web3Provider)
+    emitEvent(eventType.claimSigned, { claim: claimResult })
+    return claimResult
+  } catch (error) {
+    emitErrorEvent(eventType.claimNotSigned, error)
+    throw error
+  }
+}
+
+/**
+ *
+ * @param {obj} claim
+ */
+const withdrawConsensually = async (claim) => {
+  try {
+    await checkRightNetwork()
+  } catch (error) {
+    emitErrorEvent(eventType.withdraw, error)
+    throw error
+  }
+
+  const web3Provider = getWeb3Provider()
+  try {
+    await blockchain.withdrawConsensually(claim, web3Provider)
+    emitEvent(eventType.withdraw, 'Consensual withdraw is sent to blockchain')
+  } catch (error) {
+    emitErrorEvent(eventType.withdraw, error)
+  }
+}
+
 export default {
   pay,
   payReceived,
   win,
-  lastClaim
+  lastClaim,
+  signWithdraw,
+  withdrawConsensually,
+  getVaultBalance
 }

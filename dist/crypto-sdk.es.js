@@ -22,15 +22,16 @@ const eventType = {
   general: "general",
   claimNotSigned: "claimNotSigned",
   claimSigned: "claimSigned",
-  paymentConfirmed: "paymentConfirmed",
-  paymentNotConfirmed: "paymentNotConfirmed",
+  claimConfirmed: "claimConfirmed",
+  claimNotConfirmed: "claimNotConfirmed",
   winClaimSigned: "winClaimSigned",
   winNotConfirmed: "winNotConfirmed",
   challengeSigned: "challengeSigned",
   challengeNotSigned: "challengeNotSigned",
   claimSynced: "claimSynced",
   claimNotSynced: "claimNotSynced",
-  token: "jwtToken"
+  token: "jwtToken",
+  withdraw: "withdraw"
 };
 const cryptoEvent = "cryptoSDK";
 const CSDK_CHAIN_ID$1 = "97";
@@ -347,8 +348,8 @@ var claimStorage = {
   getClaimAlice
 };
 const CSDK_SERVER_ADDRESS = "0xeA085D9698651e76750F07d0dE0464476187b3ca";
-const isValidNewClaim = async (claim) => {
-  const lastClaim2 = await claimStorage.getConfirmedClaim();
+const isValidNewClaim = (claim) => {
+  const lastClaim2 = claimStorage.getConfirmedClaim();
   if (lastClaim2) {
     if (lastClaim2.id !== claim.id) {
       throw new Error(`Invalid claim id: ${claim.id} - last claim id: ${lastClaim2.id}`);
@@ -394,21 +395,22 @@ const _controlDebits = (balance, cumulativeDebits) => {
     }
   }
 };
-const isValidClaimAlice = async (claim) => {
-  let isValid = await isValidNewClaim(claim);
+const isValidClaimAlice = (claim) => {
+  let isValid = isValidNewClaim(claim);
   if (isValid) {
-    const savedClaim = await claimStorage.getClaimAlice();
+    const savedClaim = claimStorage.getClaimAlice();
     if (savedClaim) {
       isValid = areEqualClaims(claim, savedClaim);
     }
   }
   return isValid;
 };
-const areEqualClaims = (claim, savedClaim) => {
+const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
   if (savedClaim.id !== claim.id) {
     throw new Error(`Invalid claim id: ${claim.id} - saved claim id: ${savedClaim.id}`);
   }
-  if (savedClaim.nonce !== claim.nonce) {
+  const nonce = isWithdraw ? claim.nonce - 1 : claim.nonce;
+  if (savedClaim.nonce !== nonce) {
     throw new Error(`Invalid claim nonce: ${claim.nonce} - saved claim nonce: ${savedClaim.nonce}`);
   }
   if (savedClaim.cumulativeDebits[0] !== claim.cumulativeDebits[0]) {
@@ -417,7 +419,8 @@ const areEqualClaims = (claim, savedClaim) => {
   if (savedClaim.cumulativeDebits[1] !== claim.cumulativeDebits[1]) {
     throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - saved claim: ${savedClaim.cumulativeDebits[1]}`);
   }
-  if (savedClaim.type !== claim.type) {
+  const type = isWithdraw ? "wallet.withdraw" : savedClaim.type;
+  if (claim.type !== type) {
     throw new Error(`Invalid claim type: ${claim.type} - saved claim type: ${savedClaim.type}`);
   }
   if (savedClaim.addresses[0] !== claim.addresses[0]) {
@@ -426,21 +429,257 @@ const areEqualClaims = (claim, savedClaim) => {
   if (savedClaim.addresses[1] !== claim.addresses[1]) {
     throw new Error(`Invalid address of Server: ${claim.addresses[1]} - saved claim: ${savedClaim.addresses[1]}`);
   }
-  if (savedClaim.timestamp !== claim.timestamp) {
+  if (!isWithdraw && savedClaim.timestamp !== claim.timestamp) {
     throw new Error(`Invalid timestamp of Server: ${claim.timestamp} - saved claim: ${savedClaim.timestamp}`);
   }
   return true;
 };
+const isValidWithdraw = (claim) => {
+  const savedClaim = claimStorage.getConfirmedClaim();
+  if (savedClaim) {
+    return areEqualClaims(claim, savedClaim, true);
+  }
+  return false;
+};
 var claimControls = {
   isValidNewClaim,
   isValidClaimAlice,
-  areEqualClaims
+  areEqualClaims,
+  isValidWithdraw
 };
 var abi = [
   {
+    anonymous: false,
+    inputs: [
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "uint256",
+                name: "id",
+                type: "uint256"
+              },
+              {
+                internalType: "uint256",
+                name: "nonce",
+                type: "uint256"
+              },
+              {
+                internalType: "uint256",
+                name: "timestamp",
+                type: "uint256"
+              },
+              {
+                internalType: "uint256[]",
+                name: "cumulativeDebits",
+                type: "uint256[]"
+              }
+            ],
+            internalType: "struct VaultV1.ClaimTransaction",
+            name: "claimTransaction",
+            type: "tuple"
+          },
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256"
+          },
+          {
+            internalType: "address",
+            name: "requester",
+            type: "address"
+          }
+        ],
+        indexed: false,
+        internalType: "struct VaultV1.EmergencyWithdrawRequest",
+        name: "emergencyWithdrawRequest",
+        type: "tuple"
+      }
+    ],
+    name: "InitEmergencyWithdraw",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "previousAdminRole",
+        type: "bytes32"
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "newAdminRole",
+        type: "bytes32"
+      }
+    ],
+    name: "RoleAdminChanged",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "sender",
+        type: "address"
+      }
+    ],
+    name: "RoleGranted",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "sender",
+        type: "address"
+      }
+    ],
+    name: "RoleRevoked",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "uint256",
+                name: "id",
+                type: "uint256"
+              },
+              {
+                internalType: "uint256",
+                name: "nonce",
+                type: "uint256"
+              },
+              {
+                internalType: "uint256",
+                name: "timestamp",
+                type: "uint256"
+              },
+              {
+                internalType: "uint256[]",
+                name: "cumulativeDebits",
+                type: "uint256[]"
+              }
+            ],
+            internalType: "struct VaultV1.ClaimTransaction",
+            name: "claimTransaction",
+            type: "tuple"
+          },
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256"
+          },
+          {
+            internalType: "address",
+            name: "requester",
+            type: "address"
+          }
+        ],
+        indexed: false,
+        internalType: "struct VaultV1.EmergencyWithdrawRequest",
+        name: "emergencyWithdrawRequest",
+        type: "tuple"
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "cause",
+        type: "string"
+      }
+    ],
+    name: "StopEmergencyWithdraw",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "id",
+            type: "uint256"
+          },
+          {
+            internalType: "uint256",
+            name: "nonce",
+            type: "uint256"
+          },
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256"
+          },
+          {
+            internalType: "uint256[]",
+            name: "cumulativeDebits",
+            type: "uint256[]"
+          }
+        ],
+        indexed: false,
+        internalType: "struct VaultV1.ClaimTransaction",
+        name: "claimTransaction",
+        type: "tuple"
+      }
+    ],
+    name: "Withdraw",
+    type: "event"
+  },
+  {
     inputs: [],
-    stateMutability: "nonpayable",
-    type: "constructor"
+    name: "DEFAULT_ADMIN_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
   },
   {
     inputs: [
@@ -492,6 +731,488 @@ var abi = [
     outputs: [],
     stateMutability: "nonpayable",
     type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "depositFor",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "emergencyWithdrawAlice",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      }
+    ],
+    name: "emergencyWithdrawRequests",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "id",
+            type: "uint256"
+          },
+          {
+            internalType: "uint256",
+            name: "nonce",
+            type: "uint256"
+          },
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256"
+          },
+          {
+            internalType: "uint256[]",
+            name: "cumulativeDebits",
+            type: "uint256[]"
+          }
+        ],
+        internalType: "struct VaultV1.ClaimTransaction",
+        name: "claimTransaction",
+        type: "tuple"
+      },
+      {
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256"
+      },
+      {
+        internalType: "address",
+        name: "requester",
+        type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "getChainId",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      }
+    ],
+    name: "getRoleAdmin",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address"
+      }
+    ],
+    name: "grantRole",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address"
+      }
+    ],
+    name: "hasRole",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "id",
+            type: "uint256"
+          },
+          {
+            internalType: "address[]",
+            name: "addresses",
+            type: "address[]"
+          },
+          {
+            internalType: "uint256",
+            name: "nonce",
+            type: "uint256"
+          },
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256"
+          },
+          {
+            internalType: "string",
+            name: "messageForAlice",
+            type: "string"
+          },
+          {
+            internalType: "uint256[]",
+            name: "cumulativeDebits",
+            type: "uint256[]"
+          },
+          {
+            internalType: "bytes[]",
+            name: "signatures",
+            type: "bytes[]"
+          }
+        ],
+        internalType: "struct VaultV1.ClaimRequest",
+        name: "req",
+        type: "tuple"
+      }
+    ],
+    name: "initEmergencyWithdrawAlice",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "initEmergencyWithdrawAliceWithoutClaim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "alice",
+        type: "address"
+      }
+    ],
+    name: "initEmergencyWithdrawBob",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address"
+      },
+      {
+        internalType: "address",
+        name: "serverAddress",
+        type: "address"
+      },
+      {
+        internalType: "string",
+        name: "name",
+        type: "string"
+      },
+      {
+        internalType: "string",
+        name: "version",
+        type: "string"
+      }
+    ],
+    name: "initialize",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address"
+      }
+    ],
+    name: "renounceRole",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address"
+      }
+    ],
+    name: "revokeRole",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "id",
+            type: "uint256"
+          },
+          {
+            internalType: "address[]",
+            name: "addresses",
+            type: "address[]"
+          },
+          {
+            internalType: "uint256",
+            name: "nonce",
+            type: "uint256"
+          },
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256"
+          },
+          {
+            internalType: "string",
+            name: "messageForAlice",
+            type: "string"
+          },
+          {
+            internalType: "uint256[]",
+            name: "cumulativeDebits",
+            type: "uint256[]"
+          },
+          {
+            internalType: "bytes[]",
+            name: "signatures",
+            type: "bytes[]"
+          }
+        ],
+        internalType: "struct VaultV1.ClaimRequest",
+        name: "req",
+        type: "tuple"
+      }
+    ],
+    name: "stopEmergencyWithdraw",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes4",
+        name: "interfaceId",
+        type: "bytes4"
+      }
+    ],
+    name: "supportsInterface",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "id",
+            type: "uint256"
+          },
+          {
+            internalType: "address[]",
+            name: "addresses",
+            type: "address[]"
+          },
+          {
+            internalType: "uint256",
+            name: "nonce",
+            type: "uint256"
+          },
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256"
+          },
+          {
+            internalType: "string",
+            name: "messageForAlice",
+            type: "string"
+          },
+          {
+            internalType: "uint256[]",
+            name: "cumulativeDebits",
+            type: "uint256[]"
+          },
+          {
+            internalType: "bytes[]",
+            name: "signatures",
+            type: "bytes[]"
+          }
+        ],
+        internalType: "struct VaultV1.ClaimRequest",
+        name: "req",
+        type: "tuple"
+      }
+    ],
+    name: "verify",
+    outputs: [],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "id",
+            type: "uint256"
+          },
+          {
+            internalType: "address[]",
+            name: "addresses",
+            type: "address[]"
+          },
+          {
+            internalType: "uint256",
+            name: "nonce",
+            type: "uint256"
+          },
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256"
+          },
+          {
+            internalType: "string",
+            name: "messageForAlice",
+            type: "string"
+          },
+          {
+            internalType: "uint256[]",
+            name: "cumulativeDebits",
+            type: "uint256[]"
+          },
+          {
+            internalType: "bytes[]",
+            name: "signatures",
+            type: "bytes[]"
+          }
+        ],
+        internalType: "struct VaultV1.ClaimRequest",
+        name: "req",
+        type: "tuple"
+      }
+    ],
+    name: "withdrawAlice",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      }
+    ],
+    name: "withdrawTransactions",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "nonce",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
   }
 ];
 const vaultAddress = "0xA0Af3739fBC126C287D2fd0b5372d939Baa36B17";
@@ -503,14 +1224,35 @@ const initContract = (web3Provider, contractAddress = vaultAddress, contractAbi 
 const callMethod = async (contract, method, params) => {
   return await contract.methods[method](params).call();
 };
-const getVaultBalance = async (address, web3Provider) => {
+const getVaultBalance$1 = async (address, web3Provider) => {
   const contract = initContract(web3Provider);
-  const web3 = new Web3();
-  const balance = web3.utils.fromWei(await callMethod(contract, "balanceOf", address));
+  const balance = await callMethod(contract, "balanceOf", address);
   return { balance };
 };
+const withdrawConsensually$1 = async (claim, web3Provider) => {
+  const contract = initContract(web3Provider);
+  const web3 = new Web3(web3Provider);
+  const address = claim.addresses[0];
+  try {
+    const gas = await contract.methods.withdrawAlice(claim).estimateGas({ from: address });
+    const gasPrice = await web3.eth.getGasPrice();
+    const options = { gasPrice, from: address, gas };
+    try {
+      await contract.methods.withdrawAlice(claim).send(options).on("transactionHash", (txHash) => {
+        console.log("txHash", txHash);
+      }).on("receipt", (receipt) => {
+        console.log("receipt", receipt);
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
+  } catch (error) {
+    throw new Error(error);
+  }
+};
 var blockchain = {
-  getVaultBalance
+  getVaultBalance: getVaultBalance$1,
+  withdrawConsensually: withdrawConsensually$1
 };
 const win$1 = async (claim, web3Provider) => {
   const claimIsValid = await claimControls.isValidNewClaim(claim);
@@ -520,7 +1262,7 @@ const win$1 = async (claim, web3Provider) => {
     }
     const balanceIsEnough = await _isBalanceEnough(claim, web3Provider);
     if (balanceIsEnough === true) {
-      await _signClaim(claim, web3Provider);
+      await _signClaim(claim);
       claimStorage.saveConfirmedClaim(claim);
       return claim;
     } else {
@@ -586,7 +1328,7 @@ const pay$1 = async (claim, web3Provider) => {
   if (claimIsValid && claimWasntSigned) {
     const balanceIsEnough = await _isBalanceEnough(claim, web3Provider);
     if (balanceIsEnough === true) {
-      await _signClaim(claim, web3Provider);
+      await _signClaim(claim);
       claimStorage.saveClaimAlice(claim);
       return claim;
     } else {
@@ -594,8 +1336,8 @@ const pay$1 = async (claim, web3Provider) => {
     }
   }
 };
-const _isAliceClaimNotSigned = async (claim) => {
-  const lastAliceClaim = await claimStorage.getClaimAlice();
+const _isAliceClaimNotSigned = (claim) => {
+  const lastAliceClaim = claimStorage.getClaimAlice();
   if (lastAliceClaim && lastAliceClaim.id === claim.id && lastAliceClaim.nonce >= claim.nonce) {
     throw new Error(`Claim with nonce ${claim.nonce} is already signed`);
   } else {
@@ -604,6 +1346,8 @@ const _isAliceClaimNotSigned = async (claim) => {
 };
 const _isBalanceEnough = async (claim, web3Provider) => {
   const index = claim.amount < 0 ? 0 : 1;
+  if (index === 1)
+    return true;
   return await _checkBalance(claim, index, web3Provider);
 };
 const _checkBalance = async (claim, index, web3Provider) => {
@@ -618,23 +1362,28 @@ const _checkBalance = async (claim, index, web3Provider) => {
     throw new Error("Can't get balance from Vault");
   }
 };
-const _signClaim = async (claim, web3Provider) => {
+const _signClaim = async (claim) => {
   const msg = _buildTypedClaim(claim);
   const from = claim.addresses[0];
-  claim.signatures[0] = await web3Provider.request({
-    method: "eth_signTypedData_v4",
-    params: [from, JSON.stringify(msg)],
-    from
-  });
+  claim.signatures[0] = await signTypedData(msg, from);
 };
 const payReceived$1 = async (claim) => {
-  const claimIsValid = await claimControls.isValidClaimAlice(claim);
+  const claimIsValid = claimControls.isValidClaimAlice(claim);
   if (claimIsValid) {
     if (_verifySignature(claim)) {
       claimStorage.saveConfirmedClaim(claim);
     } else {
       throw new Error("Server's signature is not verified");
     }
+  }
+};
+const signWithdraw$1 = async (claim, web3Provider) => {
+  const claimWasntSigned = _isAliceClaimNotSigned(claim);
+  const claimIsValid = claimControls.isValidWithdraw(claim);
+  if (claimIsValid && claimWasntSigned) {
+    await _signClaim(claim);
+    claimStorage.saveClaimAlice(claim);
+    return claim;
   }
 };
 const lastClaim$1 = (claim) => {
@@ -671,6 +1420,7 @@ var claimLibrary = {
   pay: pay$1,
   payReceived: payReceived$1,
   win: win$1,
+  signWithdraw: signWithdraw$1,
   lastClaim: lastClaim$1
 };
 const pay = async (claim) => {
@@ -690,18 +1440,27 @@ const pay = async (claim) => {
     throw error;
   }
 };
+const getVaultBalance = async (address) => {
+  const web3Provider = getWeb3Provider();
+  try {
+    const balance = await blockchain.getVaultBalance(address, web3Provider);
+    return balance;
+  } catch (error) {
+    console.error(error);
+  }
+};
 const payReceived = async (claim) => {
   try {
     await checkRightNetwork();
   } catch (error) {
-    emitErrorEvent(eventType.paymentNotConfirmed, error);
+    emitErrorEvent(eventType.claimNotConfirmed, error);
     throw error;
   }
   try {
     await claimLibrary.payReceived(claim);
-    emitEvent(eventType.paymentConfirmed, { claim });
+    emitEvent(eventType.claimConfirmed, { claim });
   } catch (error) {
-    emitErrorEvent(eventType.paymentNotConfirmed, { error, claim });
+    emitErrorEvent(eventType.claimNotConfirmed, { error, claim });
     throw error;
   }
 };
@@ -735,11 +1494,46 @@ const lastClaim = (claim) => {
     return trueOrClaim;
   }
 };
+const signWithdraw = async (claim) => {
+  try {
+    await checkRightNetwork();
+  } catch (error) {
+    emitErrorEvent(eventType.claimNotSigned, error);
+    throw error;
+  }
+  const web3Provider = getWeb3Provider();
+  try {
+    const claimResult = await claimLibrary.signWithdraw(claim, web3Provider);
+    emitEvent(eventType.claimSigned, { claim: claimResult });
+    return claimResult;
+  } catch (error) {
+    emitErrorEvent(eventType.claimNotSigned, error);
+    throw error;
+  }
+};
+const withdrawConsensually = async (claim) => {
+  try {
+    await checkRightNetwork();
+  } catch (error) {
+    emitErrorEvent(eventType.withdraw, error);
+    throw error;
+  }
+  const web3Provider = getWeb3Provider();
+  try {
+    await blockchain.withdrawConsensually(claim, web3Provider);
+    emitEvent(eventType.withdraw, "Consensual withdraw is sent to blockchain");
+  } catch (error) {
+    emitErrorEvent(eventType.withdraw, error);
+  }
+};
 var claims = {
   pay,
   payReceived,
   win,
-  lastClaim
+  lastClaim,
+  signWithdraw,
+  withdrawConsensually,
+  getVaultBalance
 };
 const receiveMsg = async (msg) => {
   if (msg) {
@@ -760,6 +1554,14 @@ const receiveMsg = async (msg) => {
           const signedClaim = await claims.win(claim);
           return signedClaim;
         }
+      } else if (claim && claim.type === "wallet.withdraw") {
+        if (!claim.signatures[0] && !claim.signatures[1]) {
+          const signedClaim = await claims.signWithdraw(claim);
+          return signedClaim;
+        } else if (claim.signatures[0] && claim.signatures[1]) {
+          await claims.payReceived(claim);
+          await claims.withdrawConsensually(claim);
+        }
       }
     }
   }
@@ -778,6 +1580,7 @@ const cryptoSDK = {
   setToken: token.setToken,
   getToken: token.getToken,
   isLogged: token.isLogged,
-  lastClaim: claims.lastClaim
+  lastClaim: claims.lastClaim,
+  getVaultBalance: claims.getVaultBalance
 };
 export { cryptoSDK as default };

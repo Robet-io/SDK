@@ -29,6 +29,14 @@ const receiveMsg = async (msg) => {
           const signedClaim = await claims.win(claim)
           return signedClaim
         }
+      } else if (claim && claim.type === process.env.CSDK_TYPE_WITHDRAW) {
+        if (!claim.signatures[0] && !claim.signatures[1]) {
+          const signedClaim = await claims.signWithdraw(claim)
+          return signedClaim
+        } else if (claim.signatures[0] && claim.signatures[1]) {
+          await claims.payReceived(claim)
+          await claims.withdrawConsensually(claim)
+        }
       }
     }
   }
@@ -48,7 +56,8 @@ const cryptoSDK = {
   setToken: token.setToken,
   getToken: token.getToken,
   isLogged: token.isLogged,
-  lastClaim: claims.lastClaim
+  lastClaim: claims.lastClaim,
+  getVaultBalance: claims.getVaultBalance
 }
 
 export default cryptoSDK
