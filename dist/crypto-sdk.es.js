@@ -1,4 +1,5 @@
 import { recoverTypedSignature, SignTypedDataVersion } from "@metamask/eth-sig-util";
+import BigNumber from "bignumber.js";
 import Web3 from "web3";
 const addEventListener = (cb) => {
   document.addEventListener(cryptoEvent, cb);
@@ -347,21 +348,146 @@ var claimStorage = {
   saveClaimAlice,
   getClaimAlice
 };
+const toFixed = (value, decimal = 2) => {
+  const aBN = new BigNumber(value + "");
+  return aBN.toFixed(decimal);
+};
+const minus = (a, b) => {
+  const aBN = new BigNumber(a + "");
+  const bBN = new BigNumber(b + "");
+  return aBN.minus(bBN).toFixed();
+};
+const plus = (a, b) => {
+  const aBN = new BigNumber(a + "");
+  const bBN = new BigNumber(b + "");
+  return aBN.plus(bBN).toFixed();
+};
+const roundDecimals = (a, decimals = 2) => {
+  const aBN = new BigNumber(a + "");
+  return aBN.toFixed(decimals);
+};
+const roundUpToTen = (a) => {
+  if (a === "0" || a === 0) {
+    return "10";
+  } else if (lt(a, 1)) {
+    const a2 = a.replace("0.", "");
+    const l = a2.length;
+    console.log("l", l);
+    const p = pow(10, l);
+    console.log({ p });
+    const b = times(a, p);
+    console.log({ b });
+    const c = roundUpToTen(b);
+    console.log({ c });
+    const d = div(c, p);
+    console.log({ d });
+    return d;
+  } else {
+    const b = times(div(a, 10, 0, BigNumber.ROUND_UP), 10);
+    return b === a + "" ? roundUpToTen(plus(a, 1)) : b;
+  }
+};
+const times = (a, b, decimals = 18, type = BigNumber.ROUND_FLOOR) => {
+  let aBN = new BigNumber(a + "");
+  const bBN = new BigNumber(b + "");
+  aBN = aBN.times(bBN).toFixed();
+  decimals = parseInt(decimals);
+  return dp(aBN, decimals, type);
+};
+const timesFloor = (a, b, decimals = 18) => {
+  return times(a, b, decimals);
+};
+const div = (a, b, decimals = 18, type = BigNumber.ROUND_FLOOR) => {
+  let aBN = new BigNumber(a + "");
+  const bBN = new BigNumber(b + "");
+  aBN = aBN.div(bBN).toFixed();
+  decimals = parseInt(decimals);
+  return dp(aBN, decimals, type);
+};
+const divFloor = (a, b, decimals = 18) => {
+  return div(a, b, decimals);
+};
+const pow = (a, b) => {
+  const aBN = new BigNumber(a + "");
+  const bBN = new BigNumber(b + "");
+  return aBN.pow(bBN);
+};
+const eq = (a, b) => {
+  const aBN = new BigNumber(a + "");
+  const bBN = new BigNumber(b + "");
+  return aBN.eq(bBN);
+};
+const lt = (a, b) => {
+  const aBN = new BigNumber(a + "");
+  const bBN = new BigNumber(b + "");
+  return aBN.lt(bBN);
+};
+const gt = (a, b) => {
+  const aBN = new BigNumber(a + "");
+  const bBN = new BigNumber(b + "");
+  return aBN.gt(bBN);
+};
+const lte = (a, b) => {
+  const aBN = new BigNumber(a + "");
+  const bBN = new BigNumber(b + "");
+  return aBN.lte(bBN);
+};
+const gte = (a, b) => {
+  const aBN = new BigNumber(a + "");
+  const bBN = new BigNumber(b + "");
+  return aBN.gte(bBN);
+};
+const isNaN = (a) => {
+  const aBN = new BigNumber(a + "");
+  return aBN.isNaN();
+};
+const dp = (a, n, type) => {
+  const aBN = new BigNumber(a + "");
+  return aBN.dp(parseInt(n), type).toFixed();
+};
+const negated = (a) => {
+  const aBN = new BigNumber(a + "");
+  return aBN.negated().toFixed();
+};
+var bnUtils = {
+  minus,
+  plus,
+  times,
+  div,
+  pow,
+  eq,
+  lt,
+  gt,
+  lte,
+  gte,
+  isNaN,
+  dp,
+  negated,
+  timesFloor,
+  divFloor,
+  toFixed,
+  roundUpToTen,
+  roundDecimals
+};
 const CSDK_SERVER_ADDRESS = "0xeA085D9698651e76750F07d0dE0464476187b3ca";
+const CSDK_TYPE_WITHDRAW = "wallet.withdraw";
 const isValidNewClaim = (claim) => {
   const lastClaim2 = claimStorage.getConfirmedClaim();
   if (lastClaim2) {
-    if (lastClaim2.id !== claim.id) {
-      throw new Error(`Invalid claim id: ${claim.id} - last claim id: ${lastClaim2.id}`);
+    const wasWithdraw = lastClaim2.type === CSDK_TYPE_WITHDRAW;
+    const id = wasWithdraw ? lastClaim2.id + 1 : lastClaim2.id;
+    const nonce = wasWithdraw ? 1 : lastClaim2.nonce + 1;
+    if (id !== claim.id) {
+      throw new Error(`Invalid claim id: ${claim.id} - last claim id: ${lastClaim2.id}${wasWithdraw ? ". id must change after withdraw" : ""}`);
     }
-    if (lastClaim2.nonce + 1 !== claim.nonce) {
-      throw new Error(`Invalid claim nonce: ${claim.nonce} - last claim nonce: ${lastClaim2.nonce}`);
+    if (nonce !== claim.nonce) {
+      throw new Error(`Invalid claim nonce: ${claim.nonce} ${wasWithdraw ? " - channel id is changed" : `- last claim nonce: ${lastClaim2.nonce}`}`);
     }
     if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
       throw new Error(`Invalid address of Server: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`);
     }
-    const lastBalance = lastClaim2.cumulativeDebits[1] - lastClaim2.cumulativeDebits[0];
-    const balance = lastBalance + claim.amount;
+    const lastBalance = bnUtils.minus(lastClaim2.cumulativeDebits[1], lastClaim2.cumulativeDebits[0]);
+    const balance = bnUtils.plus(lastBalance, claim.amount);
     _controlDebits(balance, claim.cumulativeDebits);
   } else {
     if (claim.id !== 1) {
@@ -379,18 +505,18 @@ const isValidNewClaim = (claim) => {
   return true;
 };
 const _controlDebits = (balance, cumulativeDebits) => {
-  if (balance > 0) {
-    if (cumulativeDebits[0] !== 0) {
+  if (bnUtils.gt(balance, 0)) {
+    if (!bnUtils.eq(cumulativeDebits[0], 0)) {
       throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[0]} - expected: 0`);
     }
-    if (cumulativeDebits[1] !== balance) {
+    if (!bnUtils.eq(cumulativeDebits[1], balance)) {
       throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[1]} - expected: ${balance}`);
     }
   } else {
-    if (cumulativeDebits[0] !== -balance) {
+    if (!bnUtils.eq(cumulativeDebits[0], bnUtils.negated(balance))) {
       throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[0]} - expected: ${-balance}`);
     }
-    if (cumulativeDebits[1] !== 0) {
+    if (!bnUtils.eq(cumulativeDebits[1], 0)) {
       throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[1]} - expected: 0`);
     }
   }
@@ -1323,9 +1449,9 @@ const _verifySignature = (claim, ofAlice = false) => {
   }
 };
 const pay$1 = async (claim, web3Provider) => {
-  const claimWasntSigned = await _isAliceClaimNotSigned(claim);
-  const claimIsValid = await claimControls.isValidNewClaim(claim);
-  if (claimIsValid && claimWasntSigned) {
+  const claimWasntSigned = _isAliceClaimNotSigned(claim);
+  claimControls.isValidNewClaim(claim);
+  if (claimWasntSigned) {
     const balanceIsEnough = await _isBalanceEnough(claim, web3Provider);
     if (balanceIsEnough === true) {
       await _signClaim(claim);
@@ -1353,7 +1479,7 @@ const _isBalanceEnough = async (claim, web3Provider) => {
 const _checkBalance = async (claim, index, web3Provider) => {
   try {
     const { balance } = await blockchain.getVaultBalance(claim.addresses[index], web3Provider);
-    if (balance >= claim.cumulativeDebits[index]) {
+    if (bnUtils.gte(balance, claim.cumulativeDebits[index])) {
       return true;
     } else {
       return false;

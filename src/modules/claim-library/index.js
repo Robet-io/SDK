@@ -5,6 +5,7 @@ import claimStorage from './claimStorage'
 import blockchain from '../blockchain'
 import { domain } from '../domain'
 import { signTypedData } from '../metamask'
+import bnUtils from '../bnUtils'
 
 // const claimType = {
 //   TYPE_REFUND: 'ticket.refund',
@@ -112,8 +113,8 @@ const pay = async (claim, web3Provider) => {
   //  TODO check the type of claim??
 
   // check if the claim wasn't already signed
-  const claimWasntSigned = await _isAliceClaimNotSigned(claim)
-  const claimIsValid = await claimControls.isValidNewClaim(claim)
+  const claimWasntSigned = _isAliceClaimNotSigned(claim)
+  const claimIsValid = claimControls.isValidNewClaim(claim)
   if (claimIsValid && claimWasntSigned) {
     const balanceIsEnough = await _isBalanceEnough(claim, web3Provider)
     if (balanceIsEnough === true) {
@@ -161,7 +162,7 @@ const _isBalanceEnough = async (claim, web3Provider) => {
 const _checkBalance = async (claim, index, web3Provider) => {
   try {
     const { balance } = await blockchain.getVaultBalance(claim.addresses[index], web3Provider)
-    if (balance >= claim.cumulativeDebits[index]) {
+    if (bnUtils.gte(balance, claim.cumulativeDebits[index])) {
       return true
     } else {
       return false
