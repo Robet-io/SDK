@@ -342,11 +342,30 @@ const saveClaimAlice = (claim) => {
 const getClaimAlice = () => {
   return JSON.parse(localStorage.getItem(savedClameType.claimAlice));
 };
+const downloadLastClaim = () => {
+  const lastClaim2 = localStorage.getItem(savedClameType.claimConfirmed);
+  const text = _prepareJsonContent(lastClaim2);
+  const element = document.createElement("a");
+  const filename = `lastConfirmedClaim-${new Date().toISOString()}.json`;
+  element.setAttribute("href", "data:application/json;charset=utf-8," + encodeURIComponent(text));
+  element.setAttribute("download", filename);
+  element.style.display = "none";
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+};
+const _prepareJsonContent = (jsonString) => {
+  jsonString = jsonString.replace("{", "{\n");
+  jsonString = jsonString.replace("}", "\n}");
+  jsonString = jsonString.replaceAll(",", ",\n");
+  return jsonString;
+};
 var claimStorage = {
   saveConfirmedClaim,
   getConfirmedClaim,
   saveClaimAlice,
-  getClaimAlice
+  getClaimAlice,
+  downloadLastClaim
 };
 const toFixed = (value, decimal = 2) => {
   const aBN = new BigNumber(value + "");
@@ -1547,7 +1566,8 @@ var claimLibrary = {
   payReceived: payReceived$1,
   win: win$1,
   signWithdraw: signWithdraw$1,
-  lastClaim: lastClaim$1
+  lastClaim: lastClaim$1,
+  downloadLastClaim: claimStorage.downloadLastClaim
 };
 const pay = async (claim) => {
   try {
@@ -1659,7 +1679,8 @@ var claims = {
   lastClaim,
   signWithdraw,
   withdrawConsensually,
-  getVaultBalance
+  getVaultBalance,
+  downloadLastClaim: claimLibrary.downloadLastClaim
 };
 const receiveMsg = async (msg) => {
   if (msg) {
@@ -1707,6 +1728,7 @@ const cryptoSDK = {
   getToken: token.getToken,
   isLogged: token.isLogged,
   lastClaim: claims.lastClaim,
-  getVaultBalance: claims.getVaultBalance
+  getVaultBalance: claims.getVaultBalance,
+  downloadLastClaim: claims.downloadLastClaim
 };
 export { cryptoSDK as default };

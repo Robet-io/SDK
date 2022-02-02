@@ -6,7 +6,6 @@ import {
   getAddress
 } from './modules/metamask'
 import token from './modules/token'
-
 import claims from './modules/claims'
 
 const receiveMsg = async (msg) => {
@@ -57,7 +56,8 @@ const cryptoSDK = {
   getToken: token.getToken,
   isLogged: token.isLogged,
   lastClaim: claims.lastClaim,
-  getVaultBalance: claims.getVaultBalance
+  getVaultBalance: claims.getVaultBalance,
+  downloadLastClaim: claims.downloadLastClaim
 }
 
 export default cryptoSDK

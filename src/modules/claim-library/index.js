@@ -284,5 +284,6 @@ export default {
   payReceived,
   win,
   signWithdraw,
-  lastClaim
+  lastClaim,
+  downloadLastClaim: claimStorage.downloadLastClaim
 }

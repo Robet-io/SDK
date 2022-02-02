@@ -159,5 +159,6 @@ export default {
   lastClaim,
   signWithdraw,
   withdrawConsensually,
-  getVaultBalance
+  getVaultBalance,
+  downloadLastClaim: claimLibrary.downloadLastClaim
 }

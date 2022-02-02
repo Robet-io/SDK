@@ -1,4 +1,3 @@
-/* eslint-disable import/no-anonymous-default-export */
 import BigNumber from 'bignumber.js'
 
 const toFixed = (value, decimal = 2) => {
@@ -123,6 +122,7 @@ const negated = (a) => {
   return aBN.negated().toFixed()
 }
 
+// module.exports = {
 export default {
   minus,
   plus,
