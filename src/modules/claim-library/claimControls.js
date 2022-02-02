@@ -1,5 +1,6 @@
 /* eslint-disable import/no-anonymous-default-export */
 import claimStorage from './claimStorage'
+import bnUtils from '../bnUtils'
 
 /* claim structure
 const claim = {
@@ -15,27 +16,31 @@ const claim = {
 } */
 
 const CSDK_SERVER_ADDRESS = process.env.CSDK_SERVER_ADDRESS
+const CSDK_TYPE_WITHDRAW = process.env.CSDK_TYPE_WITHDRAW
 
 /**
  *
  * @param {obj} claim new claim for Alice
  */
-const isValidNewClaim = async (claim) => {
-  const lastClaim = await claimStorage.getConfirmedClaim()
+const isValidNewClaim = (claim) => {
+  const lastClaim = claimStorage.getConfirmedClaim()
   if (lastClaim) {
-    if (lastClaim.id !== claim.id) {
-      throw new Error(`Invalid claim id: ${claim.id} - last claim id: ${lastClaim.id}`)
+    const wasWithdraw = lastClaim.type === CSDK_TYPE_WITHDRAW
+    const id = wasWithdraw ? lastClaim.id + 1 : lastClaim.id
+    const nonce = wasWithdraw ? 1 : lastClaim.nonce + 1
+    if (id !== claim.id) {
+      throw new Error(`Invalid claim id: ${claim.id} - last claim id: ${lastClaim.id}${wasWithdraw ? '. id must change after withdraw' : ''}`)
     }
-    if (lastClaim.nonce + 1 !== claim.nonce) {
-      throw new Error(`Invalid claim nonce: ${claim.nonce} - last claim nonce: ${lastClaim.nonce}`)
+    if (nonce !== claim.nonce) {
+      throw new Error(`Invalid claim nonce: ${claim.nonce} ${wasWithdraw ? ' - channel id is changed' : `- last claim nonce: ${lastClaim.nonce}`}`)
     }
     if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
       throw new Error(`Invalid address of Server: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`)
     }
 
     // control cumulative debits
-    const lastBalance = lastClaim.cumulativeDebits[1] - lastClaim.cumulativeDebits[0]
-    const balance = lastBalance + claim.amount
+    const lastBalance = bnUtils.minus(lastClaim.cumulativeDebits[1], lastClaim.cumulativeDebits[0])
+    const balance = bnUtils.plus(lastBalance, claim.amount)
 
     _controlDebits(balance, claim.cumulativeDebits)
   } else {
@@ -62,18 +67,18 @@ const isValidNewClaim = async (claim) => {
  * @param {array} cumulativeDebits
  */
 const _controlDebits = (balance, cumulativeDebits) => {
-  if (balance > 0) {
-    if (cumulativeDebits[0] !== 0) {
+  if (bnUtils.gt(balance, 0)) {
+    if (!bnUtils.eq(cumulativeDebits[0], 0)) {
       throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[0]} - expected: 0`)
     }
-    if (cumulativeDebits[1] !== balance) {
+    if (!bnUtils.eq(cumulativeDebits[1], balance)) {
       throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[1]} - expected: ${balance}`)
     }
   } else {
-    if (cumulativeDebits[0] !== -balance) {
+    if (!bnUtils.eq(cumulativeDebits[0], bnUtils.negated(balance))) {
       throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[0]} - expected: ${-balance}`)
     }
-    if (cumulativeDebits[1] !== 0) {
+    if (!bnUtils.eq(cumulativeDebits[1], 0)) {
       throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[1]} - expected: 0`)
     }
   }
@@ -83,12 +88,12 @@ const _controlDebits = (balance, cumulativeDebits) => {
  *
  * @param {obj} claim claim Alice, countersigned by Bob
  */
-const isValidClaimAlice = async (claim) => {
-  let isValid = await isValidNewClaim(claim)
+const isValidClaimAlice = (claim) => {
+  let isValid = isValidNewClaim(claim)
   if (isValid) {
-    const savedClaim = await claimStorage.getClaimAlice()
+    const savedClaim = claimStorage.getClaimAlice()
     if (savedClaim) {
-      isValid = _areEqualClaims(claim, savedClaim)
+      isValid = areEqualClaims(claim, savedClaim)
     }
   }
   return isValid
@@ -98,24 +103,31 @@ const isValidClaimAlice = async (claim) => {
  *
  * @param {obj} claim
  * @param {obj} savedClaim
+ * @param {boolean} [isWithdraw]
  */
-const _areEqualClaims = (claim, savedClaim) => {
+const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
   if (savedClaim.id !== claim.id) {
     throw new Error(`Invalid claim id: ${claim.id} - saved claim id: ${savedClaim.id}`)
   }
-  if (savedClaim.nonce !== claim.nonce) {
+
+  const nonce = isWithdraw ? claim.nonce - 1 : claim.nonce
+  if (savedClaim.nonce !== nonce) {
     throw new Error(`Invalid claim nonce: ${claim.nonce} - saved claim nonce: ${savedClaim.nonce}`)
   }
-  if (savedClaim.amount !== claim.amount) {
-    throw new Error(`Invalid claim amount: ${claim.amount} - saved claim amount: ${savedClaim.amount}`)
-  }
+
+  // if (savedClaim.amount !== claim.amount) {
+  //   throw new Error(`Invalid claim amount: ${claim.amount} - saved claim amount: ${savedClaim.amount}`)
+  // }
+
   if (savedClaim.cumulativeDebits[0] !== claim.cumulativeDebits[0]) {
     throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - saved claim: ${savedClaim.cumulativeDebits[0]}`)
   }
   if (savedClaim.cumulativeDebits[1] !== claim.cumulativeDebits[1]) {
     throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - saved claim: ${savedClaim.cumulativeDebits[1]}`)
   }
-  if (savedClaim.type !== claim.type) {
+
+  const type = isWithdraw ? process.env.CSDK_TYPE_WITHDRAW : savedClaim.type
+  if (claim.type !== type) {
     throw new Error(`Invalid claim type: ${claim.type} - saved claim type: ${savedClaim.type}`)
   }
   if (savedClaim.addresses[0] !== claim.addresses[0]) {
@@ -124,14 +136,27 @@ const _areEqualClaims = (claim, savedClaim) => {
   if (savedClaim.addresses[1] !== claim.addresses[1]) {
     throw new Error(`Invalid address of Server: ${claim.addresses[1]} - saved claim: ${savedClaim.addresses[1]}`)
   }
+  if (!isWithdraw && savedClaim.timestamp !== claim.timestamp) {
+    throw new Error(`Invalid timestamp of Server: ${claim.timestamp} - saved claim: ${savedClaim.timestamp}`)
+  }
   return true
 }
 
-// const _isEmpty = (obj) => {
-//   return Object.keys(obj).length === 0
-// }
+/**
+ *
+ * @param {obj} claim claim Alice, countersigned by Bob
+ */
+const isValidWithdraw = (claim) => {
+  const savedClaim = claimStorage.getConfirmedClaim()
+  if (savedClaim) {
+    return areEqualClaims(claim, savedClaim, true)
+  }
+  return false
+}
 
 export default {
   isValidNewClaim,
-  isValidClaimAlice
+  isValidClaimAlice,
+  areEqualClaims,
+  isValidWithdraw
 }

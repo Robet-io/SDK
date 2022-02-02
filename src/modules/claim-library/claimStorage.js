@@ -11,21 +11,43 @@ const saveConfirmedClaim = claim => {
   localStorage.setItem(savedClameType.claimConfirmed, JSON.stringify(claim))
 }
 
-const getConfirmedClaim = async () => {
-  return JSON.parse(await localStorage.getItem(savedClameType.claimConfirmed))
+const getConfirmedClaim = () => {
+  return JSON.parse(localStorage.getItem(savedClameType.claimConfirmed))
 }
 
 const saveClaimAlice = claim => {
   localStorage.setItem(savedClameType.claimAlice, JSON.stringify(claim))
 }
 
-const getClaimAlice = async () => {
-  return JSON.parse(await localStorage.getItem(savedClameType.claimAlice))
+const getClaimAlice = () => {
+  return JSON.parse(localStorage.getItem(savedClameType.claimAlice))
+}
+
+const downloadLastClaim = () => {
+  const lastClaim = localStorage.getItem(savedClameType.claimConfirmed)
+  const text = _prepareJsonContent(lastClaim)
+  // copyToClipboard(text)
+  const element = document.createElement('a')
+  const filename = `lastConfirmedClaim-${(new Date()).toISOString()}.json`
+  element.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(text))
+  element.setAttribute('download', filename)
+  element.style.display = 'none'
+  document.body.appendChild(element)
+  element.click()
+  document.body.removeChild(element)
+}
+
+const _prepareJsonContent = (jsonString) => {
+  jsonString = jsonString.replace('{', '{\n')
+  jsonString = jsonString.replace('}', '\n}')
+  jsonString = jsonString.replaceAll(',', ',\n')
+  return jsonString
 }
 
 export default {
   saveConfirmedClaim,
   getConfirmedClaim,
   saveClaimAlice,
-  getClaimAlice
+  getClaimAlice,
+  downloadLastClaim
 }

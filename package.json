@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@metamask/eth-sig-util": "^4.0.0",
+    "bignumber.js": "^9.0.2",
     "web3": "^1.6.1"
   }
 }

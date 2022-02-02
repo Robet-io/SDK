@@ -44,13 +44,14 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         // make sure to externalize deps that shouldn't be bundled
         // into your library
-        external: ['@metamask/eth-sig-util', 'web3'],
+        external: ['@metamask/eth-sig-util', 'web3', 'bignumber.js'],
         output: {
           // Provide global variables to use in the UMD build
           // for externalized deps
           globals: {
             '@metamask/eth-sig-util': '@metamask/eth-sig-util',
-            web3: 'Web3'
+            web3: 'Web3',
+            'bignumber.js': 'bignumber.js'
           }
         }
       }

@@ -3,11 +3,11 @@ import {
   emitEvent,
   eventType
 } from './events'
-
 import {
   checkRightNetwork,
   getValidNetworks,
-  isRightNet
+  isRightNet,
+  getWeb3Provider
 } from './network'
 
 /**
@@ -26,10 +26,8 @@ const _handleChainChanged = async (chainId) => {
     emitErrorEvent(eventType.chainChanged, { chainId })
   }
 }
-const _initMetamask = () => {
-  // TODO delete
-  console.log('#### CSDK_CHAIN_ID', process.env.CSDK_CHAIN_ID)
 
+const _initMetamask = () => {
   if (window.ethereum) {
     if (!window.ethereum.chainId) {
       window.ethereum.chainId = process.env.CSDK_CHAIN_ID
@@ -126,9 +124,37 @@ const getAddress = async () => {
   }
 }
 
+// const personalSign = async (data, address) => {
+//   await checkRightNetwork()
+
+//   const web3Provider = getWeb3Provider()
+//   const web3 = new Web3()
+//   const response = await web3Provider.request({
+//     method: 'personal_sign',
+//     params: [
+//       web3.utils.toHex(data),
+//       address
+//     ]
+//   })
+//   return response
+// }
+
+const signTypedData = async (msg, from) => {
+  await checkRightNetwork()
+  const web3Provider = getWeb3Provider()
+
+  const response = await web3Provider.request({
+    method: 'eth_signTypedData_v4',
+    params: [from, JSON.stringify(msg)],
+    from: from
+  })
+  return response
+}
+
 _initMetamask()
 
 export {
   isMetamaskInstalled,
-  getAddress
+  getAddress,
+  signTypedData
 }
