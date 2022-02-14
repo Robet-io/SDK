@@ -344,6 +344,9 @@ const getClaimAlice = () => {
 };
 const downloadLastClaim = () => {
   const lastClaim2 = localStorage.getItem(savedClameType.claimConfirmed);
+  if (!lastClaim2) {
+    return;
+  }
   const text = _prepareJsonContent(lastClaim2);
   const element = document.createElement("a");
   const filename = `lastConfirmedClaim-${new Date().toISOString()}.json`;

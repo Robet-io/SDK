@@ -25,8 +25,10 @@ const getClaimAlice = () => {
 
 const downloadLastClaim = () => {
   const lastClaim = localStorage.getItem(savedClameType.claimConfirmed)
+  if (!lastClaim) {
+    return
+  }
   const text = _prepareJsonContent(lastClaim)
-  // copyToClipboard(text)
   const element = document.createElement('a')
   const filename = `lastConfirmedClaim-${(new Date()).toISOString()}.json`
   element.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(text))
