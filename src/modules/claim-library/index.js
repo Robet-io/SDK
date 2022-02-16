@@ -7,25 +7,13 @@ import { domain } from '../domain'
 import { signTypedData } from '../metamask'
 import bnUtils from '../bnUtils'
 
-// const claimType = {
-//   TYPE_REFUND: 'ticket.refund',
-//   TYPE_WIN: 'ticket.win',
-//   TYPE_PLAY: 'ticket.play',
-//   TYPE_WITHDRAW: 'wallet.withdraw'
-// }
-
 /**
  *
  * @param {obj} claim
  * @param {obj} web3Provider
  */
-const win = async (claim, web3Provider) => {
-  /*
-    TODO check type?
-    Is there any check on the smart contract level that require check here on the claim type?
-    If not no check here is necessary. MUST Check the smart contract.
-  */
-  const claimIsValid = await claimControls.isValidNewClaim(claim)
+const cashout = async (claim, web3Provider) => {
+  const claimIsValid = claimControls.isValidNewClaim(claim)
   if (claimIsValid) {
     if (!_verifySignature(claim)) {
       throw new Error("Server's signature is not verified")
@@ -62,7 +50,8 @@ const _buildTypedClaim = claim => {
         { name: 'timestamp', type: 'uint256' },
         { name: 'messageForAlice', type: 'string' },
         { name: 'cumulativeDebitAlice', type: 'uint256' },
-        { name: 'cumulativeDebitBob', type: 'uint256' }
+        { name: 'cumulativeDebitBob', type: 'uint256' },
+        { name: 'closed', type: 'uint256' }
       ]
     },
     domain,
@@ -75,7 +64,8 @@ const _buildTypedClaim = claim => {
       timestamp: claim.timestamp,
       messageForAlice: claim.messageForAlice,
       cumulativeDebitAlice: claim.cumulativeDebits[0],
-      cumulativeDebitBob: claim.cumulativeDebits[1]
+      cumulativeDebitBob: claim.cumulativeDebits[1],
+      closed: claim.closed
     }
   }
 }
@@ -109,9 +99,7 @@ const _verifySignature = (claim, ofAlice = false) => {
  * @param {obj} claim New claim for sign
  * @param {obj} web3Provider
  */
-const pay = async (claim, web3Provider) => {
-  //  TODO check the type of claim??
-
+const cashin = async (claim, web3Provider) => {
   // check if the claim wasn't already signed
   const claimWasntSigned = _isAliceClaimNotSigned(claim)
   const claimIsValid = claimControls.isValidNewClaim(claim)
@@ -147,7 +135,7 @@ const _isAliceClaimNotSigned = (claim) => {
  */
 const _isBalanceEnough = async (claim, web3Provider) => {
   const index = claim.amount < 0 ? 0 : 1
-  // TODO server's balance???
+  // Don't check server's balance
   if (index === 1) return true
 
   return await _checkBalance(claim, index, web3Provider)
@@ -187,7 +175,7 @@ const _signClaim = async (claim) => {
  *
  * @param {obj} claim
  */
-const payReceived = async (claim) => {
+const claimControfirmed = async (claim) => {
   const claimIsValid = claimControls.isValidClaimAlice(claim)
   if (claimIsValid) {
     if (_verifySignature(claim)) {
@@ -206,37 +194,12 @@ const signWithdraw = async (claim, web3Provider) => {
   // check if the claim wasn't already signed
   const claimWasntSigned = _isAliceClaimNotSigned(claim)
   const claimIsValid = claimControls.isValidWithdraw(claim)
-  // const msgIsValid = await _isValidWithdrawMsg(claim, web3Provider)
-  // if (claimIsValid && claimWasntSigned && msgIsValid) {
   if (claimIsValid && claimWasntSigned) {
     await _signClaim(claim)
     claimStorage.saveClaimAlice(claim)
     return claim
   }
 }
-
-// /**
-//  *
-//  * @param {obj} claim
-//  * @param {obj} web3Provider
-//  */
-// const _isValidWithdrawMsg = async (claim, web3Provider) => {
-//   let balanceToWithdraw
-//   try {
-//     const { balance } = await blockchain.getVaultBalance(claim.addresses[0], web3Provider)
-//     // TODO add big numbers library
-//     balanceToWithdraw = balance + claim.cumulativeDebits[1] - claim.cumulativeDebits[0]
-//   } catch (error) {
-//     throw new Error("Can't get balance from Vault")
-//   }
-
-//   const msg = `You are withdrawing: ${balanceToWithdraw} DE.GA`
-//   if (msg === claim.messageForAlice) {
-//     return true
-//   } else {
-//     throw new Error("Wrong amount in withdraw claim's message")
-//   }
-// }
 
 /**
  *
@@ -250,7 +213,7 @@ const lastClaim = (claim) => {
     claimStorage.saveConfirmedClaim(claim)
     return true
   } else if (confirmedClaim && claim === null) {
-    return { handshake: confirmedClaim }
+    return confirmedClaim
   } else if (claim.id >= confirmedClaim.id &&
     claim.nonce > confirmedClaim.nonce) {
     // && claim.timestamp > confirmedClaim.timestamp) {
@@ -260,7 +223,7 @@ const lastClaim = (claim) => {
       claimStorage.saveConfirmedClaim(claim)
       return true
     } else {
-      return { handshake: confirmedClaim }
+      return confirmedClaim
     }
   } else {
     try {
@@ -271,18 +234,18 @@ const lastClaim = (claim) => {
       ) {
         return true
       } else {
-        return { handshake: confirmedClaim }
+        return confirmedClaim
       }
     } catch (error) {
-      return { handshake: confirmedClaim }
+      return confirmedClaim
     }
   }
 }
 
 export default {
-  pay,
-  payReceived,
-  win,
+  cashin,
+  claimControfirmed,
+  cashout,
   signWithdraw,
   lastClaim,
   downloadLastClaim: claimStorage.downloadLastClaim

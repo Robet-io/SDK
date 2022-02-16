@@ -7,7 +7,7 @@ const domain = {
   verifyingContract: process.env.CSDK_CONTRACT_VAULT_ADDRESS
 }
 
-function _buildTypedClaim (claim) {
+const _buildTypedClaim = claim => {
   return {
     types: {
       EIP712Domain: [
@@ -24,7 +24,8 @@ function _buildTypedClaim (claim) {
         { name: 'timestamp', type: 'uint256' },
         { name: 'messageForAlice', type: 'string' },
         { name: 'cumulativeDebitAlice', type: 'uint256' },
-        { name: 'cumulativeDebitBob', type: 'uint256' }
+        { name: 'cumulativeDebitBob', type: 'uint256' },
+        { name: 'closed', type: 'uint256' }
       ]
     },
     domain,
@@ -37,7 +38,8 @@ function _buildTypedClaim (claim) {
       timestamp: claim.timestamp,
       messageForAlice: claim.messageForAlice,
       cumulativeDebitAlice: claim.cumulativeDebits[0],
-      cumulativeDebitBob: claim.cumulativeDebits[1]
+      cumulativeDebitBob: claim.cumulativeDebits[1],
+      closed: claim.closed
     }
   }
 }

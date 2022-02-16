@@ -492,11 +492,10 @@ var bnUtils = {
   roundDecimals
 };
 const CSDK_SERVER_ADDRESS = "0xeA085D9698651e76750F07d0dE0464476187b3ca";
-const CSDK_TYPE_WITHDRAW = "wallet.withdraw";
 const isValidNewClaim = (claim) => {
   const lastClaim2 = claimStorage.getConfirmedClaim();
   if (lastClaim2) {
-    const wasWithdraw = lastClaim2.type === CSDK_TYPE_WITHDRAW;
+    const wasWithdraw = lastClaim2.closed === 1;
     const id = wasWithdraw ? lastClaim2.id + 1 : lastClaim2.id;
     const nonce = wasWithdraw ? 1 : lastClaim2.nonce + 1;
     if (id !== claim.id) {
@@ -561,21 +560,17 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
   if (savedClaim.nonce !== nonce) {
     throw new Error(`Invalid claim nonce: ${claim.nonce} - saved claim nonce: ${savedClaim.nonce}`);
   }
-  if (savedClaim.cumulativeDebits[0] !== claim.cumulativeDebits[0]) {
-    throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - saved claim: ${savedClaim.cumulativeDebits[0]}`);
-  }
-  if (savedClaim.cumulativeDebits[1] !== claim.cumulativeDebits[1]) {
-    throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - saved claim: ${savedClaim.cumulativeDebits[1]}`);
-  }
-  const type = isWithdraw ? "wallet.withdraw" : savedClaim.type;
-  if (claim.type !== type) {
-    throw new Error(`Invalid claim type: ${claim.type} - saved claim type: ${savedClaim.type}`);
-  }
   if (savedClaim.addresses[0] !== claim.addresses[0]) {
     throw new Error(`Invalid address of Client: ${claim.addresses[0]} - saved claim: ${savedClaim.addresses[0]}`);
   }
   if (savedClaim.addresses[1] !== claim.addresses[1]) {
     throw new Error(`Invalid address of Server: ${claim.addresses[1]} - saved claim: ${savedClaim.addresses[1]}`);
+  }
+  if (savedClaim.cumulativeDebits[0] !== claim.cumulativeDebits[0]) {
+    throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - saved claim: ${savedClaim.cumulativeDebits[0]}`);
+  }
+  if (savedClaim.cumulativeDebits[1] !== claim.cumulativeDebits[1]) {
+    throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - saved claim: ${savedClaim.cumulativeDebits[1]}`);
   }
   if (!isWithdraw && savedClaim.timestamp !== claim.timestamp) {
     throw new Error(`Invalid timestamp of Server: ${claim.timestamp} - saved claim: ${savedClaim.timestamp}`);
@@ -813,7 +808,20 @@ var abi = [
         type: "tuple"
       }
     ],
-    name: "Withdraw",
+    name: "WithdrawAlice",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "WithdrawBob",
     type: "event"
   },
   {
@@ -1068,6 +1076,11 @@ var abi = [
             internalType: "bytes[]",
             name: "signatures",
             type: "bytes[]"
+          },
+          {
+            internalType: "uint256",
+            name: "closed",
+            type: "uint256"
           }
         ],
         internalType: "struct VaultV1.ClaimRequest",
@@ -1202,6 +1215,11 @@ var abi = [
             internalType: "bytes[]",
             name: "signatures",
             type: "bytes[]"
+          },
+          {
+            internalType: "uint256",
+            name: "closed",
+            type: "uint256"
           }
         ],
         internalType: "struct VaultV1.ClaimRequest",
@@ -1271,6 +1289,11 @@ var abi = [
             internalType: "bytes[]",
             name: "signatures",
             type: "bytes[]"
+          },
+          {
+            internalType: "uint256",
+            name: "closed",
+            type: "uint256"
           }
         ],
         internalType: "struct VaultV1.ClaimRequest",
@@ -1321,6 +1344,11 @@ var abi = [
             internalType: "bytes[]",
             name: "signatures",
             type: "bytes[]"
+          },
+          {
+            internalType: "uint256",
+            name: "closed",
+            type: "uint256"
           }
         ],
         internalType: "struct VaultV1.ClaimRequest",
@@ -1329,6 +1357,19 @@ var abi = [
       }
     ],
     name: "withdrawAlice",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "withdrawBob",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function"
@@ -1402,9 +1443,9 @@ var blockchain = {
   getVaultBalance: getVaultBalance$1,
   withdrawConsensually: withdrawConsensually$1
 };
-const win$1 = async (claim, web3Provider) => {
-  const claimIsValid = await claimControls.isValidNewClaim(claim);
-  if (claimIsValid) {
+const cashout$1 = async (claim, web3Provider) => {
+  claimControls.isValidNewClaim(claim);
+  {
     if (!_verifySignature(claim)) {
       throw new Error("Server's signature is not verified");
     }
@@ -1435,7 +1476,8 @@ const _buildTypedClaim = (claim) => {
         { name: "timestamp", type: "uint256" },
         { name: "messageForAlice", type: "string" },
         { name: "cumulativeDebitAlice", type: "uint256" },
-        { name: "cumulativeDebitBob", type: "uint256" }
+        { name: "cumulativeDebitBob", type: "uint256" },
+        { name: "closed", type: "uint256" }
       ]
     },
     domain,
@@ -1448,7 +1490,8 @@ const _buildTypedClaim = (claim) => {
       timestamp: claim.timestamp,
       messageForAlice: claim.messageForAlice,
       cumulativeDebitAlice: claim.cumulativeDebits[0],
-      cumulativeDebitBob: claim.cumulativeDebits[1]
+      cumulativeDebitBob: claim.cumulativeDebits[1],
+      closed: claim.closed
     }
   };
 };
@@ -1470,7 +1513,7 @@ const _verifySignature = (claim, ofAlice = false) => {
     return false;
   }
 };
-const pay$1 = async (claim, web3Provider) => {
+const cashin$1 = async (claim, web3Provider) => {
   const claimWasntSigned = _isAliceClaimNotSigned(claim);
   claimControls.isValidNewClaim(claim);
   if (claimWasntSigned) {
@@ -1515,7 +1558,7 @@ const _signClaim = async (claim) => {
   const from = claim.addresses[0];
   claim.signatures[0] = await signTypedData(msg, from);
 };
-const payReceived$1 = async (claim) => {
+const claimControfirmed$1 = async (claim) => {
   const claimIsValid = claimControls.isValidClaimAlice(claim);
   if (claimIsValid) {
     if (_verifySignature(claim)) {
@@ -1543,13 +1586,13 @@ const lastClaim$1 = (claim) => {
     claimStorage.saveConfirmedClaim(claim);
     return true;
   } else if (confirmedClaim && claim === null) {
-    return { handshake: confirmedClaim };
+    return confirmedClaim;
   } else if (claim.id >= confirmedClaim.id && claim.nonce > confirmedClaim.nonce) {
     if (_verifySignature(claim, true) && _verifySignature(claim)) {
       claimStorage.saveConfirmedClaim(claim);
       return true;
     } else {
-      return { handshake: confirmedClaim };
+      return confirmedClaim;
     }
   } else {
     try {
@@ -1557,22 +1600,22 @@ const lastClaim$1 = (claim) => {
       if (areEqual === true && claim.signatures[0] === confirmedClaim.signatures[0] && claim.signatures[1] === confirmedClaim.signatures[1]) {
         return true;
       } else {
-        return { handshake: confirmedClaim };
+        return confirmedClaim;
       }
     } catch (error) {
-      return { handshake: confirmedClaim };
+      return confirmedClaim;
     }
   }
 };
 var claimLibrary = {
-  pay: pay$1,
-  payReceived: payReceived$1,
-  win: win$1,
+  cashin: cashin$1,
+  claimControfirmed: claimControfirmed$1,
+  cashout: cashout$1,
   signWithdraw: signWithdraw$1,
   lastClaim: lastClaim$1,
   downloadLastClaim: claimStorage.downloadLastClaim
 };
-const pay = async (claim) => {
+const cashin = async (claim) => {
   try {
     await checkRightNetwork();
   } catch (error) {
@@ -1581,7 +1624,7 @@ const pay = async (claim) => {
   }
   const web3Provider = getWeb3Provider();
   try {
-    const claimResult = await claimLibrary.pay(claim, web3Provider);
+    const claimResult = await claimLibrary.cashin(claim, web3Provider);
     emitEvent(eventType.claimSigned, { claim: claimResult });
     return claimResult;
   } catch (error) {
@@ -1598,7 +1641,7 @@ const getVaultBalance = async (address) => {
     console.error(error);
   }
 };
-const payReceived = async (claim) => {
+const claimControfirmed = async (claim) => {
   try {
     await checkRightNetwork();
   } catch (error) {
@@ -1606,14 +1649,14 @@ const payReceived = async (claim) => {
     throw error;
   }
   try {
-    await claimLibrary.payReceived(claim);
+    await claimLibrary.claimControfirmed(claim);
     emitEvent(eventType.claimConfirmed, { claim });
   } catch (error) {
     emitErrorEvent(eventType.claimNotConfirmed, { error, claim });
     throw error;
   }
 };
-const win = async (claim) => {
+const cashout = async (claim) => {
   try {
     await checkRightNetwork();
   } catch (error) {
@@ -1622,7 +1665,7 @@ const win = async (claim) => {
   }
   const web3Provider = getWeb3Provider();
   try {
-    const claimResult = await claimLibrary.win(claim, web3Provider);
+    const claimResult = await claimLibrary.cashout(claim, web3Provider);
     emitEvent(eventType.winClaimSigned, { claim: claimResult });
     return claimResult;
   } catch (error) {
@@ -1676,42 +1719,77 @@ const withdrawConsensually = async (claim) => {
   }
 };
 var claims = {
-  pay,
-  payReceived,
-  win,
+  cashin,
+  claimControfirmed,
+  cashout,
   lastClaim,
   signWithdraw,
   withdrawConsensually,
   getVaultBalance,
   downloadLastClaim: claimLibrary.downloadLastClaim
 };
+const CSDK_TYPE_CASHIN = {}.CSDK_TYPE_CASHIN;
+const CSDK_TYPE_CASHOUT = {}.CSDK_TYPE_CASHOUT;
+const CSDK_TYPE_WITHDRAW = "WITHDRAW";
+const CSDK_TYPE_HANDSHAKE = {}.CSDK_TYPE_HANDSHAKE;
 const receiveMsg = async (msg) => {
   if (msg) {
-    const message = JSON.parse(msg);
-    if (message.hasOwnProperty("handshake")) {
-      return claims.lastClaim(message.handshake);
-    } else {
-      const claim = message;
-      if (claim && claim.type === "ticket.play") {
+    const { action, claim, context, error } = JSON.parse(msg);
+    if (error) {
+      throw new Error(error);
+    }
+    switch (action) {
+      case CSDK_TYPE_HANDSHAKE: {
+        const lastClaimAlice = claims.lastClaim(claim);
+        if (lastClaimAlice) {
+          return {
+            action,
+            claim: lastClaimAlice,
+            context
+          };
+        }
+        break;
+      }
+      case CSDK_TYPE_CASHIN: {
         if (!claim.signatures[0] && !claim.signatures[1]) {
-          const signedClaim = await claims.pay(claim);
-          return signedClaim;
+          const signedClaim = await claims.cashin(claim);
+          return {
+            action,
+            claim: signedClaim,
+            context
+          };
         } else if (claim.signatures[0] && claim.signatures[1]) {
-          await claims.payReceived(claim);
+          await claims.claimControfirmed(claim);
         }
-      } else if (claim && claim.type === "ticket.win") {
+        break;
+      }
+      case CSDK_TYPE_CASHOUT: {
         if (!claim.signatures[0] && claim.signatures[1]) {
-          const signedClaim = await claims.win(claim);
-          return signedClaim;
+          const signedClaim = await claims.cashout(claim);
+          return {
+            action,
+            claim: signedClaim,
+            context
+          };
         }
-      } else if (claim && claim.type === "wallet.withdraw") {
+        break;
+      }
+      case CSDK_TYPE_WITHDRAW: {
         if (!claim.signatures[0] && !claim.signatures[1]) {
           const signedClaim = await claims.signWithdraw(claim);
-          return signedClaim;
+          return {
+            action,
+            claim: signedClaim,
+            context
+          };
         } else if (claim.signatures[0] && claim.signatures[1]) {
-          await claims.payReceived(claim);
+          await claims.claimControfirmed(claim);
           await claims.withdrawConsensually(claim);
         }
+        break;
+      }
+      default: {
+        throw new Error("Not supported");
       }
     }
   }
@@ -1722,16 +1800,15 @@ const cryptoSDK = {
   isRightNet,
   setRightNet,
   addEventListener,
-  pay: claims.pay,
-  payReceived: claims.payReceived,
-  win: claims.win,
   receiveMsg,
   signChallenge: token.signChallenge,
   setToken: token.setToken,
   getToken: token.getToken,
   isLogged: token.isLogged,
-  lastClaim: claims.lastClaim,
   getVaultBalance: claims.getVaultBalance,
-  downloadLastClaim: claims.downloadLastClaim
+  downloadLastClaim: claims.downloadLastClaim,
+  pay: claims.cashin,
+  payReceived: claims.claimControfirmed,
+  win: claims.cashout
 };
 export { cryptoSDK as default };

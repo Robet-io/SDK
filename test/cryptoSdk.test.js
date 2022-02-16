@@ -58,12 +58,12 @@ describe('cryptoSDK library', () => {
     id: 1,
     addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
     amount: -5,
-    cumulativeDebits: [5, 0],
+    cumulativeDebits: ['5', '0'],
     messageForAlice: 'You pay: 5 DE.GA',
     timestamp: 1639145450856,
     nonce: 1,
     signatures: [],
-    type: 'ticket.play'
+    closed: 0
   }
   const aliceSignature = signClaim(claimToPay, ALICE_PRIVATE_KEY)
   const bobSignature = signClaim(claimToPay, SERVER_PRIVATE_KEY)
@@ -77,12 +77,12 @@ describe('cryptoSDK library', () => {
     id: 1,
     addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
     amount: 10,
-    cumulativeDebits: [0, 5],
+    cumulativeDebits: ['0', '5'],
     messageForAlice: 'You receive: 10 DE.GA',
     timestamp: 1639145450856,
     nonce: 2,
     signatures: [],
-    type: 'ticket.win'
+    closed: 0
   }
 
   const bobSignatureWin = signClaim(claimWin, SERVER_PRIVATE_KEY)
@@ -207,7 +207,7 @@ describe('cryptoSDK library', () => {
         expect(await cryptoSDK.isRightNet()).toBe(true)
       })
 
-      describe('pay()', () => {
+      describe('cash-in (ex. pay)', () => {
         describe('1. pay(), no claim saved in localStorage', () => {
           test('pay() returns signed claim AND emits event AND saves to localStorage', async () => {
             expect((await cryptoSDK.pay(claimToPay)).signatures[0]).toBe(aliceSignature)
@@ -298,7 +298,7 @@ describe('cryptoSDK library', () => {
             timestamp: 1639145450856,
             nonce: 2,
             signatures: [aliceSignature, ''],
-            type: 'ticket.play'
+            closed: 0
           }
           const aliceSignature2 = signClaim(claimToPay2, ALICE_PRIVATE_KEY)
           beforeEach(() => {
@@ -311,7 +311,7 @@ describe('cryptoSDK library', () => {
               timestamp: 1639145450856,
               nonce: 1,
               signatures: [aliceSignature, ''],
-              type: 'ticket.play'
+              closed: 0
             }
             claimStorage.saveConfirmedClaim(previousClaim)
           })
@@ -396,7 +396,7 @@ describe('cryptoSDK library', () => {
         })
       })
 
-      describe('payReceived()', () => {
+      describe('claimControfirmed (ex. payReceived)', () => {
         describe('1. payReceived(), no claim saved in localStorage', () => {
           test('payReceived() emits event AND saves to localStorage in confirmedClaim', async () => {
             await cryptoSDK.payReceived(claimToPayRecieved)
@@ -578,7 +578,7 @@ describe('cryptoSDK library', () => {
         })
       })
 
-      describe('1. win(), exists a claim saved in localStorage', () => {
+      describe('1. cash-out (ex. win), exists a claim saved in localStorage', () => {
         beforeEach(async () => {
           claimStorage.saveConfirmedClaim(claimToPayRecieved)
         })
@@ -683,7 +683,7 @@ describe('cryptoSDK library', () => {
           timestamp: 1639145450856,
           nonce: 1,
           signatures: [],
-          type: 'ticket.win'
+          closed: 0
         }
 
         const bobSignatureWinFirst = signClaim(claimWinFirst, SERVER_PRIVATE_KEY)
@@ -776,18 +776,18 @@ describe('cryptoSDK library', () => {
         })
 
         test('setToken() saves token in localStorage', async () => {
-          await cryptoSDK.setToken(token)
-          expect(await cryptoSDK.getToken()).toBe(token)
-          expect(await cryptoSDK.getToken()).toBe(token)
+          cryptoSDK.setToken(token)
+          expect(cryptoSDK.getToken()).toBe(token)
+          expect(cryptoSDK.getToken()).toBe(token)
         })
 
         test('isLogged() returns true after setToken()', async () => {
-          await cryptoSDK.setToken(token)
-          expect(await cryptoSDK.isLogged()).toBe(true)
+          cryptoSDK.setToken(token)
+          expect(cryptoSDK.isLogged()).toBe(true)
         })
 
         test("isLogged() returns false if there's no token saved", async () => {
-          expect(await cryptoSDK.isLogged()).toBe(false)
+          expect(cryptoSDK.isLogged()).toBe(false)
         })
       })
 
@@ -795,7 +795,8 @@ describe('cryptoSDK library', () => {
         // no claim on server, no claim on client
         test('no claim on server, no claim on client - ok, nothing saved', async () => {
           const handshakeServer = {
-            handshake: null
+            action: process.env.CSDK_TYPE_HANDSHAKE,
+            claim: null
           }
           expect(await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))).toBe(undefined)
           expect(claimStorage.getConfirmedClaim()).toBe(null)
@@ -804,18 +805,20 @@ describe('cryptoSDK library', () => {
         // no claim on server, claim on client
         test("no claim on server, claim on client - returns client's claim", async () => {
           const handshakeServer = {
-            handshake: null
+            action: process.env.CSDK_TYPE_HANDSHAKE,
+            claim: null
           }
 
           claimStorage.saveConfirmedClaim(claimToPayRecieved)
           const handshakeClient = await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))
-          expect(handshakeClient.handshake.nonce).toBe(claimToPayRecieved.nonce)
+          expect(handshakeClient.claim.nonce).toBe(claimToPayRecieved.nonce)
         })
 
         // claim on server, no claim on client
         test("claim on server, no claim on client - ok, server's claim is saved", async () => {
           const handshakeServer = {
-            handshake: claimToPayRecieved
+            action: process.env.CSDK_TYPE_HANDSHAKE,
+            claim: claimToPayRecieved
           }
 
           expect(await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))).toBe(undefined)
@@ -825,19 +828,21 @@ describe('cryptoSDK library', () => {
         // claim on server, newer claim on client
         test("claim on server, newer claim on client - returns client's claim", async () => {
           const handshakeServer = {
-            handshake: claimToPayRecieved
+            action: process.env.CSDK_TYPE_HANDSHAKE,
+            claim: claimToPayRecieved
           }
 
-          await claimStorage.saveConfirmedClaim(claimWin)
+          claimStorage.saveConfirmedClaim(claimWin)
 
           const handshakeClient = await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))
-          expect(handshakeClient.handshake.nonce).toBe(claimWin.nonce)
+          expect(handshakeClient.claim.nonce).toBe(claimWin.nonce)
         })
 
         // claim on server, different claim on client
         test("claim on server, different claim on client - returns client's claim", async () => {
           const handshakeServer = {
-            handshake: claimToPayRecieved
+            action: process.env.CSDK_TYPE_HANDSHAKE,
+            claim: claimToPayRecieved
           }
 
           const claimClient = {
@@ -845,19 +850,20 @@ describe('cryptoSDK library', () => {
             timestamp: 1639145450890
           }
 
-          await claimStorage.saveConfirmedClaim(claimClient)
+          claimStorage.saveConfirmedClaim(claimClient)
 
           const handshakeClient = await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))
-          expect(handshakeClient.handshake.timestamp).toBe(claimClient.timestamp)
+          expect(handshakeClient.claim.timestamp).toBe(claimClient.timestamp)
         })
 
         // claim on server, the same claim on client
         test('claim on server, the same claim on client - ok', async () => {
           const handshakeServer = {
-            handshake: claimToPayRecieved
+            action: process.env.CSDK_TYPE_HANDSHAKE,
+            claim: claimToPayRecieved
           }
 
-          await claimStorage.saveConfirmedClaim(claimToPayRecieved)
+          claimStorage.saveConfirmedClaim(claimToPayRecieved)
 
           expect(await cryptoSDK.receiveMsg(JSON.stringify(handshakeServer))).toBe(undefined)
         })
@@ -872,9 +878,9 @@ describe('cryptoSDK library', () => {
             messageForAlice: 'You are withdrawing: 100000000000000000000 DE.GA',
             amount: 0,
             addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
-            cumulativeDebits: [0, 10],
+            cumulativeDebits: ['0', '10'],
             signatures: [null, null],
-            type: process.env.CSDK_TYPE_WITHDRAW
+            closed: 1
           }
 
           test('signs withdraw claim, saves to localStorage as claimAlice', async () => {
@@ -885,9 +891,9 @@ describe('cryptoSDK library', () => {
               messageForAlice: 'You receive: 10 DE.GA',
               amount: 10,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
-              cumulativeDebits: [0, 10],
+              cumulativeDebits: ['0', '10'],
               signatures: [null, null],
-              type: process.env.CSDK_TYPE_WIN
+              closed: 0
             }
             lastClaim.signatures = [
               signClaim(lastClaim, ALICE_PRIVATE_KEY),
@@ -896,8 +902,13 @@ describe('cryptoSDK library', () => {
 
             claimStorage.saveConfirmedClaim(lastClaim)
 
-            const signedClaim = await cryptoSDK.receiveMsg(JSON.stringify(withdrawClaim))
-            expect(signedClaim.signatures[0]).toBe(signClaim(withdrawClaim, ALICE_PRIVATE_KEY))
+            const messageServer = {
+              action: process.env.CSDK_TYPE_WITHDRAW,
+              claim: withdrawClaim
+            }
+
+            const messageSDK = await cryptoSDK.receiveMsg(JSON.stringify(messageServer))
+            expect(messageSDK.claim.signatures[0]).toBe(signClaim(withdrawClaim, ALICE_PRIVATE_KEY))
             expect((await claimStorage.getClaimAlice()).nonce).toBe(withdrawClaim.nonce)
           })
 
@@ -909,9 +920,9 @@ describe('cryptoSDK library', () => {
               messageForAlice: 'You receive: 10 DE.GA',
               amount: 10,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
-              cumulativeDebits: [0, 10],
+              cumulativeDebits: ['0', '10'],
               signatures: [null, null],
-              type: process.env.CSDK_TYPE_WIN
+              closed: 0
             }
             lastClaim.signatures = [
               signClaim(lastClaim, ALICE_PRIVATE_KEY),
@@ -920,8 +931,13 @@ describe('cryptoSDK library', () => {
 
             claimStorage.saveConfirmedClaim(lastClaim)
 
+            const messageServer = {
+              action: process.env.CSDK_TYPE_WITHDRAW,
+              claim: withdrawClaim
+            }
+
             const errorMsg = 'Invalid claim nonce'
-            await expect(cryptoSDK.receiveMsg(JSON.stringify(withdrawClaim))).rejects.toThrowError(errorMsg)
+            await expect(cryptoSDK.receiveMsg(JSON.stringify(messageServer))).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.claimNotSigned)
             expect(events[0].error).toBe(true)
             expect((await claimStorage.getClaimAlice())).toBe(null)
@@ -935,9 +951,9 @@ describe('cryptoSDK library', () => {
               messageForAlice: 'You receive: 10 DE.GA',
               amount: 10,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
-              cumulativeDebits: [0, 10],
+              cumulativeDebits: ['0', '10'],
               signatures: [null, null],
-              type: process.env.CSDK_TYPE_WIN
+              closed: 0
             }
             lastClaim.signatures = [
               signClaim(lastClaim, ALICE_PRIVATE_KEY),
@@ -946,8 +962,13 @@ describe('cryptoSDK library', () => {
 
             claimStorage.saveConfirmedClaim(lastClaim)
 
+            const messageServer = {
+              action: process.env.CSDK_TYPE_WITHDRAW,
+              claim: withdrawClaim
+            }
+
             const errorMsg = 'Invalid claim id'
-            await expect(cryptoSDK.receiveMsg(JSON.stringify(withdrawClaim))).rejects.toThrowError(errorMsg)
+            await expect(cryptoSDK.receiveMsg(JSON.stringify(messageServer))).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.claimNotSigned)
             expect(events[0].error).toBe(true)
             expect((await claimStorage.getClaimAlice())).toBe(null)
@@ -961,9 +982,9 @@ describe('cryptoSDK library', () => {
               messageForAlice: 'You receive: 10 DE.GA',
               amount: 10,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
-              cumulativeDebits: [0, 15],
+              cumulativeDebits: ['0', '15'],
               signatures: [null, null],
-              type: process.env.CSDK_TYPE_WIN
+              closed: 0
             }
             lastClaim.signatures = [
               signClaim(lastClaim, ALICE_PRIVATE_KEY),
@@ -972,8 +993,13 @@ describe('cryptoSDK library', () => {
 
             claimStorage.saveConfirmedClaim(lastClaim)
 
+            const messageServer = {
+              action: process.env.CSDK_TYPE_WITHDRAW,
+              claim: withdrawClaim
+            }
+
             const errorMsg = 'Invalid claim cumulative debit'
-            await expect(cryptoSDK.receiveMsg(JSON.stringify(withdrawClaim))).rejects.toThrowError(errorMsg)
+            await expect(cryptoSDK.receiveMsg(JSON.stringify(messageServer))).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.claimNotSigned)
             expect(events[0].error).toBe(true)
             expect((await claimStorage.getClaimAlice())).toBe(null)
@@ -987,9 +1013,9 @@ describe('cryptoSDK library', () => {
               messageForAlice: 'You receive: 10 DE.GA',
               amount: 10,
               addresses: [ALICE_ADDRESS, ALICE_ADDRESS_WRONG],
-              cumulativeDebits: [0, 10],
+              cumulativeDebits: ['0', '10'],
               signatures: [null, null],
-              type: process.env.CSDK_TYPE_WIN
+              closed: 1
             }
             lastClaim.signatures = [
               signClaim(lastClaim, ALICE_PRIVATE_KEY),
@@ -998,8 +1024,13 @@ describe('cryptoSDK library', () => {
 
             claimStorage.saveConfirmedClaim(lastClaim)
 
+            const messageServer = {
+              action: process.env.CSDK_TYPE_WITHDRAW,
+              claim: withdrawClaim
+            }
+
             const errorMsg = 'Invalid address of Server'
-            await expect(cryptoSDK.receiveMsg(JSON.stringify(withdrawClaim))).rejects.toThrowError(errorMsg)
+            await expect(cryptoSDK.receiveMsg(JSON.stringify(messageServer))).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.claimNotSigned)
             expect(events[0].error).toBe(true)
             expect((await claimStorage.getClaimAlice())).toBe(null)
@@ -1015,9 +1046,9 @@ describe('cryptoSDK library', () => {
               messageForAlice: 'You receive: 10 DE.GA',
               amount: 10,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
-              cumulativeDebits: [0, 10],
+              cumulativeDebits: ['0', '10'],
               signatures: [null, null],
-              type: process.env.CSDK_TYPE_WIN
+              closed: 0
             }
             lastClaim.signatures = [
               signClaim(lastClaim, ALICE_PRIVATE_KEY),
@@ -1035,9 +1066,9 @@ describe('cryptoSDK library', () => {
               messageForAlice: 'You are withdrawing: 100000000000000000000 DE.GA',
               amount: 0,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
-              cumulativeDebits: [0, 10],
+              cumulativeDebits: ['0', '10'],
               signatures: [null, null],
-              type: process.env.CSDK_TYPE_WITHDRAW
+              closed: 1
             }
 
             withdrawClaim.signatures = [
@@ -1049,7 +1080,12 @@ describe('cryptoSDK library', () => {
 
             withdrawClaim.signatures[1] = signClaim(withdrawClaim, SERVER_PRIVATE_KEY)
 
-            await cryptoSDK.receiveMsg(JSON.stringify(withdrawClaim))
+            const messageServer = {
+              action: process.env.CSDK_TYPE_WITHDRAW,
+              claim: withdrawClaim
+            }
+
+            await cryptoSDK.receiveMsg(JSON.stringify(messageServer))
             expect((await claimStorage.getConfirmedClaim()).nonce).toBe(withdrawClaim.nonce)
 
             expect(events[events.length - 1].type).toEqual(eventType.withdraw)
@@ -1066,9 +1102,9 @@ describe('cryptoSDK library', () => {
               messageForAlice: 'You are withdrawing: 100000000000000000000 DE.GA',
               amount: 0,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
-              cumulativeDebits: [0, 10],
+              cumulativeDebits: ['0', '10'],
               signatures: [null, null],
-              type: process.env.CSDK_TYPE_WITHDRAW
+              closed: 1
             }
 
             withdrawClaim.signatures = [
@@ -1080,8 +1116,13 @@ describe('cryptoSDK library', () => {
 
             withdrawClaim.signatures[1] = signClaim(withdrawClaim, ALICE_PRIVATE_KEY)
 
+            const messageServer = {
+              action: process.env.CSDK_TYPE_WITHDRAW,
+              claim: withdrawClaim
+            }
+
             const errorMsg = "Server's signature is not verified"
-            await expect(cryptoSDK.receiveMsg(JSON.stringify(withdrawClaim))).rejects.toThrowError(errorMsg)
+            await expect(cryptoSDK.receiveMsg(JSON.stringify(messageServer))).rejects.toThrowError(errorMsg)
             expect(events[events.length - 1].type).toEqual(eventType.claimNotConfirmed)
             expect(events[events.length - 1].error).toBe(true)
             expect((await claimStorage.getConfirmedClaim()).nonce).toBe(2)
@@ -1095,9 +1136,9 @@ describe('cryptoSDK library', () => {
               messageForAlice: 'You are withdrawing: 100000000000000000000 DE.GA',
               amount: 0,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
-              cumulativeDebits: [0, 10],
+              cumulativeDebits: ['0', '10'],
               signatures: [null, null],
-              type: process.env.CSDK_TYPE_WITHDRAW
+              closed: 1
             }
 
             withdrawClaimAlice.signatures = [
@@ -1114,9 +1155,9 @@ describe('cryptoSDK library', () => {
               messageForAlice: 'You are withdrawing: 100000000000000000000 DE.GA',
               amount: 0,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
-              cumulativeDebits: [0, 15],
+              cumulativeDebits: ['0', '15'],
               signatures: [null, null],
-              type: process.env.CSDK_TYPE_WITHDRAW
+              closed: 1
             }
 
             withdrawClaimServer.signatures = [
@@ -1124,8 +1165,13 @@ describe('cryptoSDK library', () => {
               signClaim(withdrawClaimServer, SERVER_PRIVATE_KEY)
             ]
 
+            const messageServer = {
+              action: process.env.CSDK_TYPE_WITHDRAW,
+              claim: withdrawClaimServer
+            }
+
             const errorMsg = 'Invalid claim cumulative debit'
-            await expect(cryptoSDK.receiveMsg(JSON.stringify(withdrawClaimServer))).rejects.toThrowError(errorMsg)
+            await expect(cryptoSDK.receiveMsg(JSON.stringify(messageServer))).rejects.toThrowError(errorMsg)
             expect(events[events.length - 1].type).toEqual(eventType.claimNotConfirmed)
             expect(events[events.length - 1].error).toBe(true)
             expect((await claimStorage.getConfirmedClaim()).nonce).toBe(2)
@@ -1316,7 +1362,7 @@ describe('cryptoSDK library', () => {
             timestamp: 1639145450856,
             nonce: 2,
             signatures: [aliceSignature, ''],
-            type: 'ticket.play'
+            closed: 0
           }
           const aliceSignature2 = signClaim(claimToPay2, ALICE_PRIVATE_KEY)
           beforeEach(() => {
@@ -1329,7 +1375,7 @@ describe('cryptoSDK library', () => {
               timestamp: 1639145450856,
               nonce: 1,
               signatures: [aliceSignature, ''],
-              type: 'ticket.play'
+              closed: 0
             }
             claimStorage.saveConfirmedClaim(previousClaim)
           })

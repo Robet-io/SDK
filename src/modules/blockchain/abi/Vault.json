@@ -216,7 +216,20 @@
         "type": "tuple"
       }
     ],
-    "name": "Withdraw",
+    "name": "WithdrawAlice",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "WithdrawBob",
     "type": "event"
   },
   {
@@ -471,6 +484,11 @@
             "internalType": "bytes[]",
             "name": "signatures",
             "type": "bytes[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "closed",
+            "type": "uint256"
           }
         ],
         "internalType": "struct VaultV1.ClaimRequest",
@@ -605,6 +623,11 @@
             "internalType": "bytes[]",
             "name": "signatures",
             "type": "bytes[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "closed",
+            "type": "uint256"
           }
         ],
         "internalType": "struct VaultV1.ClaimRequest",
@@ -674,6 +697,11 @@
             "internalType": "bytes[]",
             "name": "signatures",
             "type": "bytes[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "closed",
+            "type": "uint256"
           }
         ],
         "internalType": "struct VaultV1.ClaimRequest",
@@ -724,6 +752,11 @@
             "internalType": "bytes[]",
             "name": "signatures",
             "type": "bytes[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "closed",
+            "type": "uint256"
           }
         ],
         "internalType": "struct VaultV1.ClaimRequest",
@@ -732,6 +765,19 @@
       }
     ],
     "name": "withdrawAlice",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "withdrawBob",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
