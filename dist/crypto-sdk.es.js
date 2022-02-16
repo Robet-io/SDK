@@ -808,7 +808,20 @@ var abi = [
         type: "tuple"
       }
     ],
-    name: "Withdraw",
+    name: "WithdrawAlice",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "WithdrawBob",
     type: "event"
   },
   {
@@ -1063,6 +1076,11 @@ var abi = [
             internalType: "bytes[]",
             name: "signatures",
             type: "bytes[]"
+          },
+          {
+            internalType: "uint256",
+            name: "closed",
+            type: "uint256"
           }
         ],
         internalType: "struct VaultV1.ClaimRequest",
@@ -1197,6 +1215,11 @@ var abi = [
             internalType: "bytes[]",
             name: "signatures",
             type: "bytes[]"
+          },
+          {
+            internalType: "uint256",
+            name: "closed",
+            type: "uint256"
           }
         ],
         internalType: "struct VaultV1.ClaimRequest",
@@ -1266,6 +1289,11 @@ var abi = [
             internalType: "bytes[]",
             name: "signatures",
             type: "bytes[]"
+          },
+          {
+            internalType: "uint256",
+            name: "closed",
+            type: "uint256"
           }
         ],
         internalType: "struct VaultV1.ClaimRequest",
@@ -1316,6 +1344,11 @@ var abi = [
             internalType: "bytes[]",
             name: "signatures",
             type: "bytes[]"
+          },
+          {
+            internalType: "uint256",
+            name: "closed",
+            type: "uint256"
           }
         ],
         internalType: "struct VaultV1.ClaimRequest",
@@ -1324,6 +1357,19 @@ var abi = [
       }
     ],
     name: "withdrawAlice",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "withdrawBob",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function"
@@ -1684,7 +1730,7 @@ var claims = {
 };
 const CSDK_TYPE_CASHIN = {}.CSDK_TYPE_CASHIN;
 const CSDK_TYPE_CASHOUT = {}.CSDK_TYPE_CASHOUT;
-const CSDK_TYPE_WITHDRAW = "wallet.withdraw";
+const CSDK_TYPE_WITHDRAW = "WITHDRAW";
 const CSDK_TYPE_HANDSHAKE = {}.CSDK_TYPE_HANDSHAKE;
 const receiveMsg = async (msg) => {
   if (msg) {
