@@ -16,7 +16,7 @@ import blockchain from './blockchain'
  *
  * @param {obj} claim
  */
-const pay = async (claim) => {
+const cashin = async (claim) => {
   try {
     await checkRightNetwork()
   } catch (error) {
@@ -26,7 +26,7 @@ const pay = async (claim) => {
 
   const web3Provider = getWeb3Provider()
   try {
-    const claimResult = await claimLibrary.pay(claim, web3Provider)
+    const claimResult = await claimLibrary.cashin(claim, web3Provider)
     emitEvent(eventType.claimSigned, { claim: claimResult })
     return claimResult
   } catch (error) {
@@ -50,7 +50,7 @@ const getVaultBalance = async (address) => {
  *
  * @param {obj} claim
  */
-const payReceived = async (claim) => {
+const claimControfirmed = async (claim) => {
   try {
     await checkRightNetwork()
   } catch (error) {
@@ -59,7 +59,7 @@ const payReceived = async (claim) => {
   }
 
   try {
-    await claimLibrary.payReceived(claim)
+    await claimLibrary.claimControfirmed(claim)
     emitEvent(eventType.claimConfirmed, { claim })
   } catch (error) {
     emitErrorEvent(eventType.claimNotConfirmed, { error, claim })
@@ -71,7 +71,7 @@ const payReceived = async (claim) => {
  *
  * @param {obj} claim
  */
-const win = async (claim) => {
+const cashout = async (claim) => {
   try {
     await checkRightNetwork()
   } catch (error) {
@@ -81,7 +81,7 @@ const win = async (claim) => {
 
   const web3Provider = getWeb3Provider()
   try {
-    const claimResult = await claimLibrary.win(claim, web3Provider)
+    const claimResult = await claimLibrary.cashout(claim, web3Provider)
     emitEvent(eventType.winClaimSigned, { claim: claimResult })
     return claimResult
   } catch (error) {
@@ -153,9 +153,9 @@ const withdrawConsensually = async (claim) => {
 }
 
 export default {
-  pay,
-  payReceived,
-  win,
+  cashin,
+  claimControfirmed,
+  cashout,
   lastClaim,
   signWithdraw,
   withdrawConsensually,

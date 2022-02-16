@@ -12,11 +12,10 @@ const claim = {
   addresses: [userAddress, SERVER_ADDRESS],
   cumulativeDebits: [0, 0],
   signatures: new Array(2),
-  type: type
+  closed: 0 or 1
 } */
 
 const CSDK_SERVER_ADDRESS = process.env.CSDK_SERVER_ADDRESS
-const CSDK_TYPE_WITHDRAW = process.env.CSDK_TYPE_WITHDRAW
 
 /**
  *
@@ -25,7 +24,7 @@ const CSDK_TYPE_WITHDRAW = process.env.CSDK_TYPE_WITHDRAW
 const isValidNewClaim = (claim) => {
   const lastClaim = claimStorage.getConfirmedClaim()
   if (lastClaim) {
-    const wasWithdraw = lastClaim.type === CSDK_TYPE_WITHDRAW
+    const wasWithdraw = lastClaim.closed === 1
     const id = wasWithdraw ? lastClaim.id + 1 : lastClaim.id
     const nonce = wasWithdraw ? 1 : lastClaim.nonce + 1
     if (id !== claim.id) {
@@ -119,23 +118,20 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
   //   throw new Error(`Invalid claim amount: ${claim.amount} - saved claim amount: ${savedClaim.amount}`)
   // }
 
-  if (savedClaim.cumulativeDebits[0] !== claim.cumulativeDebits[0]) {
-    throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - saved claim: ${savedClaim.cumulativeDebits[0]}`)
-  }
-  if (savedClaim.cumulativeDebits[1] !== claim.cumulativeDebits[1]) {
-    throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - saved claim: ${savedClaim.cumulativeDebits[1]}`)
-  }
-
-  const type = isWithdraw ? process.env.CSDK_TYPE_WITHDRAW : savedClaim.type
-  if (claim.type !== type) {
-    throw new Error(`Invalid claim type: ${claim.type} - saved claim type: ${savedClaim.type}`)
-  }
   if (savedClaim.addresses[0] !== claim.addresses[0]) {
     throw new Error(`Invalid address of Client: ${claim.addresses[0]} - saved claim: ${savedClaim.addresses[0]}`)
   }
   if (savedClaim.addresses[1] !== claim.addresses[1]) {
     throw new Error(`Invalid address of Server: ${claim.addresses[1]} - saved claim: ${savedClaim.addresses[1]}`)
   }
+
+  if (savedClaim.cumulativeDebits[0] !== claim.cumulativeDebits[0]) {
+    throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - saved claim: ${savedClaim.cumulativeDebits[0]}`)
+  }
+  if (savedClaim.cumulativeDebits[1] !== claim.cumulativeDebits[1]) {
+    throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - saved claim: ${savedClaim.cumulativeDebits[1]}`)
+  }
+  
   if (!isWithdraw && savedClaim.timestamp !== claim.timestamp) {
     throw new Error(`Invalid timestamp of Server: ${claim.timestamp} - saved claim: ${savedClaim.timestamp}`)
   }
