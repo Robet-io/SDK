@@ -507,8 +507,7 @@ const isValidNewClaim = (claim) => {
     if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
       throw new Error(`Invalid address of Server: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`);
     }
-    const lastBalance = bnUtils.minus(lastClaim2.cumulativeDebits[1], lastClaim2.cumulativeDebits[0]);
-    const balance = bnUtils.plus(lastBalance, claim.amount);
+    const balance = wasWithdraw ? claim.amount : bnUtils.plus(bnUtils.minus(lastClaim2.cumulativeDebits[1], lastClaim2.cumulativeDebits[0]), claim.amount);
     _controlDebits(balance, claim.cumulativeDebits);
   } else {
     if (claim.id !== 1) {
@@ -560,17 +559,17 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
   if (savedClaim.nonce !== nonce) {
     throw new Error(`Invalid claim nonce: ${claim.nonce} - saved claim nonce: ${savedClaim.nonce}`);
   }
-  if (savedClaim.addresses[0] !== claim.addresses[0]) {
-    throw new Error(`Invalid address of Client: ${claim.addresses[0]} - saved claim: ${savedClaim.addresses[0]}`);
-  }
-  if (savedClaim.addresses[1] !== claim.addresses[1]) {
-    throw new Error(`Invalid address of Server: ${claim.addresses[1]} - saved claim: ${savedClaim.addresses[1]}`);
-  }
   if (savedClaim.cumulativeDebits[0] !== claim.cumulativeDebits[0]) {
     throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - saved claim: ${savedClaim.cumulativeDebits[0]}`);
   }
   if (savedClaim.cumulativeDebits[1] !== claim.cumulativeDebits[1]) {
     throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - saved claim: ${savedClaim.cumulativeDebits[1]}`);
+  }
+  if (savedClaim.addresses[0] !== claim.addresses[0]) {
+    throw new Error(`Invalid address of Client: ${claim.addresses[0]} - saved claim: ${savedClaim.addresses[0]}`);
+  }
+  if (savedClaim.addresses[1] !== claim.addresses[1]) {
+    throw new Error(`Invalid address of Server: ${claim.addresses[1]} - saved claim: ${savedClaim.addresses[1]}`);
   }
   if (!isWithdraw && savedClaim.timestamp !== claim.timestamp) {
     throw new Error(`Invalid timestamp of Server: ${claim.timestamp} - saved claim: ${savedClaim.timestamp}`);
