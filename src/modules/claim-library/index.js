@@ -6,6 +6,7 @@ import blockchain from '../blockchain'
 import { domain } from '../domain'
 import { signTypedData } from '../metamask'
 import bnUtils from '../bnUtils'
+import { ALICE, BOB } from '../const'
 
 /**
  *
@@ -58,13 +59,13 @@ const _buildTypedClaim = claim => {
     primaryType: 'Claim',
     message: {
       id: claim.id,
-      alice: claim.addresses[0],
-      bob: claim.addresses[1],
+      alice: claim.addresses[ALICE],
+      bob: claim.addresses[BOB],
       nonce: claim.nonce,
       timestamp: claim.timestamp,
       messageForAlice: claim.messageForAlice,
-      cumulativeDebitAlice: claim.cumulativeDebits[0],
-      cumulativeDebitBob: claim.cumulativeDebits[1],
+      cumulativeDebitAlice: claim.cumulativeDebits[ALICE],
+      cumulativeDebitBob: claim.cumulativeDebits[BOB],
       closed: claim.closed
     }
   }
@@ -167,8 +168,8 @@ const _checkBalance = async (claim, index, web3Provider) => {
  */
 const _signClaim = async (claim) => {
   const msg = _buildTypedClaim(claim)
-  const from = claim.addresses[0]
-  claim.signatures[0] = await signTypedData(msg, from)
+  const from = claim.addresses[ALICE]
+  claim.signatures[ALICE] = await signTypedData(msg, from)
 }
 
 /**
@@ -229,8 +230,8 @@ const lastClaim = (claim) => {
     try {
       const areEqual = claimControls.areEqualClaims(claim, confirmedClaim)
       if (areEqual === true &&
-        claim.signatures[0] === confirmedClaim.signatures[0] &&
-        claim.signatures[1] === confirmedClaim.signatures[1]
+        claim.signatures[ALICE] === confirmedClaim.signatures[ALICE] &&
+        claim.signatures[BOB] === confirmedClaim.signatures[BOB]
       ) {
         return true
       } else {

@@ -491,6 +491,8 @@ var bnUtils = {
   roundUpToTen,
   roundDecimals
 };
+const ALICE = 0;
+const BOB = 1;
 const CSDK_SERVER_ADDRESS = "0xeA085D9698651e76750F07d0dE0464476187b3ca";
 const isValidNewClaim = (claim) => {
   const lastClaim2 = claimStorage.getConfirmedClaim();
@@ -504,10 +506,10 @@ const isValidNewClaim = (claim) => {
     if (nonce !== claim.nonce) {
       throw new Error(`Invalid claim nonce: ${claim.nonce} ${wasWithdraw ? " - channel id is changed" : `- last claim nonce: ${lastClaim2.nonce}`}`);
     }
-    if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
-      throw new Error(`Invalid address of Server: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`);
+    if (claim.addresses[BOB] !== CSDK_SERVER_ADDRESS) {
+      throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - expected: ${CSDK_SERVER_ADDRESS}`);
     }
-    const balance = wasWithdraw ? claim.amount : bnUtils.plus(bnUtils.minus(lastClaim2.cumulativeDebits[1], lastClaim2.cumulativeDebits[0]), claim.amount);
+    const balance = wasWithdraw ? claim.amount : bnUtils.plus(bnUtils.minus(lastClaim2.cumulativeDebits[BOB], lastClaim2.cumulativeDebits[ALICE]), claim.amount);
     _controlDebits(balance, claim.cumulativeDebits);
   } else {
     if (claim.id !== 1) {
@@ -516,8 +518,8 @@ const isValidNewClaim = (claim) => {
     if (claim.nonce !== 1) {
       throw new Error(`Invalid claim nonce: ${claim.nonce}`);
     }
-    if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
-      throw new Error(`Invalid address of Server: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`);
+    if (claim.addresses[BOB] !== CSDK_SERVER_ADDRESS) {
+      throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - expected: ${CSDK_SERVER_ADDRESS}`);
     }
     const balance = claim.amount;
     _controlDebits(balance, claim.cumulativeDebits);
@@ -526,18 +528,18 @@ const isValidNewClaim = (claim) => {
 };
 const _controlDebits = (balance, cumulativeDebits) => {
   if (bnUtils.gt(balance, 0)) {
-    if (!bnUtils.eq(cumulativeDebits[0], 0)) {
-      throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[0]} - expected: 0`);
+    if (!bnUtils.eq(cumulativeDebits[ALICE], 0)) {
+      throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[ALICE]} - expected: 0`);
     }
-    if (!bnUtils.eq(cumulativeDebits[1], balance)) {
-      throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[1]} - expected: ${balance}`);
+    if (!bnUtils.eq(cumulativeDebits[BOB], balance)) {
+      throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[BOB]} - expected: ${balance}`);
     }
   } else {
-    if (!bnUtils.eq(cumulativeDebits[0], bnUtils.negated(balance))) {
-      throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[0]} - expected: ${-balance}`);
+    if (!bnUtils.eq(cumulativeDebits[ALICE], bnUtils.negated(balance))) {
+      throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[ALICE]} - expected: ${-balance}`);
     }
-    if (!bnUtils.eq(cumulativeDebits[1], 0)) {
-      throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[1]} - expected: 0`);
+    if (!bnUtils.eq(cumulativeDebits[BOB], 0)) {
+      throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[BOB]} - expected: 0`);
     }
   }
 };
@@ -559,17 +561,17 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
   if (savedClaim.nonce !== nonce) {
     throw new Error(`Invalid claim nonce: ${claim.nonce} - saved claim nonce: ${savedClaim.nonce}`);
   }
-  if (savedClaim.cumulativeDebits[0] !== claim.cumulativeDebits[0]) {
-    throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - saved claim: ${savedClaim.cumulativeDebits[0]}`);
+  if (savedClaim.cumulativeDebits[ALICE] !== claim.cumulativeDebits[ALICE]) {
+    throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[ALICE]} - saved claim: ${savedClaim.cumulativeDebits[ALICE]}`);
   }
-  if (savedClaim.cumulativeDebits[1] !== claim.cumulativeDebits[1]) {
-    throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - saved claim: ${savedClaim.cumulativeDebits[1]}`);
+  if (savedClaim.cumulativeDebits[BOB] !== claim.cumulativeDebits[BOB]) {
+    throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[BOB]} - saved claim: ${savedClaim.cumulativeDebits[BOB]}`);
   }
-  if (savedClaim.addresses[0] !== claim.addresses[0]) {
-    throw new Error(`Invalid address of Client: ${claim.addresses[0]} - saved claim: ${savedClaim.addresses[0]}`);
+  if (savedClaim.addresses[ALICE] !== claim.addresses[ALICE]) {
+    throw new Error(`Invalid address of Client: ${claim.addresses[ALICE]} - saved claim: ${savedClaim.addresses[ALICE]}`);
   }
-  if (savedClaim.addresses[1] !== claim.addresses[1]) {
-    throw new Error(`Invalid address of Server: ${claim.addresses[1]} - saved claim: ${savedClaim.addresses[1]}`);
+  if (savedClaim.addresses[BOB] !== claim.addresses[BOB]) {
+    throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - saved claim: ${savedClaim.addresses[BOB]}`);
   }
   if (!isWithdraw && savedClaim.timestamp !== claim.timestamp) {
     throw new Error(`Invalid timestamp of Server: ${claim.timestamp} - saved claim: ${savedClaim.timestamp}`);
@@ -1483,13 +1485,13 @@ const _buildTypedClaim = (claim) => {
     primaryType: "Claim",
     message: {
       id: claim.id,
-      alice: claim.addresses[0],
-      bob: claim.addresses[1],
+      alice: claim.addresses[ALICE],
+      bob: claim.addresses[BOB],
       nonce: claim.nonce,
       timestamp: claim.timestamp,
       messageForAlice: claim.messageForAlice,
-      cumulativeDebitAlice: claim.cumulativeDebits[0],
-      cumulativeDebitBob: claim.cumulativeDebits[1],
+      cumulativeDebitAlice: claim.cumulativeDebits[ALICE],
+      cumulativeDebitBob: claim.cumulativeDebits[BOB],
       closed: claim.closed
     }
   };
@@ -1554,8 +1556,8 @@ const _checkBalance = async (claim, index, web3Provider) => {
 };
 const _signClaim = async (claim) => {
   const msg = _buildTypedClaim(claim);
-  const from = claim.addresses[0];
-  claim.signatures[0] = await signTypedData(msg, from);
+  const from = claim.addresses[ALICE];
+  claim.signatures[ALICE] = await signTypedData(msg, from);
 };
 const claimControfirmed$1 = async (claim) => {
   const claimIsValid = claimControls.isValidClaimAlice(claim);
@@ -1596,7 +1598,7 @@ const lastClaim$1 = (claim) => {
   } else {
     try {
       const areEqual = claimControls.areEqualClaims(claim, confirmedClaim);
-      if (areEqual === true && claim.signatures[0] === confirmedClaim.signatures[0] && claim.signatures[1] === confirmedClaim.signatures[1]) {
+      if (areEqual === true && claim.signatures[ALICE] === confirmedClaim.signatures[ALICE] && claim.signatures[BOB] === confirmedClaim.signatures[BOB]) {
         return true;
       } else {
         return confirmedClaim;
@@ -1750,40 +1752,45 @@ const receiveMsg = async (msg) => {
         break;
       }
       case CSDK_TYPE_CASHIN: {
-        if (!claim.signatures[0] && !claim.signatures[1]) {
+        if (!claim.signatures[ALICE] && !claim.signatures[BOB]) {
           const signedClaim = await claims.cashin(claim);
           return {
             action,
             claim: signedClaim,
             context
           };
-        } else if (claim.signatures[0] && claim.signatures[1]) {
+        } else if (claim.signatures[ALICE] && claim.signatures[BOB]) {
           await claims.claimControfirmed(claim);
+        } else {
+          throw new Error("Invalid claim");
         }
         break;
       }
       case CSDK_TYPE_CASHOUT: {
-        if (!claim.signatures[0] && claim.signatures[1]) {
+        if (!claim.signatures[ALICE] && claim.signatures[BOB]) {
           const signedClaim = await claims.cashout(claim);
           return {
             action,
             claim: signedClaim,
             context
           };
+        } else {
+          throw new Error("Invalid claim");
         }
-        break;
       }
       case CSDK_TYPE_WITHDRAW: {
-        if (!claim.signatures[0] && !claim.signatures[1]) {
+        if (!claim.signatures[ALICE] && !claim.signatures[BOB]) {
           const signedClaim = await claims.signWithdraw(claim);
           return {
             action,
             claim: signedClaim,
             context
           };
-        } else if (claim.signatures[0] && claim.signatures[1]) {
+        } else if (claim.signatures[ALICE] && claim.signatures[BOB]) {
           await claims.claimControfirmed(claim);
           await claims.withdrawConsensually(claim);
+        } else {
+          throw new Error("Invalid claim");
         }
         break;
       }

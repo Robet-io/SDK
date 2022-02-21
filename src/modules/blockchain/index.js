@@ -15,11 +15,7 @@ const callMethod = async (contract, method, params) => {
 }
 
 const getVaultBalance = async (address, web3Provider) => {
-  // return { balance: 100 }
   const contract = initContract(web3Provider)
-  // TODO check if to use fromWei
-  // const web3 = new Web3()
-  // const balance = web3.utils.fromWei(await callMethod(contract, 'balanceOf', address))
   const balance = await callMethod(contract, 'balanceOf', address)
   return { balance }
 }
