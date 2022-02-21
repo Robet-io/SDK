@@ -34,7 +34,9 @@ const eventType = {
   claimSynced: 'claimSynced',
   claimNotSynced: 'claimNotSynced',
   token: 'jwtToken',
-  withdraw: 'withdraw'
+  withdraw: 'withdraw',
+  withdrawReceipt: 'withdrawReceipt',
+  withdrawHash: 'withdrawHash'
 }
 
 const cryptoEvent = 'cryptoSDK'

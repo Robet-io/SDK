@@ -32,7 +32,9 @@ const eventType = {
   claimSynced: "claimSynced",
   claimNotSynced: "claimNotSynced",
   token: "jwtToken",
-  withdraw: "withdraw"
+  withdraw: "withdraw",
+  withdrawReceipt: "withdrawReceipt",
+  withdrawHash: "withdrawHash"
 };
 const cryptoEvent = "cryptoSDK";
 const CSDK_CHAIN_ID$1 = "97";
@@ -171,9 +173,6 @@ const _initMetamask = () => {
     window.ethereum.on("chainChanged", async (chainId) => {
       console.log("#### - Metamask: chainChanged", chainId);
       await _handleChainChanged(chainId);
-    });
-    window.ethereum.on("message", async (message) => {
-      emitEvent(eventType.message, { message });
     });
     window.ethereum.on("error", async (error) => {
       console.log("#### - Metamask: error", error);
@@ -1430,8 +1429,10 @@ const withdrawConsensually$1 = async (claim, web3Provider) => {
     try {
       await contract.methods.withdrawAlice(claim).send(options).on("transactionHash", (txHash) => {
         console.log("txHash", txHash);
+        emitEvent(eventType.withdrawHash, txHash);
       }).on("receipt", (receipt) => {
         console.log("receipt", receipt);
+        emitEvent(eventType.withdrawReceipt, receipt);
       });
     } catch (error) {
       throw new Error(error);
