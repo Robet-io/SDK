@@ -45,9 +45,9 @@ const _initMetamask = () => {
       // getAddress()
     })
 
-    window.ethereum.on('message', async (message) => {
-      emitEvent(eventType.message, { message })
-    })
+    // window.ethereum.on('message', async (message) => {
+    //   emitEvent(eventType.message, { message })
+    // })
 
     window.ethereum.on('error', async (error) => {
       console.log('#### - Metamask: error', error)

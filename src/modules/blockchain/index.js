@@ -1,6 +1,10 @@
 /* eslint-disable import/no-anonymous-default-export */
 import Web3 from 'web3'
 import abi from './abi/vault.json'
+import {
+  emitEvent,
+  eventType
+} from '../events'
 
 const vaultAddress = process.env.CSDK_CONTRACT_VAULT_ADDRESS
 
@@ -15,11 +19,7 @@ const callMethod = async (contract, method, params) => {
 }
 
 const getVaultBalance = async (address, web3Provider) => {
-  // return { balance: 100 }
   const contract = initContract(web3Provider)
-  // TODO check if to use fromWei
-  // const web3 = new Web3()
-  // const balance = web3.utils.fromWei(await callMethod(contract, 'balanceOf', address))
   const balance = await callMethod(contract, 'balanceOf', address)
   return { balance }
 }
@@ -38,10 +38,12 @@ const withdrawConsensually = async (claim, web3Provider) => {
       await contract.methods.withdrawAlice(claim).send(options)
         .on('transactionHash', (txHash) => {
           console.log('txHash', txHash)
+          emitEvent(eventType.withdrawHash, txHash)
         })
         // .on('confirmation', function (confirmationNumber) { console.log('-------confirmationNumber', confirmationNumber) })
         .on('receipt', (receipt) => {
           console.log('receipt', receipt)
+          emitEvent(eventType.withdrawReceipt, receipt)
         })
     } catch (error) {
       throw new Error(error)

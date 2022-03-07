@@ -1,6 +1,8 @@
 /* eslint-disable import/no-anonymous-default-export */
 import claimStorage from './claimStorage'
 import bnUtils from '../bnUtils'
+import { ALICE, BOB } from '../const'
+import { formatNumber } from '../utils'
 
 /* claim structure
 const claim = {
@@ -33,8 +35,8 @@ const isValidNewClaim = (claim) => {
     if (nonce !== claim.nonce) {
       throw new Error(`Invalid claim nonce: ${claim.nonce} ${wasWithdraw ? ' - channel id is changed' : `- last claim nonce: ${lastClaim.nonce}`}`)
     }
-    if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
-      throw new Error(`Invalid address of Server: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`)
+    if (claim.addresses[BOB] !== CSDK_SERVER_ADDRESS) {
+      throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - expected: ${CSDK_SERVER_ADDRESS}`)
     }
 
     // control cumulative debits
@@ -45,7 +47,7 @@ const isValidNewClaim = (claim) => {
     // lastBalance = cumulativeDebitBob - cumulatieDebitAlice
     // balance = lastBalance + claim.amount
 
-    const balance = wasWithdraw ? claim.amount : bnUtils.plus(bnUtils.minus(lastClaim.cumulativeDebits[1], lastClaim.cumulativeDebits[0]), claim.amount)
+    const balance = wasWithdraw ? claim.amount : bnUtils.plus(bnUtils.minus(lastClaim.cumulativeDebits[BOB], lastClaim.cumulativeDebits[ALICE]), claim.amount)
 
     _controlDebits(balance, claim.cumulativeDebits)
   } else {
@@ -55,15 +57,31 @@ const isValidNewClaim = (claim) => {
     if (claim.nonce !== 1) {
       throw new Error(`Invalid claim nonce: ${claim.nonce}`)
     }
-    if (claim.addresses[1] !== CSDK_SERVER_ADDRESS) {
-      throw new Error(`Invalid address of Server: ${claim.addresses[1]} - expected: ${CSDK_SERVER_ADDRESS}`)
+    if (claim.addresses[BOB] !== CSDK_SERVER_ADDRESS) {
+      throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - expected: ${CSDK_SERVER_ADDRESS}`)
     }
 
     // control cumulative debits
     const balance = claim.amount
     _controlDebits(balance, claim.cumulativeDebits)
   }
+
+  _controlMesssage(claim)
+
   return true
+}
+
+/**
+ *
+ * @param {obj} claim
+ */
+const _controlMesssage = (claim) => {
+  if (claim.closed === 0) {
+    const messageForAlice = `You ${bnUtils.gt(claim.amount, '0') ? 'receive' : 'spend'}: ${formatNumber(bnUtils.abs(claim.amount))} DE.GA`
+    if (claim.messageForAlice !== messageForAlice) {
+      throw new Error(`Invalid message for Alice: ${claim.messageForAlice} - expected: ${messageForAlice}`)
+    }
+  }
 }
 
 /**
@@ -73,18 +91,18 @@ const isValidNewClaim = (claim) => {
  */
 const _controlDebits = (balance, cumulativeDebits) => {
   if (bnUtils.gt(balance, 0)) {
-    if (!bnUtils.eq(cumulativeDebits[0], 0)) {
-      throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[0]} - expected: 0`)
+    if (!bnUtils.eq(cumulativeDebits[ALICE], 0)) {
+      throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[ALICE]} - expected: 0`)
     }
-    if (!bnUtils.eq(cumulativeDebits[1], balance)) {
-      throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[1]} - expected: ${balance}`)
+    if (!bnUtils.eq(cumulativeDebits[BOB], balance)) {
+      throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[BOB]} - expected: ${balance}`)
     }
   } else {
-    if (!bnUtils.eq(cumulativeDebits[0], bnUtils.negated(balance))) {
-      throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[0]} - expected: ${-balance}`)
+    if (!bnUtils.eq(cumulativeDebits[ALICE], bnUtils.negated(balance))) {
+      throw new Error(`Invalid claim cumulative debit of Client: ${cumulativeDebits[ALICE]} - expected: ${-balance}`)
     }
-    if (!bnUtils.eq(cumulativeDebits[1], 0)) {
-      throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[1]} - expected: 0`)
+    if (!bnUtils.eq(cumulativeDebits[BOB], 0)) {
+      throw new Error(`Invalid claim cumulative debit of Server: ${cumulativeDebits[BOB]} - expected: 0`)
     }
   }
 }
@@ -124,21 +142,25 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
   //   throw new Error(`Invalid claim amount: ${claim.amount} - saved claim amount: ${savedClaim.amount}`)
   // }
 
-  if (savedClaim.cumulativeDebits[0] !== claim.cumulativeDebits[0]) {
-    throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[0]} - saved claim: ${savedClaim.cumulativeDebits[0]}`)
+  if (savedClaim.cumulativeDebits[ALICE] !== claim.cumulativeDebits[ALICE]) {
+    throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[ALICE]} - saved claim: ${savedClaim.cumulativeDebits[ALICE]}`)
   }
-  if (savedClaim.cumulativeDebits[1] !== claim.cumulativeDebits[1]) {
-    throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[1]} - saved claim: ${savedClaim.cumulativeDebits[1]}`)
+  if (savedClaim.cumulativeDebits[BOB] !== claim.cumulativeDebits[BOB]) {
+    throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[BOB]} - saved claim: ${savedClaim.cumulativeDebits[BOB]}`)
   }
 
-  if (savedClaim.addresses[0] !== claim.addresses[0]) {
-    throw new Error(`Invalid address of Client: ${claim.addresses[0]} - saved claim: ${savedClaim.addresses[0]}`)
+  if (savedClaim.addresses[ALICE] !== claim.addresses[ALICE]) {
+    throw new Error(`Invalid address of Client: ${claim.addresses[ALICE]} - saved claim: ${savedClaim.addresses[ALICE]}`)
   }
-  if (savedClaim.addresses[1] !== claim.addresses[1]) {
-    throw new Error(`Invalid address of Server: ${claim.addresses[1]} - saved claim: ${savedClaim.addresses[1]}`)
+  if (savedClaim.addresses[BOB] !== claim.addresses[BOB]) {
+    throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - saved claim: ${savedClaim.addresses[BOB]}`)
   }
   if (!isWithdraw && savedClaim.timestamp !== claim.timestamp) {
     throw new Error(`Invalid timestamp of Server: ${claim.timestamp} - saved claim: ${savedClaim.timestamp}`)
+  }
+
+  if (!isWithdraw && savedClaim.messageForAlice !== claim.messageForAlice) {
+    throw new Error(`Invalid message for Alice: ${claim.messageForAlice} - expected: ${savedClaim.messageForAlice}`)
   }
   return true
 }
@@ -146,13 +168,30 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
 /**
  *
  * @param {obj} claim claim Alice, countersigned by Bob
+ * @param {int} balance
  */
-const isValidWithdraw = (claim) => {
+const isValidWithdraw = (claim, balance) => {
+  _controlWithdrawMessage(claim, balance)
+
   const savedClaim = claimStorage.getConfirmedClaim()
   if (savedClaim) {
     return areEqualClaims(claim, savedClaim, true)
   }
   return false
+}
+
+/**
+ *
+ * @param {obj} claim
+ * @param {int} balance
+ */
+const _controlWithdrawMessage = (claim, balance) => {
+  const balanceToWithdraw = bnUtils.plus(balance, bnUtils.minus(claim.cumulativeDebits[BOB], claim.cumulativeDebits[ALICE]))
+  const messageForAlice = `You are withdrawing: ${formatNumber(balanceToWithdraw)} DE.GA`
+
+  if (claim.messageForAlice !== messageForAlice) {
+    throw new Error(`Invalid message for Alice: ${claim.messageForAlice} - expected: ${messageForAlice}`)
+  }
 }
 
 export default {
