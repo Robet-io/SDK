@@ -59,7 +59,7 @@ describe('cryptoSDK library', () => {
     addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
     amount: -5,
     cumulativeDebits: ['5', '0'],
-    messageForAlice: 'You pay: 5 DE.GA',
+    messageForAlice: 'You spend: 0.000000000000000005 DE.GA',
     timestamp: 1639145450856,
     nonce: 1,
     signatures: [],
@@ -78,7 +78,7 @@ describe('cryptoSDK library', () => {
     addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
     amount: 10,
     cumulativeDebits: ['0', '5'],
-    messageForAlice: 'You receive: 10 DE.GA',
+    messageForAlice: 'You receive: 0.00000000000000001 DE.GA',
     timestamp: 1639145450856,
     nonce: 2,
     signatures: [],
@@ -286,6 +286,18 @@ describe('cryptoSDK library', () => {
             expect(events[0].error).toBe(true)
             expect(await claimStorage.getClaimAlice()).toBe(null)
           })
+
+          test("pay() when msg is wrong: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay,
+              messageForAlice: 'You spend: 0.000000000000000015 DE.GA'
+            }
+            const errorMsg = 'Invalid message for Alice'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
+          })
         })
 
         describe('2. pay(), exists a claim saved in localStorage', () => {
@@ -294,7 +306,7 @@ describe('cryptoSDK library', () => {
             addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
             amount: -6,
             cumulativeDebits: [11, 0],
-            messageForAlice: 'You pay: 6 DE.GA',
+            messageForAlice: 'You spend: 0.000000000000000006 DE.GA',
             timestamp: 1639145450856,
             nonce: 2,
             signatures: [aliceSignature, ''],
@@ -307,7 +319,7 @@ describe('cryptoSDK library', () => {
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
               amount: -5,
               cumulativeDebits: [5, 0],
-              messageForAlice: 'You pay: 5 DE.GA',
+              messageForAlice: 'You spend: 0.000000000000000005 DE.GA',
               timestamp: 1639145450856,
               nonce: 1,
               signatures: [aliceSignature, ''],
@@ -393,6 +405,18 @@ describe('cryptoSDK library', () => {
             expect(events[0].error).toBe(true)
             expect(await claimStorage.getClaimAlice()).toBe(null)
           })
+
+          test("pay() when msg is wrong: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPay2,
+              messageForAlice: 'You spend: 0.000000000000000015 DE.GA'
+            }
+            const errorMsg = 'Invalid message for Alice'
+            await expect(cryptoSDK.pay(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getClaimAlice()).toBe(null)
+          })
         })
       })
 
@@ -470,6 +494,18 @@ describe('cryptoSDK library', () => {
               signatures: [aliceSignature, bobSignature + '123']
             }
             const errorMsg = "Server's signature is not verified"
+            await expect(cryptoSDK.payReceived(claimToPayNotValid)).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotConfirmed)
+            expect(events[0].error).toBe(true)
+            expect(await claimStorage.getConfirmedClaim()).toBe(null)
+          })
+
+          test("payReceived() when msg is wrong: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const claimToPayNotValid = {
+              ...claimToPayRecieved,
+              messageForAlice: 'You spend: 0.000000000000000015 DE.GA'
+            }
+            const errorMsg = 'Invalid message for Alice'
             await expect(cryptoSDK.payReceived(claimToPayNotValid)).rejects.toThrowError(errorMsg)
             expect(events[0].type).toEqual(eventType.claimNotConfirmed)
             expect(events[0].error).toBe(true)
@@ -679,7 +715,7 @@ describe('cryptoSDK library', () => {
           addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
           amount: 10,
           cumulativeDebits: [0, 10],
-          messageForAlice: 'You receive: 10 DE.GA',
+          messageForAlice: 'You receive: 0.00000000000000001 DE.GA',
           timestamp: 1639145450856,
           nonce: 1,
           signatures: [],
@@ -762,6 +798,18 @@ describe('cryptoSDK library', () => {
             signatures: ['', bobSignature]
           }
           const errorMsg = "Server's signature is not verified"
+          await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
+          expect(events[0].type).toEqual(eventType.winNotConfirmed)
+          expect(events[0].error).toBe(true)
+          expect(await claimStorage.getClaimAlice()).toBe(null)
+        })
+
+        test("win(), msg is wrong: throws error AND emits error event AND doesn't save to localStorage", async () => {
+          const claimWinNotValid = {
+            ...claimWinFirst,
+            messageForAlice: 'You receive: 0.0000000000000011 DE.GA'
+          }
+          const errorMsg = 'Invalid message for Alice'
           await expect(cryptoSDK.win(claimWinNotValid)).rejects.toThrowError(errorMsg)
           expect(events[0].type).toEqual(eventType.winNotConfirmed)
           expect(events[0].error).toBe(true)
@@ -875,7 +923,7 @@ describe('cryptoSDK library', () => {
             id: 1,
             nonce: 3,
             timestamp: 1643386044505,
-            messageForAlice: 'You are withdrawing: 100000000000000000000 DE.GA',
+            messageForAlice: 'You are withdrawing: 0.00000000000000003 DE.GA',
             amount: 0,
             addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
             cumulativeDebits: ['0', '10'],
@@ -888,7 +936,7 @@ describe('cryptoSDK library', () => {
               id: 1,
               nonce: 2,
               timestamp: 1643386044504,
-              messageForAlice: 'You receive: 10 DE.GA',
+              messageForAlice: 'You receive: 0.00000000000000001 DE.GA',
               amount: 10,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
               cumulativeDebits: ['0', '10'],
@@ -917,7 +965,7 @@ describe('cryptoSDK library', () => {
               id: 1,
               nonce: 1,
               timestamp: 1643386044504,
-              messageForAlice: 'You receive: 10 DE.GA',
+              messageForAlice: 'You receive: 0.00000000000000001 DE.GA',
               amount: 10,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
               cumulativeDebits: ['0', '10'],
@@ -948,7 +996,7 @@ describe('cryptoSDK library', () => {
               id: 2,
               nonce: 2,
               timestamp: 1643386044504,
-              messageForAlice: 'You receive: 10 DE.GA',
+              messageForAlice: 'You receive: 0.00000000000000001 DE.GA',
               amount: 10,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
               cumulativeDebits: ['0', '10'],
@@ -979,7 +1027,7 @@ describe('cryptoSDK library', () => {
               id: 1,
               nonce: 2,
               timestamp: 1643386044504,
-              messageForAlice: 'You receive: 10 DE.GA',
+              messageForAlice: 'You receive: 0.00000000000000001 DE.GA',
               amount: 10,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
               cumulativeDebits: ['0', '15'],
@@ -1010,7 +1058,7 @@ describe('cryptoSDK library', () => {
               id: 1,
               nonce: 2,
               timestamp: 1643386044504,
-              messageForAlice: 'You receive: 10 DE.GA',
+              messageForAlice: 'You receive: 0.00000000000000001 DE.GA',
               amount: 10,
               addresses: [ALICE_ADDRESS, ALICE_ADDRESS_WRONG],
               cumulativeDebits: ['0', '10'],
@@ -1035,6 +1083,37 @@ describe('cryptoSDK library', () => {
             expect(events[0].error).toBe(true)
             expect((await claimStorage.getClaimAlice())).toBe(null)
           })
+
+          test("withdraw msg is wrong: throws error AND emits error event AND doesn't save to localStorage", async () => {
+            const lastClaim = {
+              id: 1,
+              nonce: 2,
+              timestamp: 1643386044504,
+              messageForAlice: 'You receive: 0.00000000000000001 DE.GA',
+              amount: 10,
+              addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
+              cumulativeDebits: ['0', '10'],
+              signatures: [null, null],
+              closed: 0
+            }
+            lastClaim.signatures = [
+              signClaim(lastClaim, ALICE_PRIVATE_KEY),
+              signClaim(lastClaim, SERVER_PRIVATE_KEY)
+            ]
+
+            claimStorage.saveConfirmedClaim(lastClaim)
+
+            withdrawClaim.messageForAlice = 'You are withdrawing: 0.00000000000000103 DE.GA'
+            const messageServer = {
+              action: process.env.CSDK_TYPE_WITHDRAW,
+              claim: withdrawClaim
+            }
+            const errorMsg = 'Invalid message for Alice'
+            await expect(cryptoSDK.receiveMsg(JSON.stringify(messageServer))).rejects.toThrowError(errorMsg)
+            expect(events[0].type).toEqual(eventType.claimNotSigned)
+            expect(events[0].error).toBe(true)
+            expect((await claimStorage.getClaimAlice())).toBe(null)
+          })
         })
 
         describe('Countersigned withdraw claim', () => {
@@ -1043,7 +1122,7 @@ describe('cryptoSDK library', () => {
               id: 1,
               nonce: 2,
               timestamp: 1643386044504,
-              messageForAlice: 'You receive: 10 DE.GA',
+              messageForAlice: 'You receive: 0.00000000000000001 DE.GA',
               amount: 10,
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
               cumulativeDebits: ['0', '10'],
@@ -1128,7 +1207,7 @@ describe('cryptoSDK library', () => {
             expect((await claimStorage.getConfirmedClaim()).nonce).toBe(2)
           })
 
-          test("Alice's sgined withdraw claim is different from server's: throws error and doesn't save to localStorage and doesn't sent tx", async () => {
+          test("Alice's signed withdraw claim is different from server's: throws error and doesn't save to localStorage and doesn't sent tx", async () => {
             const withdrawClaimAlice = {
               id: 1,
               nonce: 3,
@@ -1171,6 +1250,55 @@ describe('cryptoSDK library', () => {
             }
 
             const errorMsg = 'Invalid claim cumulative debit'
+            await expect(cryptoSDK.receiveMsg(JSON.stringify(messageServer))).rejects.toThrowError(errorMsg)
+            expect(events[events.length - 1].type).toEqual(eventType.claimNotConfirmed)
+            expect(events[events.length - 1].error).toBe(true)
+            expect((await claimStorage.getConfirmedClaim()).nonce).toBe(2)
+          })
+
+          test("Alice's signed withdraw claim is different from server's, invalid msg: throws error and doesn't save to localStorage and doesn't sent tx", async () => {
+            const withdrawClaimAlice = {
+              id: 1,
+              nonce: 3,
+              timestamp: 1643386044505,
+              messageForAlice: 'You are withdrawing: 100000000000000000000 DE.GA',
+              amount: 0,
+              addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
+              cumulativeDebits: ['0', '10'],
+              signatures: [null, null],
+              closed: 1
+            }
+
+            withdrawClaimAlice.signatures = [
+              signClaim(withdrawClaimAlice, ALICE_PRIVATE_KEY),
+              null
+            ]
+
+            claimStorage.saveClaimAlice(withdrawClaimAlice)
+
+            const withdrawClaimServer = {
+              id: 1,
+              nonce: 3,
+              timestamp: 1643386044505,
+              messageForAlice: 'You are withdrawing: 100000000000000000010 DE.GA',
+              amount: 0,
+              addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
+              cumulativeDebits: ['0', '10'],
+              signatures: [null, null],
+              closed: 1
+            }
+
+            withdrawClaimServer.signatures = [
+              withdrawClaimAlice.signatures[0],
+              signClaim(withdrawClaimServer, SERVER_PRIVATE_KEY)
+            ]
+
+            const messageServer = {
+              action: process.env.CSDK_TYPE_WITHDRAW,
+              claim: withdrawClaimServer
+            }
+
+            const errorMsg = 'Invalid message for Alice'
             await expect(cryptoSDK.receiveMsg(JSON.stringify(messageServer))).rejects.toThrowError(errorMsg)
             expect(events[events.length - 1].type).toEqual(eventType.claimNotConfirmed)
             expect(events[events.length - 1].error).toBe(true)
@@ -1358,7 +1486,7 @@ describe('cryptoSDK library', () => {
             addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
             amount: -6,
             cumulativeDebits: [11, 0],
-            messageForAlice: 'You pay: 6 DE.GA',
+            messageForAlice: 'You spend: 0.000000000000000006 DE.GA',
             timestamp: 1639145450856,
             nonce: 2,
             signatures: [aliceSignature, ''],
@@ -1371,7 +1499,7 @@ describe('cryptoSDK library', () => {
               addresses: [ALICE_ADDRESS, SERVER_ADDRESS],
               amount: -5,
               cumulativeDebits: [5, 0],
-              messageForAlice: 'You pay: 5 DE.GA',
+              messageForAlice: 'You spend: 0.000000000000000005 DE.GA',
               timestamp: 1639145450856,
               nonce: 1,
               signatures: [aliceSignature, ''],

@@ -2,6 +2,7 @@
 import claimStorage from './claimStorage'
 import bnUtils from '../bnUtils'
 import { ALICE, BOB } from '../const'
+import { formatNumber } from '../utils'
 
 /* claim structure
 const claim = {
@@ -64,7 +65,23 @@ const isValidNewClaim = (claim) => {
     const balance = claim.amount
     _controlDebits(balance, claim.cumulativeDebits)
   }
+
+  _controlMesssage(claim)
+
   return true
+}
+
+/**
+ *
+ * @param {obj} claim
+ */
+const _controlMesssage = (claim) => {
+  if (claim.closed === 0) {
+    const messageForAlice = `You ${bnUtils.gt(claim.amount, '0') ? 'receive' : 'spend'}: ${formatNumber(bnUtils.abs(claim.amount))} DE.GA`
+    if (claim.messageForAlice !== messageForAlice) {
+      throw new Error(`Invalid message for Alice: ${claim.messageForAlice} - expected: ${messageForAlice}`)
+    }
+  }
 }
 
 /**
@@ -141,19 +158,40 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
   if (!isWithdraw && savedClaim.timestamp !== claim.timestamp) {
     throw new Error(`Invalid timestamp of Server: ${claim.timestamp} - saved claim: ${savedClaim.timestamp}`)
   }
+
+  if (!isWithdraw && savedClaim.messageForAlice !== claim.messageForAlice) {
+    throw new Error(`Invalid message for Alice: ${claim.messageForAlice} - expected: ${savedClaim.messageForAlice}`)
+  }
   return true
 }
 
 /**
  *
  * @param {obj} claim claim Alice, countersigned by Bob
+ * @param {int} balance
  */
-const isValidWithdraw = (claim) => {
+const isValidWithdraw = (claim, balance) => {
+  _controlWithdrawMessage(claim, balance)
+
   const savedClaim = claimStorage.getConfirmedClaim()
   if (savedClaim) {
     return areEqualClaims(claim, savedClaim, true)
   }
   return false
+}
+
+/**
+ *
+ * @param {obj} claim
+ * @param {int} balance
+ */
+const _controlWithdrawMessage = (claim, balance) => {
+  const balanceToWithdraw = bnUtils.plus(balance, bnUtils.minus(claim.cumulativeDebits[BOB], claim.cumulativeDebits[ALICE]))
+  const messageForAlice = `You are withdrawing: ${formatNumber(balanceToWithdraw)} DE.GA`
+
+  if (claim.messageForAlice !== messageForAlice) {
+    throw new Error(`Invalid message for Alice: ${claim.messageForAlice} - expected: ${messageForAlice}`)
+  }
 }
 
 export default {

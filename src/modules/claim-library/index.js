@@ -194,11 +194,22 @@ const claimControfirmed = async (claim) => {
 const signWithdraw = async (claim, web3Provider) => {
   // check if the claim wasn't already signed
   const claimWasntSigned = _isAliceClaimNotSigned(claim)
-  const claimIsValid = claimControls.isValidWithdraw(claim)
+
+  let balance
+  try {
+    const vaultBalance = await blockchain.getVaultBalance(claim.addresses[ALICE], web3Provider)
+    balance = vaultBalance.balance
+  } catch (error) {
+    throw new Error("Can't get balance from Vault")
+  }
+
+  const claimIsValid = claimControls.isValidWithdraw(claim, balance)
   if (claimIsValid && claimWasntSigned) {
     await _signClaim(claim)
     claimStorage.saveClaimAlice(claim)
     return claim
+  } else {
+    throw new Error('Withdraw claim is not valid')
   }
 }
 

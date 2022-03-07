@@ -123,6 +123,11 @@ const negated = (a) => {
   return aBN.negated().toFixed()
 }
 
+const abs = (a) => {
+  const aBN = new BigNumber(a + '')
+  return aBN.abs().toFixed()
+}
+
 // module.exports = {
 export default {
   minus,
@@ -142,5 +147,6 @@ export default {
   divFloor,
   toFixed,
   roundUpToTen,
-  roundDecimals
+  roundDecimals,
+  abs
 }

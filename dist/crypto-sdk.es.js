@@ -470,6 +470,10 @@ const negated = (a) => {
   const aBN = new BigNumber(a + "");
   return aBN.negated().toFixed();
 };
+const abs = (a) => {
+  const aBN = new BigNumber(a + "");
+  return aBN.abs().toFixed();
+};
 var bnUtils = {
   minus,
   plus,
@@ -488,10 +492,29 @@ var bnUtils = {
   divFloor,
   toFixed,
   roundUpToTen,
-  roundDecimals
+  roundDecimals,
+  abs
 };
 const ALICE = 0;
 const BOB = 1;
+const formatNumber = (number, reduceDecimalTo = 18) => {
+  if (!number)
+    return;
+  const web3 = new Web3();
+  const x = web3.utils.fromWei(number);
+  const a = x.split(".");
+  const integer = a[0].toString().replace(/\b0+(?!$)/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  if (a[1]) {
+    if (reduceDecimalTo) {
+      const decimals = a[1].substring(0, reduceDecimalTo).replace(/0+$/, "");
+      return integer + `${decimals ? "." + decimals : ""}`;
+    } else {
+      return integer + "." + a[1];
+    }
+  } else {
+    return integer;
+  }
+};
 const CSDK_SERVER_ADDRESS = "0xeA085D9698651e76750F07d0dE0464476187b3ca";
 const isValidNewClaim = (claim) => {
   const lastClaim2 = claimStorage.getConfirmedClaim();
@@ -523,7 +546,16 @@ const isValidNewClaim = (claim) => {
     const balance = claim.amount;
     _controlDebits(balance, claim.cumulativeDebits);
   }
+  _controlMesssage(claim);
   return true;
+};
+const _controlMesssage = (claim) => {
+  if (claim.closed === 0) {
+    const messageForAlice = `You ${bnUtils.gt(claim.amount, "0") ? "receive" : "spend"}: ${formatNumber(bnUtils.abs(claim.amount))} DE.GA`;
+    if (claim.messageForAlice !== messageForAlice) {
+      throw new Error(`Invalid message for Alice: ${claim.messageForAlice} - expected: ${messageForAlice}`);
+    }
+  }
 };
 const _controlDebits = (balance, cumulativeDebits) => {
   if (bnUtils.gt(balance, 0)) {
@@ -575,14 +607,25 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
   if (!isWithdraw && savedClaim.timestamp !== claim.timestamp) {
     throw new Error(`Invalid timestamp of Server: ${claim.timestamp} - saved claim: ${savedClaim.timestamp}`);
   }
+  if (!isWithdraw && savedClaim.messageForAlice !== claim.messageForAlice) {
+    throw new Error(`Invalid message for Alice: ${claim.messageForAlice} - expected: ${savedClaim.messageForAlice}`);
+  }
   return true;
 };
-const isValidWithdraw = (claim) => {
+const isValidWithdraw = (claim, balance) => {
+  _controlWithdrawMessage(claim, balance);
   const savedClaim = claimStorage.getConfirmedClaim();
   if (savedClaim) {
     return areEqualClaims(claim, savedClaim, true);
   }
   return false;
+};
+const _controlWithdrawMessage = (claim, balance) => {
+  const balanceToWithdraw = bnUtils.plus(balance, bnUtils.minus(claim.cumulativeDebits[BOB], claim.cumulativeDebits[ALICE]));
+  const messageForAlice = `You are withdrawing: ${formatNumber(balanceToWithdraw)} DE.GA`;
+  if (claim.messageForAlice !== messageForAlice) {
+    throw new Error(`Invalid message for Alice: ${claim.messageForAlice} - expected: ${messageForAlice}`);
+  }
 };
 var claimControls = {
   isValidNewClaim,
@@ -1572,11 +1615,20 @@ const claimControfirmed$1 = async (claim) => {
 };
 const signWithdraw$1 = async (claim, web3Provider) => {
   const claimWasntSigned = _isAliceClaimNotSigned(claim);
-  const claimIsValid = claimControls.isValidWithdraw(claim);
+  let balance;
+  try {
+    const vaultBalance = await blockchain.getVaultBalance(claim.addresses[ALICE], web3Provider);
+    balance = vaultBalance.balance;
+  } catch (error) {
+    throw new Error("Can't get balance from Vault");
+  }
+  const claimIsValid = claimControls.isValidWithdraw(claim, balance);
   if (claimIsValid && claimWasntSigned) {
     await _signClaim(claim);
     claimStorage.saveClaimAlice(claim);
     return claim;
+  } else {
+    throw new Error("Withdraw claim is not valid");
   }
 };
 const lastClaim$1 = (claim) => {
