@@ -72,6 +72,9 @@ const _initMetamask = () => {
   }
 }
 
+/**
+ * @return {string}
+ */
 const _getAccount = async () => {
   if (window.ethereum) {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
@@ -92,6 +95,9 @@ const _getAccount = async () => {
   }
 }
 
+/**
+ * @return {boolean}
+ */
 const isMetamaskInstalled = () => {
   if (window.ethereum || window.web3) {
     return true
@@ -100,6 +106,9 @@ const isMetamaskInstalled = () => {
   }
 }
 
+/**
+ * @return {{ address: string}}
+ */
 const getAddress = async () => {
   if (!isMetamaskInstalled()) {
     const errorMessage = 'Metamask is not installed, unable to get user address'
@@ -139,6 +148,10 @@ const getAddress = async () => {
 //   return response
 // }
 
+/**
+ * @param {object} msg
+ * @param {string} from
+ */
 const signTypedData = async (msg, from) => {
   await checkRightNetwork()
   const web3Provider = getWeb3Provider()

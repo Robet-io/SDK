@@ -11,8 +11,8 @@ import { signTypedData } from './metamask'
 
 /**
  *
- * @param message
- * @param domain
+ * @param {string} challenge
+ * @returns {object}
  */
 const _buildTypedSignin = (challenge) => {
   const message = {
@@ -38,6 +38,12 @@ const _buildTypedSignin = (challenge) => {
   }
 }
 
+/**
+ *
+ * @param {string} challenge
+ * @param {string} address
+ * @return {string}
+ */
 const signChallenge = async (challenge, address) => {
   const msg = _buildTypedSignin(challenge)
   try {
@@ -54,6 +60,10 @@ const authToken = 'authToken'
 const expireToken = 'expireToken'
 const expirationPeriod = 1200000 // 20min * 60 * 1000
 
+/**
+ *
+ * @param {string} token
+ */
 const setToken = (token) => {
   try {
     localStorage.setItem(authToken, token)
@@ -64,10 +74,18 @@ const setToken = (token) => {
   }
 }
 
+/**
+ *
+ * @returns {string}
+ */
 const getToken = () => {
   return localStorage.getItem(authToken)
 }
 
+/**
+ *
+ * @returns {boolean}
+ */
 const isLogged = () => {
   const token = getToken()
   if (token) {

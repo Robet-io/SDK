@@ -5,6 +5,7 @@
   "module": "dist/crypto-sdk.es.js",
   "browser": "dist/crypto-sdk.umd.js",
   "scripts": {
+    "build-ts": "tsc --project .",
     "build": "vite build",
     "build-mainnet": "vite build --mode mainnet",
     "test": "jest"
@@ -21,6 +22,7 @@
   "dependencies": {
     "@metamask/eth-sig-util": "^4.0.0",
     "bignumber.js": "^9.0.2",
+    "typescript": "^4.6.3",
     "web3": "^1.6.1"
   }
 }

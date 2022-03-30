@@ -10,8 +10,9 @@ import { ALICE, BOB } from '../const'
 
 /**
  *
- * @param {obj} claim
- * @param {obj} web3Provider
+ * @param {object} claim
+ * @param {object} web3Provider
+ * @return {object}
  */
 const cashout = async (claim, web3Provider) => {
   const claimIsValid = claimControls.isValidNewClaim(claim)
@@ -32,7 +33,8 @@ const cashout = async (claim, web3Provider) => {
 
 /**
  *
- * @param {obj} claim
+ * @param {object} claim
+ * @return {object}
  */
 const _buildTypedClaim = claim => {
   return {
@@ -73,8 +75,9 @@ const _buildTypedClaim = claim => {
 
 /**
  *
- * @param {obj} claim
+ * @param {object} claim
  * @param {boolean} [ofAlice]
+ * @return {boolean}
  */
 const _verifySignature = (claim, ofAlice = false) => {
   let signer = 1
@@ -97,8 +100,9 @@ const _verifySignature = (claim, ofAlice = false) => {
 
 /**
  *
- * @param {obj} claim New claim for sign
- * @param {obj} web3Provider
+ * @param {object} claim New claim for sign
+ * @param {object} web3Provider
+ * @return {object}
  */
 const cashin = async (claim, web3Provider) => {
   // check if the claim wasn't already signed
@@ -118,7 +122,8 @@ const cashin = async (claim, web3Provider) => {
 
 /**
  *
- * @param {obj} claim
+ * @param {object} claim
+ * @return {boolean}
  */
 const _isAliceClaimNotSigned = (claim) => {
   const lastAliceClaim = claimStorage.getClaimAlice()
@@ -131,8 +136,9 @@ const _isAliceClaimNotSigned = (claim) => {
 
 /**
  *
- * @param {obj} claim
- * @param {obj} web3Provider
+ * @param {object} claim
+ * @param {object} web3Provider
+ * @return {boolean}
  */
 const _isBalanceEnough = async (claim, web3Provider) => {
   const index = claim.amount < 0 ? 0 : 1
@@ -144,9 +150,10 @@ const _isBalanceEnough = async (claim, web3Provider) => {
 
 /**
  *
- * @param {obj} claim New claim for sign
+ * @param {object} claim New claim for sign
  * @param {int} index 0 = Client, 1 = Server
- * @param {obj} web3Provider
+ * @param {object} web3Provider
+ * @return {boolean}
  */
 const _checkBalance = async (claim, index, web3Provider) => {
   try {
@@ -163,8 +170,8 @@ const _checkBalance = async (claim, index, web3Provider) => {
 
 /**
  *
- * @param {obj} claim
- * @param {obj} web3Provider
+ * @param {object} claim
+ * @param {object} web3Provider
  */
 const _signClaim = async (claim) => {
   const msg = _buildTypedClaim(claim)
@@ -174,7 +181,7 @@ const _signClaim = async (claim) => {
 
 /**
  *
- * @param {obj} claim
+ * @param {object} claim
  */
 const claimControfirmed = async (claim) => {
   const claimIsValid = claimControls.isValidClaimAlice(claim)
@@ -189,7 +196,8 @@ const claimControfirmed = async (claim) => {
 
 /**
  *
- * @param {obj} claim New claim for sign
+ * @param {object} claim New claim for sign
+ * @return {object}
  */
 const signWithdraw = async (claim, web3Provider) => {
   // check if the claim wasn't already signed
@@ -215,7 +223,8 @@ const signWithdraw = async (claim, web3Provider) => {
 
 /**
  *
- * @param {obj} claim
+ * @param {object} claim
+ * @return {object|boolean}
  */
 const lastClaim = (claim) => {
   const confirmedClaim = claimStorage.getConfirmedClaim()

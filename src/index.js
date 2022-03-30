@@ -11,6 +11,10 @@ const CSDK_TYPE_CASHOUT = process.env.CSDK_TYPE_CASHOUT
 const CSDK_TYPE_WITHDRAW = process.env.CSDK_TYPE_WITHDRAW
 const CSDK_TYPE_HANDSHAKE = process.env.CSDK_TYPE_HANDSHAKE
 
+/**
+ * @param {string} msg
+ * @return {object}
+ */
 const receiveMsg = async (msg) => {
   if (msg) {
     const { action, claim, context, error } = JSON.parse(msg)
