@@ -5,6 +5,7 @@ import Web3 from 'web3'
  * "0x10" => "0.000000000000000016"
  * @param {string} number inWei, !not a BigNumber object
  * @param {integer} [reduceDecimalTo]
+ * @return {string}
  */
 const formatNumber = (number, reduceDecimalTo = 18) => {
   if (!number) return

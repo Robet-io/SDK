@@ -13,8 +13,8 @@ import claimLibrary from './claim-library'
 import blockchain from './blockchain'
 
 /**
- *
- * @param {obj} claim
+ * @param {object} claim
+ * @return {object}
  */
 const cashin = async (claim) => {
   try {
@@ -36,6 +36,10 @@ const cashin = async (claim) => {
 }
 
 // TODO delete
+/**
+ * @param {string} address
+ * @return {string}
+ */
 const getVaultBalance = async (address) => {
   const web3Provider = getWeb3Provider()
   try {
@@ -48,7 +52,7 @@ const getVaultBalance = async (address) => {
 
 /**
  *
- * @param {obj} claim
+ * @param {object} claim
  */
 const claimControfirmed = async (claim) => {
   try {
@@ -68,8 +72,8 @@ const claimControfirmed = async (claim) => {
 }
 
 /**
- *
- * @param {obj} claim
+ * @param {object} claim
+ * @return {object}
  */
 const cashout = async (claim) => {
   try {
@@ -92,7 +96,8 @@ const cashout = async (claim) => {
 
 /**
  *
- * @param {obj} claim
+ * @param {object} claim
+ * @return {object|boolean}
  */
 const lastClaim = (claim) => {
   if (claim && claim.hasOwnProperty('error')) {
@@ -109,8 +114,8 @@ const lastClaim = (claim) => {
 }
 
 /**
- *
- * @param {obj} claim
+ * @param {object} claim
+ * @return {object}
  */
 const signWithdraw = async (claim) => {
   try {
@@ -133,7 +138,7 @@ const signWithdraw = async (claim) => {
 
 /**
  *
- * @param {obj} claim
+ * @param {object} claim
  */
 const withdrawConsensually = async (claim) => {
   try {

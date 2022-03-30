@@ -2,23 +2,42 @@
 /* eslint-disable-next-line no-redeclare */
 /* global localStorage */
 
+/**
+ * @type {object}
+ */
 const savedClameType = {
   claimConfirmed: 'claimConfirmed',
   claimAlice: 'claimAlice'
 }
 
+/**
+ *
+ * @param {object} claim
+ */
 const saveConfirmedClaim = claim => {
   localStorage.setItem(savedClameType.claimConfirmed, JSON.stringify(claim))
 }
 
+/**
+ *
+ * @return {object} claim
+ */
 const getConfirmedClaim = () => {
   return JSON.parse(localStorage.getItem(savedClameType.claimConfirmed))
 }
 
+/**
+ *
+ * @param {object} claim
+ */
 const saveClaimAlice = claim => {
   localStorage.setItem(savedClameType.claimAlice, JSON.stringify(claim))
 }
 
+/**
+ *
+ * @return {object} claim
+ */
 const getClaimAlice = () => {
   return JSON.parse(localStorage.getItem(savedClameType.claimAlice))
 }
@@ -39,6 +58,11 @@ const downloadLastClaim = () => {
   document.body.removeChild(element)
 }
 
+/**
+ *
+ * @param {string} jsonString
+ * @returns {string}
+ */
 const _prepareJsonContent = (jsonString) => {
   jsonString = jsonString.replace('{', '{\n')
   jsonString = jsonString.replace('}', '\n}')

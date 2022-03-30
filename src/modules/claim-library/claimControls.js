@@ -21,7 +21,7 @@ const CSDK_SERVER_ADDRESS = process.env.CSDK_SERVER_ADDRESS
 
 /**
  *
- * @param {obj} claim new claim for Alice
+ * @param {object} claim new claim for Alice
  */
 const isValidNewClaim = (claim) => {
   const lastClaim = claimStorage.getConfirmedClaim()
@@ -73,7 +73,7 @@ const isValidNewClaim = (claim) => {
 
 /**
  *
- * @param {obj} claim
+ * @param {object} claim
  */
 const _controlMesssage = (claim) => {
   if (claim.closed === 0) {
@@ -109,7 +109,7 @@ const _controlDebits = (balance, cumulativeDebits) => {
 
 /**
  *
- * @param {obj} claim claim Alice, countersigned by Bob
+ * @param {object} claim claim Alice, countersigned by Bob
  */
 const isValidClaimAlice = (claim) => {
   let isValid = isValidNewClaim(claim)
@@ -124,8 +124,8 @@ const isValidClaimAlice = (claim) => {
 
 /**
  *
- * @param {obj} claim
- * @param {obj} savedClaim
+ * @param {object} claim
+ * @param {object} savedClaim
  * @param {boolean} [isWithdraw]
  */
 const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
@@ -167,7 +167,7 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
 
 /**
  *
- * @param {obj} claim claim Alice, countersigned by Bob
+ * @param {object} claim claim Alice, countersigned by Bob
  * @param {int} balance
  */
 const isValidWithdraw = (claim, balance) => {
@@ -182,7 +182,7 @@ const isValidWithdraw = (claim, balance) => {
 
 /**
  *
- * @param {obj} claim
+ * @param {object} claim
  * @param {int} balance
  */
 const _controlWithdrawMessage = (claim, balance) => {

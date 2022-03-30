@@ -5,7 +5,7 @@ import path from 'path'
 
 export default defineConfig(({ mode }) => {
   const dotEnvFile = mode ? `./.env.${mode}` : './.env'
-  console.log('dotEnvFile', dotEnvFile)
+  // console.log('dotEnvFile', dotEnvFile)
   require('dotenv').config({ path: dotEnvFile })
 
   return {

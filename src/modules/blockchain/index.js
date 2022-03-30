@@ -8,22 +8,47 @@ import {
 
 const vaultAddress = process.env.CSDK_CONTRACT_VAULT_ADDRESS
 
+/**
+ *
+ * @param {object} web3Provider
+ * @param {string} contractAddress
+ * @param {object} contractAbi
+ * @returns {object}
+ */
 const initContract = (web3Provider, contractAddress = vaultAddress, contractAbi = abi) => {
   const web3 = new Web3(web3Provider)
   const contract = new web3.eth.Contract(contractAbi, contractAddress)
   return contract
 }
 
+/**
+ *
+ * @param {object} contract
+ * @param {string} method
+ * @param {array} params
+ * @returns {any}
+ */
 const callMethod = async (contract, method, params) => {
   return await contract.methods[method](params).call()
 }
 
+/**
+ *
+ * @param {string} address
+ * @param {object} web3Provider
+ * @returns { balance: string }
+ */
 const getVaultBalance = async (address, web3Provider) => {
   const contract = initContract(web3Provider)
   const balance = await callMethod(contract, 'balanceOf', address)
   return { balance }
 }
 
+/**
+ *
+ * @param {object} claim
+ * @param {object} web3Provider
+ */
 const withdrawConsensually = async (claim, web3Provider) => {
   const contract = initContract(web3Provider)
   const web3 = new Web3(web3Provider)

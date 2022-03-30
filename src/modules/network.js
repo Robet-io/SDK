@@ -8,6 +8,9 @@ const CSDK_CURRENCY_NAME = process.env.CSDK_CURRENCY_NAME
 const CSDK_CURRENCY_SYMBOL = process.env.CSDK_CURRENCY_SYMBOL
 const CSDK_CURRENCY_DECIMALS = process.env.CSDK_CURRENCY_DECIMALS
 
+/**
+ * @returns {boolean}
+ */
 const checkRightNetwork = async () => {
   const rightNet = getValidNetworks()
   const web3Provider = getWeb3Provider()
@@ -34,6 +37,11 @@ const checkRightNetwork = async () => {
   }
 }
 
+/**
+ *
+ * @param {boolean} netId
+ * @returns {Array.<string>}
+ */
 const networksNames = (netId = false) => {
   const names = []
   names[1] = 'Ethereum Mainnet'
@@ -61,10 +69,16 @@ const networksNames = (netId = false) => {
   }
 }
 
+/**
+ * @returns {number}
+ */
 const getValidNetworks = () => {
   return [Number(CSDK_CHAIN_ID)]
 }
 
+/**
+ * @returns {boolean}
+ */
 const isRightNet = async () => {
   try {
     const result = await checkRightNetwork()
@@ -113,6 +127,10 @@ const setRightNet = async () => {
   }
 }
 
+/**
+ *
+ * @returns {object}
+ */
 const getWeb3Provider = () => {
   if (window.ethereum) {
     return window.ethereum
