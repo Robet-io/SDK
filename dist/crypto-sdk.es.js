@@ -2054,21 +2054,24 @@ const getDegaBalance = async (address, web3Provider) => {
   const balance = await callMethod(contract, "balanceOf", address);
   return balance;
 };
-const approveDega$1 = async (amount, address, web3Provider) => {
-  const contract = initContract(web3Provider, degaAddress, degaAbi);
+const sendTx = async (address, contract, method, params, event, web3Provider) => {
   const web3 = new Web3(web3Provider);
-  const gas = await contract.methods.approve(vaultAddress, amount).estimateGas({ from: address });
+  const gas = await contract.methods[method](...params).estimateGas({ from: address });
   const gasPrice = await web3.eth.getGasPrice();
   const options = { gasPrice, from: address, gas };
-  return await contract.methods.approve(vaultAddress, amount).send(options);
+  await contract.methods[method](...params).send(options).on("transactionHash", (txHash) => {
+    emitEvent(event, { txHash });
+  }).on("receipt", (receipt) => {
+    emitEvent(event, { receipt });
+  });
 };
 const depositDega$1 = async (amount, address, web3Provider) => {
   const contract = initContract(web3Provider);
-  const web3 = new Web3(web3Provider);
-  const gas = await contract.methods.deposit(amount).estimateGas({ from: address });
-  const gasPrice = await web3.eth.getGasPrice();
-  const options = { gasPrice, from: address, gas };
-  return await contract.methods.deposit(amount).send(options);
+  await sendTx(address, contract, "deposit", [amount], eventType.depositDega, web3Provider);
+};
+const approveDega$1 = async (amount, address, web3Provider) => {
+  const contract = initContract(web3Provider, degaAddress, degaAbi);
+  await sendTx(address, contract, "approve", [vaultAddress, amount], eventType.approveDega, web3Provider);
 };
 var blockchain = {
   getVaultBalance: getVaultBalance$1,
@@ -2388,11 +2391,8 @@ const depositDega = async (amount, address) => {
     throw error;
   }
   try {
-    const txHash = await blockchain.depositDega(amountWei, address, web3Provider);
-    emitEvent(eventType.depositDega, { txHash });
-    return txHash;
+    await blockchain.depositDega(amountWei, address, web3Provider);
   } catch (error) {
-    console.log("error deposit", { error });
     emitErrorEvent(eventType.depositDega, error);
     throw error;
   }
@@ -2419,9 +2419,7 @@ const approveDega = async (amount, address) => {
   const amountWei = web3.utils.toWei(amount);
   const web3Provider = getWeb3Provider();
   try {
-    const txHash = await blockchain.approveDega(amountWei, address, web3Provider);
-    emitEvent(eventType.approveDega, { txHash });
-    return txHash;
+    await blockchain.approveDega(amountWei, address, web3Provider);
   } catch (error) {
     emitErrorEvent(eventType.approveDega, error);
     throw error;

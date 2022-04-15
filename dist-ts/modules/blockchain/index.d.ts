@@ -31,15 +31,13 @@ declare function getDegaBalance(address: string, web3Provider: object): string;
  * @param {string} amount
  * @param {string} address
  * @param {object} web3Provider
- * @returns {object} txHash
  */
-declare function depositDega(amount: string, address: string, web3Provider: object): object;
+declare function depositDega(amount: string, address: string, web3Provider: object): Promise<void>;
 /**
  *
  * @param {string} amount
  * @param {string} address
  * @param {object} web3Provider
- * @returns {object} txHash
  */
-declare function approveDega(amount: string, address: string, web3Provider: object): object;
+declare function approveDega(amount: string, address: string, web3Provider: object): Promise<void>;
 //# sourceMappingURL=index.d.ts.map
