@@ -253,7 +253,7 @@ const signTypedData = async (msg, from) => {
 _initMetamask();
 const CSDK_CHAIN_ID = "97";
 const CSDK_CHAIN_NAME = "BSC Testnet";
-const CSDK_CONTRACT_VAULT_ADDRESS = "0xA0Af3739fBC126C287D2fd0b5372d939Baa36B17";
+const CSDK_CONTRACT_VAULT_ADDRESS = "0x9b9a5C1Af0A543d7dd243Bea6BDD53458dd0F067";
 const domain = {
   name: CSDK_CHAIN_NAME,
   version: "1",
@@ -1447,7 +1447,7 @@ var abi = [
     type: "function"
   }
 ];
-const vaultAddress = "0xA0Af3739fBC126C287D2fd0b5372d939Baa36B17";
+const vaultAddress = "0x9b9a5C1Af0A543d7dd243Bea6BDD53458dd0F067";
 const initContract = (web3Provider, contractAddress = vaultAddress, contractAbi = abi) => {
   const web3 = new Web3(web3Provider);
   const contract = new web3.eth.Contract(contractAbi, contractAddress);
@@ -1782,10 +1782,10 @@ var claims = {
   getVaultBalance,
   downloadLastClaim: claimLibrary.downloadLastClaim
 };
-const CSDK_TYPE_CASHIN = {}.CSDK_TYPE_CASHIN;
-const CSDK_TYPE_CASHOUT = {}.CSDK_TYPE_CASHOUT;
+const CSDK_TYPE_CASHIN = "CASHIN";
+const CSDK_TYPE_CASHOUT = "CASHOUT";
 const CSDK_TYPE_WITHDRAW = "WITHDRAW";
-const CSDK_TYPE_HANDSHAKE = {}.CSDK_TYPE_HANDSHAKE;
+const CSDK_TYPE_HANDSHAKE = "HANDSHAKE";
 const receiveMsg = async (msg) => {
   if (msg) {
     const { action, claim, context, error } = JSON.parse(msg);
