@@ -7,7 +7,6 @@ import {
 } from './network'
 import {
   emitErrorEvent,
-  emitEvent,
   eventType
 } from './events'
 import blockchain from './blockchain'
@@ -39,11 +38,9 @@ const depositDega = async (amount, address) => {
   }
 
   try {
-    const txHash = await blockchain.depositDega(amountWei, address, web3Provider)
-    emitEvent(eventType.depositDega, { txHash })
-    return txHash
+    await blockchain.depositDega(amountWei, address, web3Provider)
   } catch (error) {
-    console.log('error deposit', { error })
+    // console.log('error deposit', { error })
     emitErrorEvent(eventType.depositDega, error)
     throw error
   }
@@ -69,7 +66,6 @@ const checkDegaBalance = async (amount, address, web3Provider) => {
 /**
  * @param {number} amount
  * @param {string} address
- * @return {object} txhash
  */
 const approveDega = async (amount, address) => {
   try {
@@ -85,9 +81,7 @@ const approveDega = async (amount, address) => {
   const web3Provider = getWeb3Provider()
 
   try {
-    const txHash = await blockchain.approveDega(amountWei, address, web3Provider)
-    emitEvent(eventType.approveDega, { txHash })
-    return txHash
+    await blockchain.approveDega(amountWei, address, web3Provider)
   } catch (error) {
     emitErrorEvent(eventType.approveDega, error)
     throw error

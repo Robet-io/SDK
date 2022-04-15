@@ -16,7 +16,7 @@ declare namespace cryptoSDK {
     export const payReceived: (claim: any) => Promise<void>;
     export const win: (claim: any) => any;
     export const depositDega: (amount: number, address: string) => any;
-    export const approveDega: (amount: number, address: string) => any;
+    export const approveDega: (amount: number, address: string) => Promise<void>;
 }
 import { getAddress } from "./modules/metamask";
 import { isMetamaskInstalled } from "./modules/metamask";

@@ -92,18 +92,26 @@ const getDegaBalance = async (address, web3Provider) => {
 
 /**
  *
- * @param {string} amount
  * @param {string} address
+ * @param {object} contract
+ * @param {string} method
+ * @param {array} params
+ * @param {string} event
  * @param {object} web3Provider
- * @returns {object} txHash
  */
-const approveDega = async (amount, address, web3Provider) => {
-  const contract = initContract(web3Provider, degaAddress, degaAbi)
+const sendTx = async (address, contract, method, params, event, web3Provider) => {
   const web3 = new Web3(web3Provider)
-  const gas = await contract.methods.approve(vaultAddress, amount).estimateGas({ from: address })
+  const gas = await contract.methods[method](...params).estimateGas({ from: address })
   const gasPrice = await web3.eth.getGasPrice()
   const options = { gasPrice, from: address, gas }
-  return await contract.methods.approve(vaultAddress, amount).send(options)
+  await contract.methods[method](...params).send(options)
+    .on('transactionHash', (txHash) => {
+      emitEvent(event, { txHash })
+    })
+    // .on('confirmation', function (confirmationNumber) { console.log('-------confirmationNumber', confirmationNumber) })
+    .on('receipt', (receipt) => {
+      emitEvent(event, { receipt })
+    })
 }
 
 /**
@@ -111,15 +119,21 @@ const approveDega = async (amount, address, web3Provider) => {
  * @param {string} amount
  * @param {string} address
  * @param {object} web3Provider
- * @returns {object} txHash
  */
 const depositDega = async (amount, address, web3Provider) => {
   const contract = initContract(web3Provider)
-  const web3 = new Web3(web3Provider)
-  const gas = await contract.methods.deposit(amount).estimateGas({ from: address })
-  const gasPrice = await web3.eth.getGasPrice()
-  const options = { gasPrice, from: address, gas }
-  return await contract.methods.deposit(amount).send(options)
+  await sendTx(address, contract, 'deposit', [amount], eventType.depositDega, web3Provider)
+}
+
+/**
+ *
+ * @param {string} amount
+ * @param {string} address
+ * @param {object} web3Provider
+ */
+const approveDega = async (amount, address, web3Provider) => {
+  const contract = initContract(web3Provider, degaAddress, degaAbi)
+  await sendTx(address, contract, 'approve', [vaultAddress, amount], eventType.approveDega, web3Provider)
 }
 
 export default {
