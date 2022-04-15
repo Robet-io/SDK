@@ -4,6 +4,7 @@ import { isRightNet, setRightNet } from './modules/network'
 import { isMetamaskInstalled, getAddress } from './modules/metamask'
 import token from './modules/token'
 import claims from './modules/claims'
+import dega from './modules/dega'
 import { ALICE, BOB } from './modules/const'
 
 const CSDK_TYPE_CASHIN = process.env.CSDK_TYPE_CASHIN
@@ -99,7 +100,10 @@ const cryptoSDK = {
 
   pay: claims.cashin,
   payReceived: claims.claimControfirmed,
-  win: claims.cashout
+  win: claims.cashout,
+
+  depositDega: dega.depositDega,
+  approveDega: dega.approveDega
 }
 
 export default cryptoSDK

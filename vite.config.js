@@ -21,6 +21,9 @@ export default defineConfig(({ mode }) => {
       "process.env.CSDK_SERVER_ADDRESS": `"${process.env.CSDK_SERVER_ADDRESS}"`,
       // "process.env.CSDK_SERVER_PRIVATE_KEY": `"${process.env.CSDK_SERVER_PRIVATE_KEY}"`,
 
+      "process.env.CSDK_BTCB_ADDRESS": `"${process.env.CSDK_BTCB_ADDRESS}"`,
+      "process.env.CSDK_CONTRACT_MINTER_ADDRESS": `"${process.env.CSDK_CONTRACT_MINTER_ADDRESS}"`,
+
       "process.env.CSDK_CHAIN_ID": `"${process.env.CSDK_CHAIN_ID}"`,
       "process.env.CSDK_CHAIN_NAME": `"${process.env.CSDK_CHAIN_NAME}"`,
       "process.env.CSDK_RPC_URL": `"${process.env.CSDK_RPC_URL}"`,

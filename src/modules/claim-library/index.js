@@ -145,7 +145,7 @@ const _isBalanceEnough = async (claim, web3Provider) => {
   // Don't check server's balance
   if (index === 1) return true
 
-  return await _checkBalance(claim, index, web3Provider)
+  return _checkBalance(claim, index, web3Provider)
 }
 
 /**

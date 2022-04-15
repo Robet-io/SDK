@@ -50,7 +50,10 @@ const eventType = {
   token: 'jwtToken',
   withdraw: 'withdraw',
   withdrawReceipt: 'withdrawReceipt',
-  withdrawHash: 'withdrawHash'
+  withdrawHash: 'withdrawHash',
+  depositDega: 'depositDega',
+  withdrawDega: 'withdrawDega',
+  approveDega: 'approveDega'
 }
 
 /**
