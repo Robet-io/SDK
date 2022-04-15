@@ -34,7 +34,10 @@ const eventType = {
   token: "jwtToken",
   withdraw: "withdraw",
   withdrawReceipt: "withdrawReceipt",
-  withdrawHash: "withdrawHash"
+  withdrawHash: "withdrawHash",
+  depositDega: "depositDega",
+  withdrawDega: "withdrawDega",
+  approveDega: "approveDega"
 };
 const cryptoEvent = "cryptoSDK";
 const CSDK_CHAIN_ID$1 = "97";
@@ -633,7 +636,7 @@ var claimControls = {
   areEqualClaims,
   isValidWithdraw
 };
-var abi = [
+var vaultAbi = [
   {
     anonymous: false,
     inputs: [
@@ -1447,8 +1450,570 @@ var abi = [
     type: "function"
   }
 ];
+var degaAbi = [
+  {
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "owner",
+        type: "address"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "spender",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256"
+      }
+    ],
+    name: "Approval",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "previousAdminRole",
+        type: "bytes32"
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "newAdminRole",
+        type: "bytes32"
+      }
+    ],
+    name: "RoleAdminChanged",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "sender",
+        type: "address"
+      }
+    ],
+    name: "RoleGranted",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "sender",
+        type: "address"
+      }
+    ],
+    name: "RoleRevoked",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256"
+      }
+    ],
+    name: "Transfer",
+    type: "event"
+  },
+  {
+    inputs: [],
+    name: "DEFAULT_ADMIN_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "MINTER_ROLE",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address"
+      },
+      {
+        internalType: "address",
+        name: "spender",
+        type: "address"
+      }
+    ],
+    name: "allowance",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "spender",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "approve",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address"
+      }
+    ],
+    name: "balanceOf",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "burn",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "burn",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "burnFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "decimals",
+    outputs: [
+      {
+        internalType: "uint8",
+        name: "",
+        type: "uint8"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "spender",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "subtractedValue",
+        type: "uint256"
+      }
+    ],
+    name: "decreaseAllowance",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      }
+    ],
+    name: "getRoleAdmin",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address"
+      }
+    ],
+    name: "grantRole",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address"
+      }
+    ],
+    name: "hasRole",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "spender",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "addedValue",
+        type: "uint256"
+      }
+    ],
+    name: "increaseAllowance",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "mint",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "name",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address"
+      }
+    ],
+    name: "renounceRole",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "role",
+        type: "bytes32"
+      },
+      {
+        internalType: "address",
+        name: "account",
+        type: "address"
+      }
+    ],
+    name: "revokeRole",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes4",
+        name: "interfaceId",
+        type: "bytes4"
+      }
+    ],
+    name: "supportsInterface",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "symbol",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "totalSupply",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "transfer",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "from",
+        type: "address"
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "transferFrom",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "nonpayable",
+    type: "function"
+  }
+];
 const vaultAddress = "0x9b9a5C1Af0A543d7dd243Bea6BDD53458dd0F067";
-const initContract = (web3Provider, contractAddress = vaultAddress, contractAbi = abi) => {
+const degaAddress = "0x16B052D944c1b7731d7C240b6072530929C93b40";
+const initContract = (web3Provider, contractAddress = vaultAddress, contractAbi = vaultAbi) => {
   const web3 = new Web3(web3Provider);
   const contract = new web3.eth.Contract(contractAbi, contractAddress);
   return contract;
@@ -1484,9 +2049,33 @@ const withdrawConsensually$1 = async (claim, web3Provider) => {
     throw new Error(error);
   }
 };
+const getDegaBalance = async (address, web3Provider) => {
+  const contract = initContract(web3Provider, degaAddress, degaAbi);
+  const balance = await callMethod(contract, "balanceOf", address);
+  return balance;
+};
+const approveDega$1 = async (amount, address, web3Provider) => {
+  const contract = initContract(web3Provider, degaAddress, degaAbi);
+  const web3 = new Web3(web3Provider);
+  const gas = await contract.methods.approve(vaultAddress, amount).estimateGas({ from: address });
+  const gasPrice = await web3.eth.getGasPrice();
+  const options = { gasPrice, from: address, gas };
+  return await contract.methods.approve(vaultAddress, amount).send(options);
+};
+const depositDega$1 = async (amount, address, web3Provider) => {
+  const contract = initContract(web3Provider);
+  const web3 = new Web3(web3Provider);
+  const gas = await contract.methods.deposit(amount).estimateGas({ from: address });
+  const gasPrice = await web3.eth.getGasPrice();
+  const options = { gasPrice, from: address, gas };
+  return await contract.methods.deposit(amount).send(options);
+};
 var blockchain = {
   getVaultBalance: getVaultBalance$1,
-  withdrawConsensually: withdrawConsensually$1
+  withdrawConsensually: withdrawConsensually$1,
+  getDegaBalance,
+  depositDega: depositDega$1,
+  approveDega: approveDega$1
 };
 const cashout$1 = async (claim, web3Provider) => {
   claimControls.isValidNewClaim(claim);
@@ -1584,7 +2173,7 @@ const _isBalanceEnough = async (claim, web3Provider) => {
   const index = claim.amount < 0 ? 0 : 1;
   if (index === 1)
     return true;
-  return await _checkBalance(claim, index, web3Provider);
+  return _checkBalance(claim, index, web3Provider);
 };
 const _checkBalance = async (claim, index, web3Provider) => {
   try {
@@ -1782,6 +2371,66 @@ var claims = {
   getVaultBalance,
   downloadLastClaim: claimLibrary.downloadLastClaim
 };
+const depositDega = async (amount, address) => {
+  try {
+    checkRightNetwork();
+  } catch (error) {
+    emitErrorEvent(eventType.depositDega, error);
+    throw error;
+  }
+  const web3 = new Web3();
+  const amountWei = web3.utils.toWei(amount);
+  const web3Provider = getWeb3Provider();
+  try {
+    await checkDegaBalance(amountWei, address, web3Provider);
+  } catch (error) {
+    emitErrorEvent(eventType.depositDega, error);
+    throw error;
+  }
+  try {
+    const txHash = await blockchain.depositDega(amountWei, address, web3Provider);
+    emitEvent(eventType.depositDega, { txHash });
+    return txHash;
+  } catch (error) {
+    console.log("error deposit", { error });
+    emitErrorEvent(eventType.depositDega, error);
+    throw error;
+  }
+};
+const checkDegaBalance = async (amount, address, web3Provider) => {
+  let balance;
+  try {
+    balance = await blockchain.getDegaBalance(address, web3Provider);
+  } catch (error) {
+    throw new Error("Can't get balance of Dega");
+  }
+  if (bnUtils.lt(balance, amount)) {
+    throw new Error("The balance of Dega is not enough");
+  }
+};
+const approveDega = async (amount, address) => {
+  try {
+    checkRightNetwork();
+  } catch (error) {
+    emitErrorEvent(eventType.approveDega, error);
+    throw error;
+  }
+  const web3 = new Web3();
+  const amountWei = web3.utils.toWei(amount);
+  const web3Provider = getWeb3Provider();
+  try {
+    const txHash = await blockchain.approveDega(amountWei, address, web3Provider);
+    emitEvent(eventType.approveDega, { txHash });
+    return txHash;
+  } catch (error) {
+    emitErrorEvent(eventType.approveDega, error);
+    throw error;
+  }
+};
+var dega = {
+  depositDega,
+  approveDega
+};
 const CSDK_TYPE_CASHIN = "CASHIN";
 const CSDK_TYPE_CASHOUT = "CASHOUT";
 const CSDK_TYPE_WITHDRAW = "WITHDRAW";
@@ -1868,6 +2517,8 @@ const cryptoSDK = {
   downloadLastClaim: claims.downloadLastClaim,
   pay: claims.cashin,
   payReceived: claims.claimControfirmed,
-  win: claims.cashout
+  win: claims.cashout,
+  depositDega: dega.depositDega,
+  approveDega: dega.approveDega
 };
 export { cryptoSDK as default };
