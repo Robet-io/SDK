@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
   return {
     define: {
       "process.env.CSDK_ALICE_ADDRESS": `"${process.env.CSDK_ALICE_ADDRESS}"`,
-      "process.env.CSDK_ALICE_PRIVATE_KEY": `"${process.env.CSDK_ALICE_PRIVATE_KEY}"`,
+      // "process.env.CSDK_ALICE_PRIVATE_KEY": `"${process.env.CSDK_ALICE_PRIVATE_KEY}"`,
 
       // "process.env.CSDK_ALICE_ADDRESS_WRONG": `"${process.env.CSDK_ALICE_ADDRESS_WRONG}"`,
       // "process.env.CSDK_ALICE_PRIVATE_KEY_WRONG": `"${process.env.CSDK_ALICE_PRIVATE_KEY_WRONG}"`,
@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
       "process.env.CSDK_CONTRACT_VAULT_ADDRESS": `"${process.env.CSDK_CONTRACT_VAULT_ADDRESS}"`,
       "process.env.CSDK_CONTRACT_TOKEN_ADDRESS": `"${process.env.CSDK_CONTRACT_TOKEN_ADDRESS}"`,
       "process.env.CSDK_SERVER_ADDRESS": `"${process.env.CSDK_SERVER_ADDRESS}"`,
-      "process.env.CSDK_SERVER_PRIVATE_KEY": `"${process.env.CSDK_SERVER_PRIVATE_KEY}"`,
+      // "process.env.CSDK_SERVER_PRIVATE_KEY": `"${process.env.CSDK_SERVER_PRIVATE_KEY}"`,
 
       "process.env.CSDK_CHAIN_ID": `"${process.env.CSDK_CHAIN_ID}"`,
       "process.env.CSDK_CHAIN_NAME": `"${process.env.CSDK_CHAIN_NAME}"`,
@@ -29,9 +29,9 @@ export default defineConfig(({ mode }) => {
       "process.env.CSDK_CURRENCY_SYMBOL": `"${process.env.CSDK_CURRENCY_SYMBOL}"`,
       "process.env.CSDK_CURRENCY_DECIMALS": `"${process.env.CSDK_CURRENCY_DECIMALS}"`,
 
-      "process.env.CSDK_TYPE_REFUND": `"${process.env.CSDK_TYPE_REFUND}"`,
-      "process.env.CSDK_TYPE_WIN": `"${process.env.CSDK_TYPE_WIN}"`,
-      "process.env.CSDK_TYPE_PLAY": `"${process.env.CSDK_TYPE_PLAY}"`,
+      "process.env.CSDK_TYPE_CASHIN": `"${process.env.CSDK_TYPE_CASHIN}"`,
+      "process.env.CSDK_TYPE_CASHOUT": `"${process.env.CSDK_TYPE_CASHOUT}"`,
+      "process.env.CSDK_TYPE_HANDSHAKE": `"${process.env.CSDK_TYPE_HANDSHAKE}"`,
       "process.env.CSDK_TYPE_WITHDRAW": `"${process.env.CSDK_TYPE_WITHDRAW}"`
 
     },
