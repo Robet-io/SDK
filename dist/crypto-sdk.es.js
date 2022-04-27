@@ -2381,17 +2381,15 @@ const depositDega = async (amount, address) => {
     emitErrorEvent(eventType.depositDega, error);
     throw error;
   }
-  const web3 = new Web3();
-  const amountWei = web3.utils.toWei(amount);
   const web3Provider = getWeb3Provider();
   try {
-    await checkDegaBalance(amountWei, address, web3Provider);
+    await checkDegaBalance(amount, address, web3Provider);
   } catch (error) {
     emitErrorEvent(eventType.depositDega, error);
     throw error;
   }
   try {
-    await blockchain.depositDega(amountWei, address, web3Provider);
+    await blockchain.depositDega(amount, address, web3Provider);
   } catch (error) {
     emitErrorEvent(eventType.depositDega, error);
     throw error;
@@ -2415,11 +2413,9 @@ const approveDega = async (amount, address) => {
     emitErrorEvent(eventType.approveDega, error);
     throw error;
   }
-  const web3 = new Web3();
-  const amountWei = web3.utils.toWei(amount);
   const web3Provider = getWeb3Provider();
   try {
-    await blockchain.approveDega(amountWei, address, web3Provider);
+    await blockchain.approveDega(amount, address, web3Provider);
   } catch (error) {
     emitErrorEvent(eventType.approveDega, error);
     throw error;
