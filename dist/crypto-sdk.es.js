@@ -37,7 +37,8 @@ const eventType = {
   withdrawHash: "withdrawHash",
   depositDega: "depositDega",
   withdrawDega: "withdrawDega",
-  approveDega: "approveDega"
+  approveDega: "approveDega",
+  serverEvent: "serverEvent"
 };
 const cryptoEvent = "cryptoSDK";
 const CSDK_CHAIN_ID$1 = "97";
