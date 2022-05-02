@@ -53,7 +53,8 @@ const eventType = {
   withdrawHash: 'withdrawHash',
   depositDega: 'depositDega',
   withdrawDega: 'withdrawDega',
-  approveDega: 'approveDega'
+  approveDega: 'approveDega',
+  serverEvent: 'serverEvent'
 }
 
 /**
