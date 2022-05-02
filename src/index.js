@@ -1,5 +1,5 @@
 /* eslint-disable no-prototype-builtins */
-import { addEventListener } from './modules/events'
+import { addEventListener, emitEvent, eventType } from './modules/events'
 import { isRightNet, setRightNet } from './modules/network'
 import { isMetamaskInstalled, getAddress } from './modules/metamask'
 import token from './modules/token'
@@ -20,8 +20,9 @@ const receiveMsg = async (msg) => {
   if (msg) {
     const { action, claim, context, error } = JSON.parse(msg)
     if (error) {
-      throw new Error(error)
+      emitEvent(eventType.serverEvent, error)
     }
+
     switch (action) {
       case CSDK_TYPE_HANDSHAKE: {
         const lastClaimAlice = claims.lastClaim(claim)
@@ -78,7 +79,7 @@ const receiveMsg = async (msg) => {
         break
       }
       default: {
-        throw new Error('Not supported')
+        emitEvent(eventType.serverEvent, JSON.parse(msg))
       }
     }
   }
