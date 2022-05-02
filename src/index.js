@@ -6,6 +6,7 @@ import token from './modules/token'
 import claims from './modules/claims'
 import dega from './modules/dega'
 import { ALICE, BOB } from './modules/const'
+import { formatNumber } from './modules/utils'
 
 const CSDK_TYPE_CASHIN = process.env.CSDK_TYPE_CASHIN
 const CSDK_TYPE_CASHOUT = process.env.CSDK_TYPE_CASHOUT
@@ -98,6 +99,7 @@ const cryptoSDK = {
   isLogged: token.isLogged,
   getVaultBalance: claims.getVaultBalance,
   downloadLastClaim: claims.downloadLastClaim,
+  formatNumber,
 
   pay: claims.cashin,
   payReceived: claims.claimControfirmed,

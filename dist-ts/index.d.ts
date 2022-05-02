@@ -12,6 +12,7 @@ declare namespace cryptoSDK {
     export const isLogged: () => boolean;
     export const getVaultBalance: (address: string) => string;
     export const downloadLastClaim: () => void;
+    export { formatNumber };
     export const pay: (claim: any) => any;
     export const payReceived: (claim: any) => Promise<void>;
     export const win: (claim: any) => any;
@@ -28,4 +29,5 @@ import { addEventListener } from "./modules/events";
  * @return {object}
  */
 declare function receiveMsg(msg: string): object;
+import { formatNumber } from "./modules/utils";
 //# sourceMappingURL=index.d.ts.map
