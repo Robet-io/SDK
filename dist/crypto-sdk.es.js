@@ -2510,6 +2510,7 @@ const cryptoSDK = {
   isLogged: token.isLogged,
   getVaultBalance: claims.getVaultBalance,
   downloadLastClaim: claims.downloadLastClaim,
+  formatNumber,
   pay: claims.cashin,
   payReceived: claims.claimControfirmed,
   win: claims.cashout,
