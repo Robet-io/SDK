@@ -2433,7 +2433,7 @@ const receiveMsg = async (msg) => {
   if (msg) {
     const { action, claim, context, error } = JSON.parse(msg);
     if (error) {
-      throw new Error(error);
+      emitEvent(eventType.serverEvent, error);
     }
     switch (action) {
       case CSDK_TYPE_HANDSHAKE: {
@@ -2491,7 +2491,7 @@ const receiveMsg = async (msg) => {
         break;
       }
       default: {
-        throw new Error("Not supported");
+        emitEvent(eventType.serverEvent, JSON.parse(msg));
       }
     }
   }
