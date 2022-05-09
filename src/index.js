@@ -1,5 +1,5 @@
 /* eslint-disable no-prototype-builtins */
-import { addEventListener, emitEvent, eventType } from './modules/events'
+import { addEventListener, emitErrorEvent, addEventListenerWS, emitEventWS, eventType } from './modules/events'
 import { isRightNet, setRightNet } from './modules/network'
 import { isMetamaskInstalled, getAddress } from './modules/metamask'
 import token from './modules/token'
@@ -21,7 +21,7 @@ const receiveMsg = async (msg) => {
   if (msg) {
     const { action, claim, context, error } = JSON.parse(msg)
     if (error) {
-      emitEvent(eventType.serverEvent, error)
+      emitErrorEvent(eventType.general, error)
     }
 
     switch (action) {
@@ -79,9 +79,7 @@ const receiveMsg = async (msg) => {
         }
         break
       }
-      default: {
-        emitEvent(eventType.serverEvent, JSON.parse(msg))
-      }
+      default: break
     }
   }
 }
@@ -92,6 +90,8 @@ const cryptoSDK = {
   isRightNet,
   setRightNet,
   addEventListener,
+  addEventListenerWS,
+  emitEventWS,
   receiveMsg,
   signChallenge: token.signChallenge,
   setToken: token.setToken,

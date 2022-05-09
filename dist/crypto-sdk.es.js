@@ -4,8 +4,15 @@ import Web3 from "web3";
 const addEventListener = (cb) => {
   document.addEventListener(cryptoEvent, cb);
 };
+const addEventListenerWS = (cb) => {
+  document.addEventListener(cryptoEventWS, cb);
+};
 const emitEvent = (type, msg) => {
   const event = new CustomEvent(cryptoEvent, { detail: { type, msg } });
+  document.dispatchEvent(event);
+};
+const emitEventWS = (msg) => {
+  const event = new CustomEvent(cryptoEventWS, { detail: JSON.parse(msg) });
   document.dispatchEvent(event);
 };
 const emitErrorEvent = (type, msg) => {
@@ -37,10 +44,10 @@ const eventType = {
   withdrawHash: "withdrawHash",
   depositDega: "depositDega",
   withdrawDega: "withdrawDega",
-  approveDega: "approveDega",
-  serverEvent: "serverEvent"
+  approveDega: "approveDega"
 };
 const cryptoEvent = "cryptoSDK";
+const cryptoEventWS = "cryptoSDK_WS";
 const CSDK_CHAIN_ID$1 = "97";
 const CSDK_CHAIN_NAME$1 = "BSC Testnet";
 const CSDK_RPC_URL = "https://data-seed-prebsc-1-s1.binance.org";
@@ -2434,7 +2441,7 @@ const receiveMsg = async (msg) => {
   if (msg) {
     const { action, claim, context, error } = JSON.parse(msg);
     if (error) {
-      emitEvent(eventType.serverEvent, error);
+      emitErrorEvent(eventType.general, error);
     }
     switch (action) {
       case CSDK_TYPE_HANDSHAKE: {
@@ -2491,9 +2498,6 @@ const receiveMsg = async (msg) => {
         }
         break;
       }
-      default: {
-        emitEvent(eventType.serverEvent, JSON.parse(msg));
-      }
     }
   }
 };
@@ -2503,6 +2507,8 @@ const cryptoSDK = {
   isRightNet,
   setRightNet,
   addEventListener,
+  addEventListenerWS,
+  emitEventWS,
   receiveMsg,
   signChallenge: token.signChallenge,
   setToken: token.setToken,
