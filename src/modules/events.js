@@ -1,8 +1,15 @@
 /**
  * @param {function(): void} cb
  */
-const addEventListener = cb => {
+ const addEventListener = cb => {
   document.addEventListener(cryptoEvent, cb)
+}
+
+/**
+ * @param {function(): void} cb
+ */
+const addEventListenerWS = cb => {
+  document.addEventListener(cryptoEventWS, cb)
 }
 
 // eslint-disable-next-line no-redeclare
@@ -13,6 +20,16 @@ const addEventListener = cb => {
  */
 const emitEvent = (type, msg) => {
   const event = new CustomEvent(cryptoEvent, { detail: { type, msg } })
+  document.dispatchEvent(event)
+}
+
+// eslint-disable-next-line no-redeclare
+/* global CustomEvent */
+/**
+ * @param {string} msg
+ */
+const emitEventWS = (msg) => {
+  const event = new CustomEvent(cryptoEventWS, { detail: JSON.parse(msg) })
   document.dispatchEvent(event)
 }
 
@@ -53,18 +70,20 @@ const eventType = {
   withdrawHash: 'withdrawHash',
   depositDega: 'depositDega',
   withdrawDega: 'withdrawDega',
-  approveDega: 'approveDega',
-  serverEvent: 'serverEvent'
+  approveDega: 'approveDega'
 }
 
 /**
  * @type {string}
  */
 const cryptoEvent = 'cryptoSDK'
+const cryptoEventWS = 'cryptoSDK_WS'
 
 export {
   addEventListener,
   emitEvent,
   emitErrorEvent,
-  eventType
+  eventType,
+  addEventListenerWS,
+  emitEventWS
 }

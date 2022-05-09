@@ -5,6 +5,8 @@ declare namespace cryptoSDK {
     export { isRightNet };
     export { setRightNet };
     export { addEventListener };
+    export { addEventListenerWS };
+    export { emitEventWS };
     export { receiveMsg };
     export const signChallenge: (challenge: string, address: string) => string;
     export const setToken: (token: string) => void;
@@ -24,6 +26,8 @@ import { isMetamaskInstalled } from "./modules/metamask";
 import { isRightNet } from "./modules/network";
 import { setRightNet } from "./modules/network";
 import { addEventListener } from "./modules/events";
+import { addEventListenerWS } from "./modules/events";
+import { emitEventWS } from "./modules/events";
 /**
  * @param {string} msg
  * @return {object}
