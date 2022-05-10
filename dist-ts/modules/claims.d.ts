@@ -7,6 +7,7 @@ declare namespace _default {
     export { withdrawConsensually };
     export { getVaultBalance };
     export const downloadLastClaim: () => void;
+    export { getTotalBalance };
 }
 export default _default;
 /**
@@ -45,4 +46,9 @@ declare function withdrawConsensually(claim: object): Promise<void>;
  * @return {string}
  */
 declare function getVaultBalance(address: string): string;
+/**
+ * @param {string} address
+ * @return {string}
+ */
+declare function getTotalBalance(address: string): string;
 //# sourceMappingURL=claims.d.ts.map

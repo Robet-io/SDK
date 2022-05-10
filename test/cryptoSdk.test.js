@@ -24,6 +24,7 @@ import { signClaim, signChallenge } from './utils'
 // + Consensual withdraw:
 //   + control and sign withdraw
 //   + arrived countersigned withdraw claim from server - save to localStorage, send tx to Vault
+// getTotalBalance
 
 jest.mock('../src/modules/blockchain', () => {
   return {
@@ -1304,6 +1305,40 @@ describe('cryptoSDK library', () => {
             expect(events[events.length - 1].error).toBe(true)
             expect((await claimStorage.getConfirmedClaim()).nonce).toBe(2)
           })
+        })
+      })
+
+      describe('Gets total balance (vault + off-chain)', () => {
+        it('exists a claim saved in localStorage, Alice debit is 0', async () => {
+          expect((await cryptoSDK.getTotalBalance(ALICE_ADDRESS)).toString()).toBe('20')
+          expect(claimWin.cumulativeDebits[0]).toBe('0')
+
+          claimStorage.saveConfirmedClaim(claimWin)
+
+          expect((await cryptoSDK.getTotalBalance(ALICE_ADDRESS)).toString()).toBe('25')
+        })
+
+        it('exists a claim saved in localStorage, Alice debit is not 0', async () => {
+          expect(claimWin.cumulativeDebits[1]).toBe('5')
+
+          claimStorage.saveConfirmedClaim(claimToPay)
+
+          expect((await cryptoSDK.getTotalBalance(ALICE_ADDRESS)).toString()).toBe('15')
+        })
+
+        it('exists a claim saved in localStorage, both debits is 0', async () => {
+          claimWin.cumulativeDebits = ['0', '0']
+          const bobSignatureWin = signClaim(claimWin, SERVER_PRIVATE_KEY)
+          const aliceSignatureWin = signClaim(claimWin, ALICE_PRIVATE_KEY)
+          claimWin.signatures = [aliceSignatureWin, bobSignatureWin]
+
+          claimStorage.saveConfirmedClaim(claimWin)
+
+          expect((await cryptoSDK.getTotalBalance(ALICE_ADDRESS)).toString()).toBe('20')
+        })
+
+        it('no claim saved in localStorage', async () => {
+          expect((await cryptoSDK.getTotalBalance(ALICE_ADDRESS)).toString()).toBe('20')
         })
       })
     })

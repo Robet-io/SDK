@@ -1,7 +1,7 @@
 /**
  * @param {function(): void} cb
  */
- const addEventListener = cb => {
+const addEventListener = cb => {
   document.addEventListener(cryptoEvent, cb)
 }
 
@@ -70,7 +70,8 @@ const eventType = {
   withdrawHash: 'withdrawHash',
   depositDega: 'depositDega',
   withdrawDega: 'withdrawDega',
-  approveDega: 'approveDega'
+  approveDega: 'approveDega',
+  getTotalBalance: 'getTotalBalance'
 }
 
 /**

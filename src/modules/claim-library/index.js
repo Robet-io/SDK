@@ -269,5 +269,6 @@ export default {
   cashout,
   signWithdraw,
   lastClaim,
-  downloadLastClaim: claimStorage.downloadLastClaim
+  downloadLastClaim: claimStorage.downloadLastClaim,
+  getConfirmedClaim: claimStorage.getConfirmedClaim
 }

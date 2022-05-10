@@ -98,6 +98,7 @@ const cryptoSDK = {
   getToken: token.getToken,
   isLogged: token.isLogged,
   getVaultBalance: claims.getVaultBalance,
+  getTotalBalance: claims.getTotalBalance,
   downloadLastClaim: claims.downloadLastClaim,
   formatNumber,
 
