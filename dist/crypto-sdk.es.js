@@ -44,7 +44,8 @@ const eventType = {
   withdrawHash: "withdrawHash",
   depositDega: "depositDega",
   withdrawDega: "withdrawDega",
-  approveDega: "approveDega"
+  approveDega: "approveDega",
+  getTotalBalance: "getTotalBalance"
 };
 const cryptoEvent = "cryptoSDK";
 const cryptoEventWS = "cryptoSDK_WS";
@@ -2267,7 +2268,8 @@ var claimLibrary = {
   cashout: cashout$1,
   signWithdraw: signWithdraw$1,
   lastClaim: lastClaim$1,
-  downloadLastClaim: claimStorage.downloadLastClaim
+  downloadLastClaim: claimStorage.downloadLastClaim,
+  getConfirmedClaim: claimStorage.getConfirmedClaim
 };
 const cashin = async (claim) => {
   try {
@@ -2372,6 +2374,26 @@ const withdrawConsensually = async (claim) => {
     emitErrorEvent(eventType.withdraw, error);
   }
 };
+const getTotalBalance = async (address) => {
+  try {
+    await checkRightNetwork();
+  } catch (error) {
+    emitErrorEvent(eventType.getTotalBalance, error);
+    throw error;
+  }
+  const web3Provider = getWeb3Provider();
+  let balance = "0";
+  try {
+    balance = bnUtils.plus(balance, (await blockchain.getVaultBalance(address, web3Provider)).balance);
+  } catch (error) {
+    emitErrorEvent(eventType.getTotalBalance, error);
+  }
+  const lastClaim2 = claimLibrary.getConfirmedClaim();
+  if (lastClaim2) {
+    balance = bnUtils.plus(balance, bnUtils.minus(lastClaim2.cumulativeDebits[BOB], lastClaim2.cumulativeDebits[ALICE]));
+  }
+  return balance;
+};
 var claims = {
   cashin,
   claimControfirmed,
@@ -2380,7 +2402,8 @@ var claims = {
   signWithdraw,
   withdrawConsensually,
   getVaultBalance,
-  downloadLastClaim: claimLibrary.downloadLastClaim
+  downloadLastClaim: claimLibrary.downloadLastClaim,
+  getTotalBalance
 };
 const depositDega = async (amount, address) => {
   try {
@@ -2515,6 +2538,7 @@ const cryptoSDK = {
   getToken: token.getToken,
   isLogged: token.isLogged,
   getVaultBalance: claims.getVaultBalance,
+  getTotalBalance: claims.getTotalBalance,
   downloadLastClaim: claims.downloadLastClaim,
   formatNumber,
   pay: claims.cashin,

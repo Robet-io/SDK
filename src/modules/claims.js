@@ -11,6 +11,8 @@ import {
 } from './events'
 import claimLibrary from './claim-library'
 import blockchain from './blockchain'
+import bnUtils from './bnUtils'
+import { ALICE, BOB } from './const'
 
 /**
  * @param {object} claim
@@ -157,6 +159,36 @@ const withdrawConsensually = async (claim) => {
   }
 }
 
+/**
+ * @param {string} address
+ * @return {string}
+ */
+const getTotalBalance = async (address) => {
+  try {
+    await checkRightNetwork()
+  } catch (error) {
+    emitErrorEvent(eventType.getTotalBalance, error)
+    throw error
+  }
+
+  const web3Provider = getWeb3Provider()
+  let balance = '0'
+
+  try {
+    balance = bnUtils.plus(balance, (await blockchain.getVaultBalance(address, web3Provider)).balance)
+  } catch (error) {
+    emitErrorEvent(eventType.getTotalBalance, error)
+  }
+
+  const lastClaim = claimLibrary.getConfirmedClaim()
+
+  if (lastClaim) {
+    balance = bnUtils.plus(balance, bnUtils.minus(lastClaim.cumulativeDebits[BOB], lastClaim.cumulativeDebits[ALICE]))
+  }
+
+  return balance
+}
+
 export default {
   cashin,
   claimControfirmed,
@@ -165,5 +197,6 @@ export default {
   signWithdraw,
   withdrawConsensually,
   getVaultBalance,
-  downloadLastClaim: claimLibrary.downloadLastClaim
+  downloadLastClaim: claimLibrary.downloadLastClaim,
+  getTotalBalance
 }

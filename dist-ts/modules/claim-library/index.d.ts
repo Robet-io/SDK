@@ -5,6 +5,7 @@ declare namespace _default {
     export { signWithdraw };
     export { lastClaim };
     export const downloadLastClaim: () => void;
+    export const getConfirmedClaim: () => any;
 }
 export default _default;
 /**

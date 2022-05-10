@@ -13,6 +13,7 @@ declare namespace cryptoSDK {
     export const getToken: () => string;
     export const isLogged: () => boolean;
     export const getVaultBalance: (address: string) => string;
+    export const getTotalBalance: (address: string) => string;
     export const downloadLastClaim: () => void;
     export { formatNumber };
     export const pay: (claim: any) => any;
