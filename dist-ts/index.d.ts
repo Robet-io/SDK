@@ -21,6 +21,9 @@ declare namespace cryptoSDK {
     export const win: (claim: any) => any;
     export const depositDega: (amount: number, address: string) => any;
     export const approveDega: (amount: number, address: string) => Promise<void>;
+    export const getDegaBalance: (address: string) => string;
+    export const getBtcbBalance: (address: string) => string;
+    export const getBnbBalance: (address: string) => string;
 }
 import { getAddress } from "./modules/metamask";
 import { isMetamaskInstalled } from "./modules/metamask";

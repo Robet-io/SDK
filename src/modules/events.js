@@ -71,7 +71,7 @@ const eventType = {
   depositDega: 'depositDega',
   withdrawDega: 'withdrawDega',
   approveDega: 'approveDega',
-  getTotalBalance: 'getTotalBalance'
+  getBalance: 'getBalance'
 }
 
 /**

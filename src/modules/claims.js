@@ -167,7 +167,7 @@ const getTotalBalance = async (address) => {
   try {
     await checkRightNetwork()
   } catch (error) {
-    emitErrorEvent(eventType.getTotalBalance, error)
+    emitErrorEvent(eventType.getBalance, error)
     throw error
   }
 
@@ -177,7 +177,7 @@ const getTotalBalance = async (address) => {
   try {
     balance = bnUtils.plus(balance, (await blockchain.getVaultBalance(address, web3Provider)).balance)
   } catch (error) {
-    emitErrorEvent(eventType.getTotalBalance, error)
+    emitErrorEvent(eventType.getBalance, error)
   }
 
   const lastClaim = claimLibrary.getConfirmedClaim()

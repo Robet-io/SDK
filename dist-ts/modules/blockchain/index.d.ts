@@ -4,6 +4,8 @@ declare namespace _default {
     export { getDegaBalance };
     export { depositDega };
     export { approveDega };
+    export { getBtcbBalance };
+    export { getBnbBalance };
 }
 export default _default;
 /**
@@ -40,4 +42,16 @@ declare function depositDega(amount: string, address: string, web3Provider: obje
  * @param {object} web3Provider
  */
 declare function approveDega(amount: string, address: string, web3Provider: object): Promise<void>;
+/**
+ * @param {string} address
+ * @param {object} web3Provider
+ * @returns {string} balance
+ */
+declare function getBtcbBalance(address: string, web3Provider: object): string;
+/**
+ * @param {string} address
+ * @param {object} web3Provider
+ * @returns {string} balance
+ */
+declare function getBnbBalance(address: string, web3Provider: object): string;
 //# sourceMappingURL=index.d.ts.map
