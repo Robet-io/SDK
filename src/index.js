@@ -26,7 +26,7 @@ const receiveMsg = async (msg) => {
 
     switch (action) {
       case CSDK_TYPE_HANDSHAKE: {
-        const lastClaimAlice = claims.lastClaim(claim)
+        const lastClaimAlice = await claims.lastClaim(claim)
         if (lastClaimAlice) {
           return {
             action,

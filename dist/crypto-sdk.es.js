@@ -309,22 +309,24 @@ const signChallenge = async (challenge, address) => {
 const authToken = "authToken";
 const expireToken = "expireToken";
 const expirationPeriod = 12e5;
-const setToken = (token2) => {
+const authTokenName = (address) => `${authToken}_${address.toLowerCase()}`;
+const expireTokenName = (address) => `${expireToken}_${address.toLowerCase()}`;
+const setToken = (address, token2) => {
   try {
-    localStorage.setItem(authToken, token2);
-    localStorage.setItem(expireToken, Date.now() + expirationPeriod);
+    localStorage.setItem(authTokenName(address), token2);
+    localStorage.setItem(expireTokenName(address), Date.now() + expirationPeriod);
     emitEvent(eventType.token, "JWT token received");
   } catch (error) {
     emitErrorEvent(eventType.token, error);
   }
 };
-const getToken = () => {
-  return localStorage.getItem(authToken);
+const getToken = (address) => {
+  return localStorage.getItem(authTokenName(address));
 };
-const isLogged = () => {
-  const token2 = getToken();
+const isLogged = (address) => {
+  const token2 = getToken(address);
   if (token2) {
-    const expirationTime = localStorage.getItem(expireToken);
+    const expirationTime = localStorage.getItem(expireTokenName(address));
     if (expirationTime && expirationTime > Date.now()) {
       return true;
     }
@@ -337,24 +339,28 @@ var token = {
   getToken,
   isLogged
 };
+const ALICE = 0;
+const BOB = 1;
 const savedClameType = {
   claimConfirmed: "claimConfirmed",
   claimAlice: "claimAlice"
 };
+const claimConfirmedName = (address) => `${savedClameType.claimConfirmed}_${address.toLowerCase()}`;
+const claimAliceName = (address) => `${savedClameType.claimAlice}_${address.toLowerCase()}`;
 const saveConfirmedClaim = (claim) => {
-  localStorage.setItem(savedClameType.claimConfirmed, JSON.stringify(claim));
+  localStorage.setItem(claimConfirmedName(claim.addresses[ALICE]), JSON.stringify(claim));
 };
-const getConfirmedClaim = () => {
-  return JSON.parse(localStorage.getItem(savedClameType.claimConfirmed));
+const getConfirmedClaim = (address) => {
+  return JSON.parse(localStorage.getItem(claimConfirmedName(address)));
 };
 const saveClaimAlice = (claim) => {
-  localStorage.setItem(savedClameType.claimAlice, JSON.stringify(claim));
+  localStorage.setItem(claimAliceName(claim.addresses[ALICE]), JSON.stringify(claim));
 };
-const getClaimAlice = () => {
-  return JSON.parse(localStorage.getItem(savedClameType.claimAlice));
+const getClaimAlice = (address) => {
+  return JSON.parse(localStorage.getItem(claimAliceName(address)));
 };
-const downloadLastClaim = () => {
-  const lastClaim2 = localStorage.getItem(savedClameType.claimConfirmed);
+const downloadLastClaim = (address) => {
+  const lastClaim2 = localStorage.getItem(claimConfirmedName(address));
   if (!lastClaim2) {
     return;
   }
@@ -507,8 +513,6 @@ var bnUtils = {
   roundDecimals,
   abs
 };
-const ALICE = 0;
-const BOB = 1;
 const formatNumber = (number, reduceDecimalTo = 18) => {
   if (!number)
     return;
@@ -529,7 +533,7 @@ const formatNumber = (number, reduceDecimalTo = 18) => {
 };
 const CSDK_SERVER_ADDRESS = "0xeA085D9698651e76750F07d0dE0464476187b3ca";
 const isValidNewClaim = (claim) => {
-  const lastClaim2 = claimStorage.getConfirmedClaim();
+  const lastClaim2 = claimStorage.getConfirmedClaim(claim.addresses[ALICE]);
   if (lastClaim2) {
     const wasWithdraw = lastClaim2.closed === 1;
     const id = wasWithdraw ? lastClaim2.id + 1 : lastClaim2.id;
@@ -589,7 +593,7 @@ const _controlDebits = (balance, cumulativeDebits) => {
 const isValidClaimAlice = (claim) => {
   let isValid = isValidNewClaim(claim);
   if (isValid) {
-    const savedClaim = claimStorage.getClaimAlice();
+    const savedClaim = claimStorage.getClaimAlice(claim.addresses[ALICE]);
     if (savedClaim) {
       isValid = areEqualClaims(claim, savedClaim);
     }
@@ -610,9 +614,6 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
   if (savedClaim.cumulativeDebits[BOB] !== claim.cumulativeDebits[BOB]) {
     throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[BOB]} - saved claim: ${savedClaim.cumulativeDebits[BOB]}`);
   }
-  if (savedClaim.addresses[ALICE] !== claim.addresses[ALICE]) {
-    throw new Error(`Invalid address of Client: ${claim.addresses[ALICE]} - saved claim: ${savedClaim.addresses[ALICE]}`);
-  }
   if (savedClaim.addresses[BOB] !== claim.addresses[BOB]) {
     throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - saved claim: ${savedClaim.addresses[BOB]}`);
   }
@@ -626,7 +627,7 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
 };
 const isValidWithdraw = (claim, balance) => {
   _controlWithdrawMessage(claim, balance);
-  const savedClaim = claimStorage.getConfirmedClaim();
+  const savedClaim = claimStorage.getConfirmedClaim(claim.addresses[ALICE]);
   if (savedClaim) {
     return areEqualClaims(claim, savedClaim, true);
   }
@@ -2187,7 +2188,7 @@ const cashin$1 = async (claim, web3Provider) => {
   }
 };
 const _isAliceClaimNotSigned = (claim) => {
-  const lastAliceClaim = claimStorage.getClaimAlice();
+  const lastAliceClaim = claimStorage.getClaimAlice(claim.addresses[ALICE]);
   if (lastAliceClaim && lastAliceClaim.id === claim.id && lastAliceClaim.nonce >= claim.nonce) {
     throw new Error(`Claim with nonce ${claim.nonce} is already signed`);
   } else {
@@ -2245,8 +2246,8 @@ const signWithdraw$1 = async (claim, web3Provider) => {
     throw new Error("Withdraw claim is not valid");
   }
 };
-const lastClaim$1 = (claim) => {
-  const confirmedClaim = claimStorage.getConfirmedClaim();
+const lastClaim$1 = (claim, address) => {
+  const confirmedClaim = claimStorage.getConfirmedClaim(address);
   if (!confirmedClaim && claim === null) {
     return true;
   }
@@ -2342,12 +2343,17 @@ const cashout = async (claim) => {
     throw error;
   }
 };
-const lastClaim = (claim) => {
+const lastClaim = async (claim) => {
   if (claim && claim.hasOwnProperty("error")) {
     emitErrorEvent(eventType.claimNotSynced, claim.error);
     return;
   }
-  const trueOrClaim = claimLibrary.lastClaim(claim);
+  const { address } = await getAddress();
+  if (claim && claim.addresses[ALICE].toLowerCase() !== address.toLowerCase()) {
+    emitErrorEvent(eventType.claimNotSynced, claim.error);
+    return;
+  }
+  const trueOrClaim = claimLibrary.lastClaim(claim, address);
   if (trueOrClaim === true) {
     emitEvent(eventType.claimSynced, "Claims are synced");
   } else {
@@ -2401,7 +2407,7 @@ const getTotalBalance = async (address) => {
   } catch (error) {
     emitErrorEvent(eventType.getBalance, error);
   }
-  const lastClaim2 = claimLibrary.getConfirmedClaim();
+  const lastClaim2 = claimLibrary.getConfirmedClaim(address);
   if (lastClaim2) {
     balance = bnUtils.plus(balance, bnUtils.minus(lastClaim2.cumulativeDebits[BOB], lastClaim2.cumulativeDebits[ALICE]));
   }
@@ -2532,7 +2538,7 @@ const receiveMsg = async (msg) => {
     }
     switch (action) {
       case CSDK_TYPE_HANDSHAKE: {
-        const lastClaimAlice = claims.lastClaim(claim);
+        const lastClaimAlice = await claims.lastClaim(claim);
         if (lastClaimAlice) {
           return {
             action,

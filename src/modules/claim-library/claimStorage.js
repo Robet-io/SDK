@@ -2,6 +2,8 @@
 /* eslint-disable-next-line no-redeclare */
 /* global localStorage */
 
+import { ALICE } from '../const'
+
 /**
  * @type {object}
  */
@@ -11,19 +13,31 @@ const savedClameType = {
 }
 
 /**
+ * @param {string} address
+ * @return {string}
+ */
+const claimConfirmedName = address => `${savedClameType.claimConfirmed}_${address.toLowerCase()}`
+
+/**
+* @param {string} address
+* @return {string}
+*/
+const claimAliceName = address => `${savedClameType.claimAlice}_${address.toLowerCase()}`
+
+/**
  *
  * @param {object} claim
  */
 const saveConfirmedClaim = claim => {
-  localStorage.setItem(savedClameType.claimConfirmed, JSON.stringify(claim))
+  localStorage.setItem(claimConfirmedName(claim.addresses[ALICE]), JSON.stringify(claim))
 }
 
 /**
- *
+ * @param {string} address
  * @return {object} claim
  */
-const getConfirmedClaim = () => {
-  return JSON.parse(localStorage.getItem(savedClameType.claimConfirmed))
+const getConfirmedClaim = (address) => {
+  return JSON.parse(localStorage.getItem(claimConfirmedName(address)))
 }
 
 /**
@@ -31,19 +45,22 @@ const getConfirmedClaim = () => {
  * @param {object} claim
  */
 const saveClaimAlice = claim => {
-  localStorage.setItem(savedClameType.claimAlice, JSON.stringify(claim))
+  localStorage.setItem(claimAliceName(claim.addresses[ALICE]), JSON.stringify(claim))
 }
 
 /**
- *
+ * @param {string} address
  * @return {object} claim
  */
-const getClaimAlice = () => {
-  return JSON.parse(localStorage.getItem(savedClameType.claimAlice))
+const getClaimAlice = (address) => {
+  return JSON.parse(localStorage.getItem(claimAliceName(address)))
 }
 
-const downloadLastClaim = () => {
-  const lastClaim = localStorage.getItem(savedClameType.claimConfirmed)
+/**
+ * @param {string} address
+ */
+const downloadLastClaim = (address) => {
+  const lastClaim = localStorage.getItem(claimConfirmedName(address))
   if (!lastClaim) {
     return
   }
@@ -59,7 +76,6 @@ const downloadLastClaim = () => {
 }
 
 /**
- *
  * @param {string} jsonString
  * @returns {string}
  */

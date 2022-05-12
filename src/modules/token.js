@@ -61,13 +61,25 @@ const expireToken = 'expireToken'
 const expirationPeriod = 1200000 // 20min * 60 * 1000
 
 /**
- *
+ * @param {string} address
+ * @return {string}
+ */
+const authTokenName = address => `${authToken}_${address.toLowerCase()}`
+
+/**
+ * @param {string} address
+ * @return {string}
+ */
+const expireTokenName = address => `${expireToken}_${address.toLowerCase()}`
+
+/**
+ * @param {string} address
  * @param {string} token
  */
-const setToken = (token) => {
+const setToken = (address, token) => {
   try {
-    localStorage.setItem(authToken, token)
-    localStorage.setItem(expireToken, Date.now() + expirationPeriod)
+    localStorage.setItem(authTokenName(address), token)
+    localStorage.setItem(expireTokenName(address), Date.now() + expirationPeriod)
     emitEvent(eventType.token, 'JWT token received')
   } catch (error) {
     emitErrorEvent(eventType.token, error)
@@ -75,21 +87,21 @@ const setToken = (token) => {
 }
 
 /**
- *
+ * @param {string} address
  * @returns {string}
  */
-const getToken = () => {
-  return localStorage.getItem(authToken)
+const getToken = (address) => {
+  return localStorage.getItem(authTokenName(address))
 }
 
 /**
- *
+ * @param {string} address
  * @returns {boolean}
  */
-const isLogged = () => {
-  const token = getToken()
+const isLogged = (address) => {
+  const token = getToken(address)
   if (token) {
-    const expirationTime = localStorage.getItem(expireToken)
+    const expirationTime = localStorage.getItem(expireTokenName(address))
     if (expirationTime && expirationTime > Date.now()) {
       return true
     }
