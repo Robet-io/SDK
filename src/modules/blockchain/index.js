@@ -9,6 +9,7 @@ import {
 
 const vaultAddress = process.env.CSDK_CONTRACT_VAULT_ADDRESS
 const degaAddress = process.env.CSDK_CONTRACT_TOKEN_ADDRESS
+const btcbAddress = process.env.CSDK_BTCB_ADDRESS
 
 /**
  *
@@ -91,6 +92,28 @@ const getDegaBalance = async (address, web3Provider) => {
 }
 
 /**
+ * @param {string} address
+ * @param {object} web3Provider
+ * @returns {string} balance
+ */
+const getBtcbBalance = async (address, web3Provider) => {
+  const contract = initContract(web3Provider, btcbAddress, degaAbi)
+  const balance = await callMethod(contract, 'balanceOf', address)
+  return balance
+}
+
+/**
+ * @param {string} address
+ * @param {object} web3Provider
+ * @returns {string} balance
+ */
+const getBnbBalance = async (address, web3Provider) => {
+  const web3 = new Web3(web3Provider)
+  const balance = await web3.eth.getBalance(address)
+  return balance
+}
+
+/**
  *
  * @param {string} address
  * @param {object} contract
@@ -141,5 +164,7 @@ export default {
   withdrawConsensually,
   getDegaBalance,
   depositDega,
-  approveDega
+  approveDega,
+  getBtcbBalance,
+  getBnbBalance
 }

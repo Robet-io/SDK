@@ -45,7 +45,7 @@ const eventType = {
   depositDega: "depositDega",
   withdrawDega: "withdrawDega",
   approveDega: "approveDega",
-  getTotalBalance: "getTotalBalance"
+  getBalance: "getBalance"
 };
 const cryptoEvent = "cryptoSDK";
 const cryptoEventWS = "cryptoSDK_WS";
@@ -2022,6 +2022,7 @@ var degaAbi = [
 ];
 const vaultAddress = "0x9b9a5C1Af0A543d7dd243Bea6BDD53458dd0F067";
 const degaAddress = "0x16B052D944c1b7731d7C240b6072530929C93b40";
+const btcbAddress = "0x6ce8dA28E2f864420840cF74474eFf5fD80E65B8";
 const initContract = (web3Provider, contractAddress = vaultAddress, contractAbi = vaultAbi) => {
   const web3 = new Web3(web3Provider);
   const contract = new web3.eth.Contract(contractAbi, contractAddress);
@@ -2058,9 +2059,19 @@ const withdrawConsensually$1 = async (claim, web3Provider) => {
     throw new Error(error);
   }
 };
-const getDegaBalance = async (address, web3Provider) => {
+const getDegaBalance$1 = async (address, web3Provider) => {
   const contract = initContract(web3Provider, degaAddress, degaAbi);
   const balance = await callMethod(contract, "balanceOf", address);
+  return balance;
+};
+const getBtcbBalance$1 = async (address, web3Provider) => {
+  const contract = initContract(web3Provider, btcbAddress, degaAbi);
+  const balance = await callMethod(contract, "balanceOf", address);
+  return balance;
+};
+const getBnbBalance$1 = async (address, web3Provider) => {
+  const web3 = new Web3(web3Provider);
+  const balance = await web3.eth.getBalance(address);
   return balance;
 };
 const sendTx = async (address, contract, method, params, event, web3Provider) => {
@@ -2085,9 +2096,11 @@ const approveDega$1 = async (amount, address, web3Provider) => {
 var blockchain = {
   getVaultBalance: getVaultBalance$1,
   withdrawConsensually: withdrawConsensually$1,
-  getDegaBalance,
+  getDegaBalance: getDegaBalance$1,
   depositDega: depositDega$1,
-  approveDega: approveDega$1
+  approveDega: approveDega$1,
+  getBtcbBalance: getBtcbBalance$1,
+  getBnbBalance: getBnbBalance$1
 };
 const cashout$1 = async (claim, web3Provider) => {
   claimControls.isValidNewClaim(claim);
@@ -2378,7 +2391,7 @@ const getTotalBalance = async (address) => {
   try {
     await checkRightNetwork();
   } catch (error) {
-    emitErrorEvent(eventType.getTotalBalance, error);
+    emitErrorEvent(eventType.getBalance, error);
     throw error;
   }
   const web3Provider = getWeb3Provider();
@@ -2386,7 +2399,7 @@ const getTotalBalance = async (address) => {
   try {
     balance = bnUtils.plus(balance, (await blockchain.getVaultBalance(address, web3Provider)).balance);
   } catch (error) {
-    emitErrorEvent(eventType.getTotalBalance, error);
+    emitErrorEvent(eventType.getBalance, error);
   }
   const lastClaim2 = claimLibrary.getConfirmedClaim();
   if (lastClaim2) {
@@ -2452,9 +2465,60 @@ const approveDega = async (amount, address) => {
     throw error;
   }
 };
-var dega = {
+const getDegaBalance = async (address) => {
+  try {
+    checkRightNetwork();
+  } catch (error) {
+    emitErrorEvent(eventType.getBalance, error);
+    throw error;
+  }
+  const web3Provider = getWeb3Provider();
+  let balance = "0";
+  try {
+    balance = await blockchain.getDegaBalance(address, web3Provider);
+  } catch (error) {
+    throw new Error("Can't get balance of Dega");
+  }
+  return balance;
+};
+const getBtcbBalance = async (address) => {
+  try {
+    checkRightNetwork();
+  } catch (error) {
+    emitErrorEvent(eventType.getBalance, error);
+    throw error;
+  }
+  const web3Provider = getWeb3Provider();
+  let balance = "0";
+  try {
+    balance = await blockchain.getBtcbBalance(address, web3Provider);
+  } catch (error) {
+    throw new Error("Can't get balance of BTCB");
+  }
+  return balance;
+};
+const getBnbBalance = async (address) => {
+  try {
+    checkRightNetwork();
+  } catch (error) {
+    emitErrorEvent(eventType.getBalance, error);
+    throw error;
+  }
+  const web3Provider = getWeb3Provider();
+  let balance = "0";
+  try {
+    balance = await blockchain.getBnbBalance(address, web3Provider);
+  } catch (error) {
+    throw new Error("Can't get balance of BNB");
+  }
+  return balance;
+};
+var erc20 = {
   depositDega,
-  approveDega
+  approveDega,
+  getDegaBalance,
+  getBtcbBalance,
+  getBnbBalance
 };
 const CSDK_TYPE_CASHIN = "CASHIN";
 const CSDK_TYPE_CASHOUT = "CASHOUT";
@@ -2544,7 +2608,10 @@ const cryptoSDK = {
   pay: claims.cashin,
   payReceived: claims.claimControfirmed,
   win: claims.cashout,
-  depositDega: dega.depositDega,
-  approveDega: dega.approveDega
+  depositDega: erc20.depositDega,
+  approveDega: erc20.approveDega,
+  getDegaBalance: erc20.getDegaBalance,
+  getBtcbBalance: erc20.getBtcbBalance,
+  getBnbBalance: erc20.getBnbBalance
 };
 export { cryptoSDK as default };

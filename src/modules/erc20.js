@@ -80,7 +80,82 @@ const approveDega = async (amount, address) => {
   }
 }
 
+/**
+ * @param {string} address
+ * @returns {string} balance
+ */
+const getDegaBalance = async (address) => {
+  try {
+    checkRightNetwork()
+  } catch (error) {
+    emitErrorEvent(eventType.getBalance, error)
+    throw error
+  }
+
+  const web3Provider = getWeb3Provider()
+
+  let balance = '0'
+  try {
+    balance = await blockchain.getDegaBalance(address, web3Provider)
+  } catch (error) {
+    throw new Error("Can't get balance of Dega")
+  }
+
+  return balance
+}
+
+/**
+ * @param {string} address
+ * @returns {string} balance
+ */
+const getBtcbBalance = async (address) => {
+  try {
+    checkRightNetwork()
+  } catch (error) {
+    emitErrorEvent(eventType.getBalance, error)
+    throw error
+  }
+
+  const web3Provider = getWeb3Provider()
+
+  let balance = '0'
+  try {
+    balance = await blockchain.getBtcbBalance(address, web3Provider)
+  } catch (error) {
+    throw new Error("Can't get balance of BTCB")
+  }
+
+  return balance
+}
+
+/**
+ * @param {string} address
+ * @returns {string} balance
+ */
+const getBnbBalance = async (address) => {
+  try {
+    checkRightNetwork()
+  } catch (error) {
+    emitErrorEvent(eventType.getBalance, error)
+    throw error
+  }
+
+  const web3Provider = getWeb3Provider()
+
+  let balance = '0'
+  try {
+    balance = await blockchain.getBnbBalance(address, web3Provider)
+  } catch (error) {
+    throw new Error("Can't get balance of BNB")
+  }
+
+  return balance
+}
+
 export default {
   depositDega,
-  approveDega
+  approveDega,
+  getDegaBalance,
+  getBtcbBalance,
+  getBnbBalance
 }

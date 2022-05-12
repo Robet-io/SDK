@@ -4,7 +4,7 @@ import { isRightNet, setRightNet } from './modules/network'
 import { isMetamaskInstalled, getAddress } from './modules/metamask'
 import token from './modules/token'
 import claims from './modules/claims'
-import dega from './modules/dega'
+import erc20 from './modules/erc20'
 import { ALICE, BOB } from './modules/const'
 import { formatNumber } from './modules/utils'
 
@@ -106,8 +106,11 @@ const cryptoSDK = {
   payReceived: claims.claimControfirmed,
   win: claims.cashout,
 
-  depositDega: dega.depositDega,
-  approveDega: dega.approveDega
+  depositDega: erc20.depositDega,
+  approveDega: erc20.approveDega,
+  getDegaBalance: erc20.getDegaBalance,
+  getBtcbBalance: erc20.getBtcbBalance,
+  getBnbBalance: erc20.getBnbBalance
 }
 
 export default cryptoSDK
