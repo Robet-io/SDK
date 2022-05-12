@@ -24,7 +24,7 @@ const CSDK_SERVER_ADDRESS = process.env.CSDK_SERVER_ADDRESS
  * @param {object} claim new claim for Alice
  */
 const isValidNewClaim = (claim) => {
-  const lastClaim = claimStorage.getConfirmedClaim()
+  const lastClaim = claimStorage.getConfirmedClaim(claim.addresses[ALICE])
   if (lastClaim) {
     const wasWithdraw = lastClaim.closed === 1
     const id = wasWithdraw ? lastClaim.id + 1 : lastClaim.id
@@ -114,7 +114,7 @@ const _controlDebits = (balance, cumulativeDebits) => {
 const isValidClaimAlice = (claim) => {
   let isValid = isValidNewClaim(claim)
   if (isValid) {
-    const savedClaim = claimStorage.getClaimAlice()
+    const savedClaim = claimStorage.getClaimAlice(claim.addresses[ALICE])
     if (savedClaim) {
       isValid = areEqualClaims(claim, savedClaim)
     }
@@ -149,9 +149,10 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
     throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[BOB]} - saved claim: ${savedClaim.cumulativeDebits[BOB]}`)
   }
 
-  if (savedClaim.addresses[ALICE] !== claim.addresses[ALICE]) {
-    throw new Error(`Invalid address of Client: ${claim.addresses[ALICE]} - saved claim: ${savedClaim.addresses[ALICE]}`)
-  }
+  // if (savedClaim.addresses[ALICE] !== claim.addresses[ALICE]) {
+  //   throw new Error(`Invalid address of Client: ${claim.addresses[ALICE]} - saved claim: ${savedClaim.addresses[ALICE]}`)
+  // }
+
   if (savedClaim.addresses[BOB] !== claim.addresses[BOB]) {
     throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - saved claim: ${savedClaim.addresses[BOB]}`)
   }
@@ -173,7 +174,7 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
 const isValidWithdraw = (claim, balance) => {
   _controlWithdrawMessage(claim, balance)
 
-  const savedClaim = claimStorage.getConfirmedClaim()
+  const savedClaim = claimStorage.getConfirmedClaim(claim.addresses[ALICE])
   if (savedClaim) {
     return areEqualClaims(claim, savedClaim, true)
   }

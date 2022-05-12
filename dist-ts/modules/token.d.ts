@@ -13,18 +13,18 @@ export default _default;
  */
 declare function signChallenge(challenge: string, address: string): string;
 /**
- *
+ * @param {string} address
  * @param {string} token
  */
-declare function setToken(token: string): void;
+declare function setToken(address: string, token: string): void;
 /**
- *
+ * @param {string} address
  * @returns {string}
  */
-declare function getToken(): string;
+declare function getToken(address: string): string;
 /**
- *
+ * @param {string} address
  * @returns {boolean}
  */
-declare function isLogged(): boolean;
+declare function isLogged(address: string): boolean;
 //# sourceMappingURL=token.d.ts.map

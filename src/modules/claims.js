@@ -13,6 +13,7 @@ import claimLibrary from './claim-library'
 import blockchain from './blockchain'
 import bnUtils from './bnUtils'
 import { ALICE, BOB } from './const'
+import { getAddress } from './metamask'
 
 /**
  * @param {object} claim
@@ -101,12 +102,19 @@ const cashout = async (claim) => {
  * @param {object} claim
  * @return {object|boolean}
  */
-const lastClaim = (claim) => {
+const lastClaim = async (claim) => {
   if (claim && claim.hasOwnProperty('error')) {
     emitErrorEvent(eventType.claimNotSynced, claim.error)
     return
   }
-  const trueOrClaim = claimLibrary.lastClaim(claim)
+
+  const { address } = await getAddress()
+  if (claim && (claim.addresses[ALICE].toLowerCase() !== address.toLowerCase())) {
+    emitErrorEvent(eventType.claimNotSynced, claim.error)
+    return
+  }
+
+  const trueOrClaim = claimLibrary.lastClaim(claim, address)
   if (trueOrClaim === true) {
     emitEvent(eventType.claimSynced, 'Claims are synced')
   } else {
@@ -180,7 +188,7 @@ const getTotalBalance = async (address) => {
     emitErrorEvent(eventType.getBalance, error)
   }
 
-  const lastClaim = claimLibrary.getConfirmedClaim()
+  const lastClaim = claimLibrary.getConfirmedClaim(address)
 
   if (lastClaim) {
     balance = bnUtils.plus(balance, bnUtils.minus(lastClaim.cumulativeDebits[BOB], lastClaim.cumulativeDebits[ALICE]))

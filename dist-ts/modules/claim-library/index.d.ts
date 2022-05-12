@@ -4,8 +4,8 @@ declare namespace _default {
     export { cashout };
     export { signWithdraw };
     export { lastClaim };
-    export const downloadLastClaim: () => void;
-    export const getConfirmedClaim: () => any;
+    export const downloadLastClaim: (address: string) => void;
+    export const getConfirmedClaim: (address: string) => any;
 }
 export default _default;
 /**
@@ -34,9 +34,9 @@ declare function cashout(claim: object, web3Provider: object): object;
  */
 declare function signWithdraw(claim: object, web3Provider: any): object;
 /**
- *
- * @param {object} claim
+ * @param {object|null} claim
+ * @param {string} address
  * @return {object|boolean}
  */
-declare function lastClaim(claim: object): object | boolean;
+declare function lastClaim(claim: object | null, address: string): object | boolean;
 //# sourceMappingURL=index.d.ts.map

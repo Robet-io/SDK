@@ -126,7 +126,7 @@ const cashin = async (claim, web3Provider) => {
  * @return {boolean}
  */
 const _isAliceClaimNotSigned = (claim) => {
-  const lastAliceClaim = claimStorage.getClaimAlice()
+  const lastAliceClaim = claimStorage.getClaimAlice(claim.addresses[ALICE])
   if (lastAliceClaim && lastAliceClaim.id === claim.id && lastAliceClaim.nonce >= claim.nonce) {
     throw new Error(`Claim with nonce ${claim.nonce} is already signed`)
   } else {
@@ -222,12 +222,12 @@ const signWithdraw = async (claim, web3Provider) => {
 }
 
 /**
- *
- * @param {object} claim
+ * @param {object|null} claim
+ * @param {string} address
  * @return {object|boolean}
  */
-const lastClaim = (claim) => {
-  const confirmedClaim = claimStorage.getConfirmedClaim()
+const lastClaim = (claim, address) => {
+  const confirmedClaim = claimStorage.getConfirmedClaim(address)
   if (!confirmedClaim && claim === null) {
     return true
   } if (!confirmedClaim && claim && claim.nonce) {
