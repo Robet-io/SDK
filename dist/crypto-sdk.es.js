@@ -614,6 +614,9 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
   if (savedClaim.cumulativeDebits[BOB] !== claim.cumulativeDebits[BOB]) {
     throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[BOB]} - saved claim: ${savedClaim.cumulativeDebits[BOB]}`);
   }
+  if (savedClaim.addresses[ALICE] !== claim.addresses[ALICE]) {
+    throw new Error(`Invalid address of Client: ${claim.addresses[ALICE]} - saved claim: ${savedClaim.addresses[ALICE]}`);
+  }
   if (savedClaim.addresses[BOB] !== claim.addresses[BOB]) {
     throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - saved claim: ${savedClaim.addresses[BOB]}`);
   }
@@ -631,7 +634,7 @@ const isValidWithdraw = (claim, balance) => {
   if (savedClaim) {
     return areEqualClaims(claim, savedClaim, true);
   }
-  return false;
+  return true;
 };
 const _controlWithdrawMessage = (claim, balance) => {
   const balanceToWithdraw = bnUtils.plus(balance, bnUtils.minus(claim.cumulativeDebits[BOB], claim.cumulativeDebits[ALICE]));
@@ -2094,6 +2097,15 @@ const approveDega$1 = async (amount, address, web3Provider) => {
   const contract = initContract(web3Provider, degaAddress, degaAbi);
   await sendTx(address, contract, "approve", [vaultAddress, amount], eventType.approveDega, web3Provider);
 };
+const getLastClosedChannel = async (address, web3Provider) => {
+  const contract = initContract(web3Provider);
+  const emergencyWithdrawRequest = await callMethod(contract, "emergencyWithdrawRequests", address);
+  if (emergencyWithdrawRequest.claimTransaction.id.toString() !== "0") {
+    return emergencyWithdrawRequest.claimTransaction.id.toString();
+  }
+  const closedWithdraw = await callMethod(contract, "withdrawTransactions", address);
+  return closedWithdraw.id.toString();
+};
 var blockchain = {
   getVaultBalance: getVaultBalance$1,
   withdrawConsensually: withdrawConsensually$1,
@@ -2101,7 +2113,8 @@ var blockchain = {
   depositDega: depositDega$1,
   approveDega: approveDega$1,
   getBtcbBalance: getBtcbBalance$1,
-  getBnbBalance: getBnbBalance$1
+  getBnbBalance: getBnbBalance$1,
+  getLastClosedChannel
 };
 const cashout$1 = async (claim, web3Provider) => {
   claimControls.isValidNewClaim(claim);
@@ -2109,8 +2122,9 @@ const cashout$1 = async (claim, web3Provider) => {
     if (!_verifySignature(claim)) {
       throw new Error("Server's signature is not verified");
     }
+    const channelIsValid = await _controlChannel(claim, web3Provider);
     const balanceIsEnough = await _isBalanceEnough(claim, web3Provider);
-    if (balanceIsEnough === true) {
+    if (balanceIsEnough === true && channelIsValid) {
       await _signClaim(claim);
       claimStorage.saveConfirmedClaim(claim);
       return claim;
@@ -2176,7 +2190,8 @@ const _verifySignature = (claim, ofAlice = false) => {
 const cashin$1 = async (claim, web3Provider) => {
   const claimWasntSigned = _isAliceClaimNotSigned(claim);
   claimControls.isValidNewClaim(claim);
-  if (claimWasntSigned) {
+  const channelIsValid = await _controlChannel(claim, web3Provider);
+  if (claimWasntSigned && channelIsValid) {
     const balanceIsEnough = await _isBalanceEnough(claim, web3Provider);
     if (balanceIsEnough === true) {
       await _signClaim(claim);
@@ -2238,12 +2253,21 @@ const signWithdraw$1 = async (claim, web3Provider) => {
     throw new Error("Can't get balance from Vault");
   }
   const claimIsValid = claimControls.isValidWithdraw(claim, balance);
-  if (claimIsValid && claimWasntSigned) {
+  const channelIsValid = await _controlChannel(claim, web3Provider);
+  if (claimIsValid && claimWasntSigned && channelIsValid) {
     await _signClaim(claim);
     claimStorage.saveClaimAlice(claim);
     return claim;
   } else {
     throw new Error("Withdraw claim is not valid");
+  }
+};
+const _controlChannel = async (claim, web3Provider) => {
+  const lastClosedChannel = await blockchain.getLastClosedChannel(claim.addresses[ALICE], web3Provider);
+  if (bnUtils.eq(bnUtils.plus(lastClosedChannel, "1"), claim.id)) {
+    return true;
+  } else {
+    throw new Error("Invalid channel id");
   }
 };
 const lastClaim$1 = (claim, address) => {
@@ -2485,7 +2509,7 @@ const getDegaBalance = async (address) => {
   } catch (error) {
     throw new Error("Can't get balance of Dega");
   }
-  return balance;
+  return balance.toString();
 };
 const getBtcbBalance = async (address) => {
   try {
@@ -2501,7 +2525,7 @@ const getBtcbBalance = async (address) => {
   } catch (error) {
     throw new Error("Can't get balance of BTCB");
   }
-  return balance;
+  return balance.toString();
 };
 const getBnbBalance = async (address) => {
   try {
@@ -2517,7 +2541,7 @@ const getBnbBalance = async (address) => {
   } catch (error) {
     throw new Error("Can't get balance of BNB");
   }
-  return balance;
+  return balance.toString();
 };
 var erc20 = {
   depositDega,

@@ -30,9 +30,10 @@ declare function cashout(claim: object, web3Provider: object): object;
 /**
  *
  * @param {object} claim New claim for sign
+ * @param {object} web3Provider
  * @return {object}
  */
-declare function signWithdraw(claim: object, web3Provider: any): object;
+declare function signWithdraw(claim: object, web3Provider: object): object;
 /**
  * @param {object|null} claim
  * @param {string} address

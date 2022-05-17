@@ -6,15 +6,16 @@ declare namespace _default {
     export { approveDega };
     export { getBtcbBalance };
     export { getBnbBalance };
+    export { getLastClosedChannel };
 }
 export default _default;
 /**
  *
  * @param {string} address
  * @param {object} web3Provider
- * @returns { balance: string }
+ * @returns {object}
  */
-declare function getVaultBalance(address: string, web3Provider: object): any;
+declare function getVaultBalance(address: string, web3Provider: object): object;
 /**
  *
  * @param {object} claim
@@ -54,4 +55,10 @@ declare function getBtcbBalance(address: string, web3Provider: object): string;
  * @returns {string} balance
  */
 declare function getBnbBalance(address: string, web3Provider: object): string;
+/**
+ * @param {string} address
+ * @param {object} web3Provider
+ * @returns {string}
+ */
+declare function getLastClosedChannel(address: string, web3Provider: object): string;
 //# sourceMappingURL=index.d.ts.map

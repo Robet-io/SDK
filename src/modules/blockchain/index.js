@@ -39,7 +39,7 @@ const callMethod = async (contract, method, params) => {
  *
  * @param {string} address
  * @param {object} web3Provider
- * @returns { balance: string }
+ * @returns {object}
  */
 const getVaultBalance = async (address, web3Provider) => {
   const contract = initContract(web3Provider)
@@ -159,6 +159,22 @@ const approveDega = async (amount, address, web3Provider) => {
   await sendTx(address, contract, 'approve', [vaultAddress, amount], eventType.approveDega, web3Provider)
 }
 
+/**
+ * @param {string} address
+ * @param {object} web3Provider
+ * @returns {string}
+ */
+const getLastClosedChannel = async (address, web3Provider) => {
+  const contract = initContract(web3Provider)
+  const emergencyWithdrawRequest = await callMethod(contract, 'emergencyWithdrawRequests', address)
+  if (emergencyWithdrawRequest.claimTransaction.id.toString() !== '0') {
+    return emergencyWithdrawRequest.claimTransaction.id.toString()
+  }
+
+  const closedWithdraw = await callMethod(contract, 'withdrawTransactions', address)
+  return closedWithdraw.id.toString()
+}
+
 export default {
   getVaultBalance,
   withdrawConsensually,
@@ -166,5 +182,6 @@ export default {
   depositDega,
   approveDega,
   getBtcbBalance,
-  getBnbBalance
+  getBnbBalance,
+  getLastClosedChannel
 }

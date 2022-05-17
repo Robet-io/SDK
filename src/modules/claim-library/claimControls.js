@@ -149,10 +149,9 @@ const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
     throw new Error(`Invalid claim cumulative debit of Server: ${claim.cumulativeDebits[BOB]} - saved claim: ${savedClaim.cumulativeDebits[BOB]}`)
   }
 
-  // if (savedClaim.addresses[ALICE] !== claim.addresses[ALICE]) {
-  //   throw new Error(`Invalid address of Client: ${claim.addresses[ALICE]} - saved claim: ${savedClaim.addresses[ALICE]}`)
-  // }
-
+  if (savedClaim.addresses[ALICE] !== claim.addresses[ALICE]) {
+    throw new Error(`Invalid address of Client: ${claim.addresses[ALICE]} - saved claim: ${savedClaim.addresses[ALICE]}`)
+  }
   if (savedClaim.addresses[BOB] !== claim.addresses[BOB]) {
     throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - saved claim: ${savedClaim.addresses[BOB]}`)
   }
@@ -178,7 +177,7 @@ const isValidWithdraw = (claim, balance) => {
   if (savedClaim) {
     return areEqualClaims(claim, savedClaim, true)
   }
-  return false
+  return true
 }
 
 /**

@@ -43,9 +43,9 @@ declare function signWithdraw(claim: object): object;
 declare function withdrawConsensually(claim: object): Promise<void>;
 /**
  * @param {string} address
- * @return {string}
+ * @return {object}
  */
-declare function getVaultBalance(address: string): string;
+declare function getVaultBalance(address: string): object;
 /**
  * @param {string} address
  * @return {string}

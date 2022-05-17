@@ -12,7 +12,7 @@ import blockchain from './blockchain'
 import bnUtils from './bnUtils'
 
 /**
- * @param {number} amount
+ * @param {string} amount
  * @param {string} address
  * @return {object} txhash
  */
@@ -42,7 +42,7 @@ const depositDega = async (amount, address) => {
 }
 
 /**
- * @param {number} amount
+ * @param {string} amount
  * @param {string} address
  */
 const checkDegaBalance = async (amount, address, web3Provider) => {
@@ -59,7 +59,7 @@ const checkDegaBalance = async (amount, address, web3Provider) => {
 }
 
 /**
- * @param {number} amount
+ * @param {string} amount
  * @param {string} address
  */
 const approveDega = async (amount, address) => {
@@ -101,7 +101,7 @@ const getDegaBalance = async (address) => {
     throw new Error("Can't get balance of Dega")
   }
 
-  return balance
+  return balance.toString()
 }
 
 /**
@@ -125,7 +125,7 @@ const getBtcbBalance = async (address) => {
     throw new Error("Can't get balance of BTCB")
   }
 
-  return balance
+  return balance.toString()
 }
 
 /**
@@ -149,7 +149,7 @@ const getBnbBalance = async (address) => {
     throw new Error("Can't get balance of BNB")
   }
 
-  return balance
+  return balance.toString()
 }
 
 export default {

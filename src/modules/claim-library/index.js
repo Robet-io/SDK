@@ -20,8 +20,10 @@ const cashout = async (claim, web3Provider) => {
     if (!_verifySignature(claim)) {
       throw new Error("Server's signature is not verified")
     }
+    const channelIsValid = await _controlChannel(claim, web3Provider)
     const balanceIsEnough = await _isBalanceEnough(claim, web3Provider)
-    if (balanceIsEnough === true) {
+
+    if (balanceIsEnough === true && channelIsValid) {
       await _signClaim(claim)
       claimStorage.saveConfirmedClaim(claim)
       return claim
@@ -108,7 +110,9 @@ const cashin = async (claim, web3Provider) => {
   // check if the claim wasn't already signed
   const claimWasntSigned = _isAliceClaimNotSigned(claim)
   const claimIsValid = claimControls.isValidNewClaim(claim)
-  if (claimIsValid && claimWasntSigned) {
+  const channelIsValid = await _controlChannel(claim, web3Provider)
+
+  if (claimIsValid && claimWasntSigned && channelIsValid) {
     const balanceIsEnough = await _isBalanceEnough(claim, web3Provider)
     if (balanceIsEnough === true) {
       await _signClaim(claim)
@@ -169,7 +173,6 @@ const _checkBalance = async (claim, index, web3Provider) => {
 }
 
 /**
- *
  * @param {object} claim
  * @param {object} web3Provider
  */
@@ -197,6 +200,7 @@ const claimControfirmed = async (claim) => {
 /**
  *
  * @param {object} claim New claim for sign
+ * @param {object} web3Provider
  * @return {object}
  */
 const signWithdraw = async (claim, web3Provider) => {
@@ -212,12 +216,28 @@ const signWithdraw = async (claim, web3Provider) => {
   }
 
   const claimIsValid = claimControls.isValidWithdraw(claim, balance)
-  if (claimIsValid && claimWasntSigned) {
+  const channelIsValid = await _controlChannel(claim, web3Provider)
+
+  if (claimIsValid && claimWasntSigned && channelIsValid) {
     await _signClaim(claim)
     claimStorage.saveClaimAlice(claim)
     return claim
   } else {
     throw new Error('Withdraw claim is not valid')
+  }
+}
+
+/**
+ * @param {object} claim
+ * @param {object} web3Provider
+ * @return {boolean}
+ */
+const _controlChannel = async (claim, web3Provider) => {
+  const lastClosedChannel = await blockchain.getLastClosedChannel(claim.addresses[ALICE], web3Provider)
+  if (bnUtils.eq(bnUtils.plus(lastClosedChannel, '1'), claim.id)) {
+    return true
+  } else {
+    throw new Error('Invalid channel id')
   }
 }
 
