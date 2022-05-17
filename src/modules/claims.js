@@ -38,10 +38,9 @@ const cashin = async (claim) => {
   }
 }
 
-// TODO delete
 /**
  * @param {string} address
- * @return {string}
+ * @return {object}
  */
 const getVaultBalance = async (address) => {
   const web3Provider = getWeb3Provider()

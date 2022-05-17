@@ -44,6 +44,9 @@ jest.mock('../src/modules/blockchain', () => {
       }),
       withdrawConsensually: jest.fn((claim, web3Provider) => {
         return true
+      }),
+      getLastClosedChannel: jest.fn((claim, web3Provider) => {
+        return '0'
       })
     }
   }

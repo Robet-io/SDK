@@ -7,16 +7,16 @@ declare namespace _default {
 }
 export default _default;
 /**
- * @param {number} amount
+ * @param {string} amount
  * @param {string} address
  * @return {object} txhash
  */
-declare function depositDega(amount: number, address: string): object;
+declare function depositDega(amount: string, address: string): object;
 /**
- * @param {number} amount
+ * @param {string} amount
  * @param {string} address
  */
-declare function approveDega(amount: number, address: string): Promise<void>;
+declare function approveDega(amount: string, address: string): Promise<void>;
 /**
  * @param {string} address
  * @returns {string} balance

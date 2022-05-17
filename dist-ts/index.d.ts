@@ -12,15 +12,15 @@ declare namespace cryptoSDK {
     export const setToken: (address: string, token: string) => void;
     export const getToken: (address: string) => string;
     export const isLogged: (address: string) => boolean;
-    export const getVaultBalance: (address: string) => string;
+    export const getVaultBalance: (address: string) => any;
     export const getTotalBalance: (address: string) => string;
     export const downloadLastClaim: (address: string) => void;
     export { formatNumber };
     export const pay: (claim: any) => any;
     export const payReceived: (claim: any) => Promise<void>;
     export const win: (claim: any) => any;
-    export const depositDega: (amount: number, address: string) => any;
-    export const approveDega: (amount: number, address: string) => Promise<void>;
+    export const depositDega: (amount: string, address: string) => any;
+    export const approveDega: (amount: string, address: string) => Promise<void>;
     export const getDegaBalance: (address: string) => string;
     export const getBtcbBalance: (address: string) => string;
     export const getBnbBalance: (address: string) => string;
