@@ -152,10 +152,33 @@ const getBnbBalance = async (address) => {
   return balance.toString()
 }
 
+/**
+ * @param {string} address
+ * @returns {string} allowance
+ */
+const getDegaAllowance = async (address) => {
+  try {
+    checkRightNetwork()
+  } catch (error) {
+    emitErrorEvent(eventType.approveDega, error)
+    throw error
+  }
+
+  const web3Provider = getWeb3Provider()
+
+  try {
+    return await blockchain.getDegaAllowance(address, web3Provider)
+  } catch (error) {
+    emitErrorEvent(eventType.approveDega, error)
+    throw error
+  }
+}
+
 export default {
   depositDega,
   approveDega,
   getDegaBalance,
   getBtcbBalance,
-  getBnbBalance
+  getBnbBalance,
+  getDegaAllowance
 }

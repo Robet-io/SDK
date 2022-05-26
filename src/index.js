@@ -108,6 +108,7 @@ const cryptoSDK = {
 
   depositDega: erc20.depositDega,
   approveDega: erc20.approveDega,
+  getDegaAllowance: erc20.getDegaAllowance,
   getDegaBalance: erc20.getDegaBalance,
   getBtcbBalance: erc20.getBtcbBalance,
   getBnbBalance: erc20.getBnbBalance

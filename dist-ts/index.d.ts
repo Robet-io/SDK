@@ -21,6 +21,7 @@ declare namespace cryptoSDK {
     export const win: (claim: any) => any;
     export const depositDega: (amount: string, address: string) => any;
     export const approveDega: (amount: string, address: string) => Promise<void>;
+    export const getDegaAllowance: (address: string) => string;
     export const getDegaBalance: (address: string) => string;
     export const getBtcbBalance: (address: string) => string;
     export const getBnbBalance: (address: string) => string;
