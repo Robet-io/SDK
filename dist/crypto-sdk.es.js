@@ -45,7 +45,8 @@ const eventType = {
   depositDega: "depositDega",
   withdrawDega: "withdrawDega",
   approveDega: "approveDega",
-  getBalance: "getBalance"
+  getBalance: "getBalance",
+  degaAllowed: "degaAllowed"
 };
 const cryptoEvent = "cryptoSDK";
 const cryptoEventWS = "cryptoSDK_WS";
@@ -2033,11 +2034,22 @@ const initContract = (web3Provider, contractAddress = vaultAddress, contractAbi 
   return contract;
 };
 const callMethod = async (contract, method, params) => {
-  return await contract.methods[method](params).call();
+  return await contract.methods[method](...params).call();
+};
+const sendTx = async (address, contract, method, params, event, web3Provider) => {
+  const web3 = new Web3(web3Provider);
+  const gas = await contract.methods[method](...params).estimateGas({ from: address });
+  const gasPrice = await web3.eth.getGasPrice();
+  const options = { gasPrice, from: address, gas };
+  await contract.methods[method](...params).send(options).on("transactionHash", (txHash) => {
+    emitEvent(event, { txHash });
+  }).on("receipt", (receipt) => {
+    emitEvent(event, { receipt });
+  });
 };
 const getVaultBalance$1 = async (address, web3Provider) => {
   const contract = initContract(web3Provider);
-  const balance = await callMethod(contract, "balanceOf", address);
+  const balance = await callMethod(contract, "balanceOf", [address]);
   return { balance };
 };
 const withdrawConsensually$1 = async (claim, web3Provider) => {
@@ -2065,29 +2077,18 @@ const withdrawConsensually$1 = async (claim, web3Provider) => {
 };
 const getDegaBalance$1 = async (address, web3Provider) => {
   const contract = initContract(web3Provider, degaAddress, degaAbi);
-  const balance = await callMethod(contract, "balanceOf", address);
+  const balance = await callMethod(contract, "balanceOf", [address]);
   return balance;
 };
 const getBtcbBalance$1 = async (address, web3Provider) => {
   const contract = initContract(web3Provider, btcbAddress, degaAbi);
-  const balance = await callMethod(contract, "balanceOf", address);
+  const balance = await callMethod(contract, "balanceOf", [address]);
   return balance;
 };
 const getBnbBalance$1 = async (address, web3Provider) => {
   const web3 = new Web3(web3Provider);
   const balance = await web3.eth.getBalance(address);
   return balance;
-};
-const sendTx = async (address, contract, method, params, event, web3Provider) => {
-  const web3 = new Web3(web3Provider);
-  const gas = await contract.methods[method](...params).estimateGas({ from: address });
-  const gasPrice = await web3.eth.getGasPrice();
-  const options = { gasPrice, from: address, gas };
-  await contract.methods[method](...params).send(options).on("transactionHash", (txHash) => {
-    emitEvent(event, { txHash });
-  }).on("receipt", (receipt) => {
-    emitEvent(event, { receipt });
-  });
 };
 const depositDega$1 = async (amount, address, web3Provider) => {
   const contract = initContract(web3Provider);
@@ -2099,12 +2100,17 @@ const approveDega$1 = async (amount, address, web3Provider) => {
 };
 const getLastClosedChannel = async (address, web3Provider) => {
   const contract = initContract(web3Provider);
-  const emergencyWithdrawRequest = await callMethod(contract, "emergencyWithdrawRequests", address);
+  const emergencyWithdrawRequest = await callMethod(contract, "emergencyWithdrawRequests", [address]);
   if (emergencyWithdrawRequest.claimTransaction.id.toString() !== "0") {
     return emergencyWithdrawRequest.claimTransaction.id.toString();
   }
-  const closedWithdraw = await callMethod(contract, "withdrawTransactions", address);
+  const closedWithdraw = await callMethod(contract, "withdrawTransactions", [address]);
   return closedWithdraw.id.toString();
+};
+const getDegaAllowance$1 = async (address, web3Provider) => {
+  const contract = initContract(web3Provider, degaAddress, degaAbi);
+  const allowed = await callMethod(contract, "allowance", [address, vaultAddress]);
+  return allowed;
 };
 var blockchain = {
   getVaultBalance: getVaultBalance$1,
@@ -2114,7 +2120,8 @@ var blockchain = {
   approveDega: approveDega$1,
   getBtcbBalance: getBtcbBalance$1,
   getBnbBalance: getBnbBalance$1,
-  getLastClosedChannel
+  getLastClosedChannel,
+  getDegaAllowance: getDegaAllowance$1
 };
 const cashout$1 = async (claim, web3Provider) => {
   claimControls.isValidNewClaim(claim);
@@ -2543,12 +2550,28 @@ const getBnbBalance = async (address) => {
   }
   return balance.toString();
 };
+const getDegaAllowance = async (address) => {
+  try {
+    checkRightNetwork();
+  } catch (error) {
+    emitErrorEvent(eventType.approveDega, error);
+    throw error;
+  }
+  const web3Provider = getWeb3Provider();
+  try {
+    return await blockchain.getDegaAllowance(address, web3Provider);
+  } catch (error) {
+    emitErrorEvent(eventType.approveDega, error);
+    throw error;
+  }
+};
 var erc20 = {
   depositDega,
   approveDega,
   getDegaBalance,
   getBtcbBalance,
-  getBnbBalance
+  getBnbBalance,
+  getDegaAllowance
 };
 const CSDK_TYPE_CASHIN = "CASHIN";
 const CSDK_TYPE_CASHOUT = "CASHOUT";
@@ -2640,6 +2663,7 @@ const cryptoSDK = {
   win: claims.cashout,
   depositDega: erc20.depositDega,
   approveDega: erc20.approveDega,
+  getDegaAllowance: erc20.getDegaAllowance,
   getDegaBalance: erc20.getDegaBalance,
   getBtcbBalance: erc20.getBtcbBalance,
   getBnbBalance: erc20.getBnbBalance

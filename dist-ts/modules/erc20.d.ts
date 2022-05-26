@@ -4,6 +4,7 @@ declare namespace _default {
     export { getDegaBalance };
     export { getBtcbBalance };
     export { getBnbBalance };
+    export { getDegaAllowance };
 }
 export default _default;
 /**
@@ -32,4 +33,9 @@ declare function getBtcbBalance(address: string): string;
  * @returns {string} balance
  */
 declare function getBnbBalance(address: string): string;
+/**
+ * @param {string} address
+ * @returns {string} allowance
+ */
+declare function getDegaAllowance(address: string): string;
 //# sourceMappingURL=erc20.d.ts.map
