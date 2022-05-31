@@ -189,7 +189,7 @@ const getTotalBalance = async (address) => {
 
   const lastClaim = claimLibrary.getConfirmedClaim(address)
 
-  if (lastClaim) {
+  if (lastClaim && lastClaim.closed !== 1) {
     balance = bnUtils.plus(balance, bnUtils.minus(lastClaim.cumulativeDebits[BOB], lastClaim.cumulativeDebits[ALICE]))
   }
 

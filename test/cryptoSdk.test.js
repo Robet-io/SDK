@@ -1074,7 +1074,7 @@ describe('cryptoSDK library', () => {
               addresses: [ALICE_ADDRESS, ALICE_ADDRESS_WRONG],
               cumulativeDebits: ['0', '10'],
               signatures: [null, null],
-              closed: 1
+              closed: 0
             }
             lastClaim.signatures = [
               signClaim(lastClaim, ALICE_PRIVATE_KEY),
