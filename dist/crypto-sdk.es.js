@@ -602,12 +602,22 @@ const isValidClaimAlice = (claim) => {
   return isValid;
 };
 const areEqualClaims = (claim, savedClaim, isWithdraw = false) => {
-  if (savedClaim.id !== claim.id) {
+  if (isWithdraw && savedClaim.closed === 1) {
+    if (savedClaim.id + 1 !== claim.id) {
+      throw new Error(`Invalid claim id: ${claim.id} - channel was closed and saved claim id: ${savedClaim.id}`);
+    }
+  } else if (savedClaim.id !== claim.id) {
     throw new Error(`Invalid claim id: ${claim.id} - saved claim id: ${savedClaim.id}`);
   }
-  const nonce = isWithdraw ? claim.nonce - 1 : claim.nonce;
-  if (savedClaim.nonce !== nonce) {
-    throw new Error(`Invalid claim nonce: ${claim.nonce} - saved claim nonce: ${savedClaim.nonce}`);
+  if (isWithdraw && savedClaim.closed === 1) {
+    if (claim.nonce !== 1) {
+      throw new Error(`Invalid claim nonce: ${claim.nonce} - channel was closed`);
+    }
+  } else {
+    const nonce = isWithdraw ? claim.nonce - 1 : claim.nonce;
+    if (savedClaim.nonce !== nonce) {
+      throw new Error(`Invalid claim nonce: ${claim.nonce} - saved claim nonce: ${savedClaim.nonce}`);
+    }
   }
   if (savedClaim.cumulativeDebits[ALICE] !== claim.cumulativeDebits[ALICE]) {
     throw new Error(`Invalid claim cumulative debit of Client: ${claim.cumulativeDebits[ALICE]} - saved claim: ${savedClaim.cumulativeDebits[ALICE]}`);
@@ -2439,7 +2449,7 @@ const getTotalBalance = async (address) => {
     emitErrorEvent(eventType.getBalance, error);
   }
   const lastClaim2 = claimLibrary.getConfirmedClaim(address);
-  if (lastClaim2) {
+  if (lastClaim2 && lastClaim2.closed !== 1) {
     balance = bnUtils.plus(balance, bnUtils.minus(lastClaim2.cumulativeDebits[BOB], lastClaim2.cumulativeDebits[ALICE]));
   }
   return balance;
