@@ -52,7 +52,7 @@ const cryptoEvent = "cryptoSDK";
 const cryptoEventWS = "cryptoSDK_WS";
 const CSDK_CHAIN_ID$1 = "97";
 const CSDK_CHAIN_NAME$1 = "BSC Testnet";
-const CSDK_RPC_URL = "https://data-seed-prebsc-1-s1.binance.org";
+const CSDK_RPC_URL = "https://speedy-nodes-nyc.moralis.io/636129c4a45215232e5b9d81/bsc/testnet";
 const CSDK_CHAIN_EXPLORER = "https://testnet.bscscan.com/";
 const CSDK_CURRENCY_NAME = "BNB";
 const CSDK_CURRENCY_SYMBOL = "BNB";
@@ -2435,20 +2435,23 @@ const withdrawConsensually = async (claim) => {
   }
 };
 const getTotalBalance = async (address) => {
+  const lastClaim2 = claimLibrary.getConfirmedClaim(address);
+  if (lastClaim2 && lastClaim2.closed === 1) {
+    return "0";
+  }
   try {
     await checkRightNetwork();
   } catch (error) {
     emitErrorEvent(eventType.getBalance, error);
     throw error;
   }
-  const web3Provider = getWeb3Provider();
   let balance = "0";
+  const web3Provider = getWeb3Provider();
   try {
     balance = bnUtils.plus(balance, (await blockchain.getVaultBalance(address, web3Provider)).balance);
   } catch (error) {
     emitErrorEvent(eventType.getBalance, error);
   }
-  const lastClaim2 = claimLibrary.getConfirmedClaim(address);
   if (lastClaim2 && lastClaim2.closed !== 1) {
     balance = bnUtils.plus(balance, bnUtils.minus(lastClaim2.cumulativeDebits[BOB], lastClaim2.cumulativeDebits[ALICE]));
   }
