@@ -1,5 +1,5 @@
 {
-  "name": "crypto-sdk-dev",
+  "name": "crypto-sdk",
   "version": "0.0.1",
   "main": "dist/crypto-sdk.js",
   "module": "dist/crypto-sdk.es.js",
