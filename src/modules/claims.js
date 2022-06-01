@@ -171,6 +171,11 @@ const withdrawConsensually = async (claim) => {
  * @return {string}
  */
 const getTotalBalance = async (address) => {
+  const lastClaim = claimLibrary.getConfirmedClaim(address)
+  if (lastClaim && lastClaim.closed === 1) {
+    return '0'
+  }
+
   try {
     await checkRightNetwork()
   } catch (error) {
@@ -178,16 +183,14 @@ const getTotalBalance = async (address) => {
     throw error
   }
 
-  const web3Provider = getWeb3Provider()
   let balance = '0'
 
+  const web3Provider = getWeb3Provider()
   try {
     balance = bnUtils.plus(balance, (await blockchain.getVaultBalance(address, web3Provider)).balance)
   } catch (error) {
     emitErrorEvent(eventType.getBalance, error)
   }
-
-  const lastClaim = claimLibrary.getConfirmedClaim(address)
 
   if (lastClaim && lastClaim.closed !== 1) {
     balance = bnUtils.plus(balance, bnUtils.minus(lastClaim.cumulativeDebits[BOB], lastClaim.cumulativeDebits[ALICE]))

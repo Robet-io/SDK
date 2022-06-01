@@ -5,22 +5,14 @@ import path from 'path'
 
 export default defineConfig(({ mode }) => {
   const dotEnvFile = mode ? `./.env.${mode}` : './.env'
-  // console.log('dotEnvFile', dotEnvFile)
   require('dotenv').config({ path: dotEnvFile })
 
   return {
     define: {
-      "process.env.CSDK_ALICE_ADDRESS": `"${process.env.CSDK_ALICE_ADDRESS}"`,
-      // "process.env.CSDK_ALICE_PRIVATE_KEY": `"${process.env.CSDK_ALICE_PRIVATE_KEY}"`,
-
-      // "process.env.CSDK_ALICE_ADDRESS_WRONG": `"${process.env.CSDK_ALICE_ADDRESS_WRONG}"`,
-      // "process.env.CSDK_ALICE_PRIVATE_KEY_WRONG": `"${process.env.CSDK_ALICE_PRIVATE_KEY_WRONG}"`,
-
       "process.env.CSDK_CONTRACT_VAULT_ADDRESS": `"${process.env.CSDK_CONTRACT_VAULT_ADDRESS}"`,
       "process.env.CSDK_CONTRACT_TOKEN_ADDRESS": `"${process.env.CSDK_CONTRACT_TOKEN_ADDRESS}"`,
       "process.env.CSDK_SERVER_ADDRESS": `"${process.env.CSDK_SERVER_ADDRESS}"`,
-      // "process.env.CSDK_SERVER_PRIVATE_KEY": `"${process.env.CSDK_SERVER_PRIVATE_KEY}"`,
-
+      
       "process.env.CSDK_BTCB_ADDRESS": `"${process.env.CSDK_BTCB_ADDRESS}"`,
       "process.env.CSDK_CONTRACT_MINTER_ADDRESS": `"${process.env.CSDK_CONTRACT_MINTER_ADDRESS}"`,
 
@@ -61,28 +53,3 @@ export default defineConfig(({ mode }) => {
     }
   }
 })
-
-/*
-module.exports = defineConfig({
-  build: {
-    lib: {
-      entry: path.resolve(__dirname, "src/index.js"),
-      name: 'cryptoSDK',
-      // fileName: (format) => `crypto-sdk.${format}.js`
-    },
-    rollupOptions: {
-      // make sure to externalize deps that shouldn't be bundled
-      // into your library
-      external: ['@metamask/eth-sig-util', 'web3'],
-      output: {
-        // Provide global variables to use in the UMD build
-        // for externalized deps
-        globals: {
-          '@metamask/eth-sig-util': '@metamask/eth-sig-util',
-          web3: 'Web3'
-        }
-      }
-    }
-  },
-})
- */
