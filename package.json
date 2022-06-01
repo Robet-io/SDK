@@ -1,9 +1,9 @@
 {
-  "name": "crypto-sdk-dev",
+  "name": "crypto-sdk",
   "version": "0.0.1",
-  "main": "dist/crypto-sdk-dev.js",
-  "module": "dist/crypto-sdk-dev.es.js",
-  "browser": "dist/crypto-sdk-dev.umd.js",
+  "main": "dist/crypto-sdk.js",
+  "module": "dist/crypto-sdk.es.js",
+  "browser": "dist/crypto-sdk.umd.js",
   "scripts": {
     "build-ts": "tsc --project .",
     "build-dev": "vite build --mode testnet",
