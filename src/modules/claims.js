@@ -68,7 +68,7 @@ const claimControfirmed = async (claim) => {
     await claimLibrary.claimControfirmed(claim)
     emitEvent(eventType.claimConfirmed, { claim })
   } catch (error) {
-    emitErrorEvent(eventType.claimNotConfirmed, { error, claim })
+    emitErrorEvent(eventType.claimNotConfirmed, { message: error, claim })
     throw error
   }
 }
@@ -117,7 +117,7 @@ const lastClaim = async (claim) => {
   if (trueOrClaim === true) {
     emitEvent(eventType.claimSynced, 'Claims are synced')
   } else {
-    emitErrorEvent(eventType.claimNotSynced, { lastClaim: trueOrClaim })
+    emitErrorEvent(eventType.claimNotSynced, { message: 'Claims are not synced', lastClaim: trueOrClaim })
     return trueOrClaim
   }
 }
