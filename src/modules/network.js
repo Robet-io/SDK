@@ -116,7 +116,7 @@ const setRightNet = async () => {
         emitErrorEvent(eventType.network, 'Add net error: network is not changed')
       }
     } catch (error) {
-      emitErrorEvent(eventType.network, `Add net error: ${error}`)
+      emitErrorEvent(eventType.network, error)
     }
   } else if (window.web3) {
     emitErrorEvent(eventType.network, "This version of Metamask supports only manual network switching")
@@ -138,7 +138,7 @@ const getWeb3Provider = () => {
     // Legacy dApp browsers...
     return window.web3.currentProvider
   } else {
-    emitErrorEvent(eventType.metamaskNotInstalled, { error: 'Metamask is not installed' })
+    emitErrorEvent(eventType.metamaskNotInstalled, 'Metamask is not installed')
     throw new Error('Metamask is not installed')
   }
 }

@@ -142,7 +142,7 @@ const setRightNet = async () => {
         emitErrorEvent(eventType.network, "Add net error: network is not changed");
       }
     } catch (error) {
-      emitErrorEvent(eventType.network, `Add net error: ${error}`);
+      emitErrorEvent(eventType.network, error);
     }
   } else if (window.web3) {
     emitErrorEvent(eventType.network, "This version of Metamask supports only manual network switching");
@@ -158,7 +158,7 @@ const getWeb3Provider = () => {
   } else if (window.web3) {
     return window.web3.currentProvider;
   } else {
-    emitErrorEvent(eventType.metamaskNotInstalled, { error: "Metamask is not installed" });
+    emitErrorEvent(eventType.metamaskNotInstalled, "Metamask is not installed");
     throw new Error("Metamask is not installed");
   }
 };
@@ -2363,7 +2363,7 @@ const claimControfirmed = async (claim) => {
     await claimLibrary.claimControfirmed(claim);
     emitEvent(eventType.claimConfirmed, { claim });
   } catch (error) {
-    emitErrorEvent(eventType.claimNotConfirmed, { error, claim });
+    emitErrorEvent(eventType.claimNotConfirmed, { message: error, claim });
     throw error;
   }
 };
@@ -2398,7 +2398,7 @@ const lastClaim = async (claim) => {
   if (trueOrClaim === true) {
     emitEvent(eventType.claimSynced, "Claims are synced");
   } else {
-    emitErrorEvent(eventType.claimNotSynced, { lastClaim: trueOrClaim });
+    emitErrorEvent(eventType.claimNotSynced, { message: "Claims are not synced", lastClaim: trueOrClaim });
     return trueOrClaim;
   }
 };
