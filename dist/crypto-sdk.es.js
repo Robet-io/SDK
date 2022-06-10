@@ -2066,24 +2066,16 @@ const withdrawConsensually$1 = async (claim, web3Provider) => {
   const contract = initContract(web3Provider);
   const web3 = new Web3(web3Provider);
   const address = claim.addresses[0];
-  try {
-    const gas = await contract.methods.withdrawAlice(claim).estimateGas({ from: address });
-    const gasPrice = await web3.eth.getGasPrice();
-    const options = { gasPrice, from: address, gas };
-    try {
-      await contract.methods.withdrawAlice(claim).send(options).on("transactionHash", (txHash) => {
-        console.log("txHash", txHash);
-        emitEvent(eventType.withdrawHash, txHash);
-      }).on("receipt", (receipt) => {
-        console.log("receipt", receipt);
-        emitEvent(eventType.withdrawReceipt, receipt);
-      });
-    } catch (error) {
-      throw new Error(error);
-    }
-  } catch (error) {
-    throw new Error(error);
-  }
+  const gas = await contract.methods.withdrawAlice(claim).estimateGas({ from: address });
+  const gasPrice = await web3.eth.getGasPrice();
+  const options = { gasPrice, from: address, gas };
+  await contract.methods.withdrawAlice(claim).send(options).on("transactionHash", (txHash) => {
+    console.log("txHash", txHash);
+    emitEvent(eventType.withdrawHash, txHash);
+  }).on("receipt", (receipt) => {
+    console.log("receipt", receipt);
+    emitEvent(eventType.withdrawReceipt, receipt);
+  });
 };
 const getDegaBalance$1 = async (address, web3Provider) => {
   const contract = initContract(web3Provider, degaAddress, degaAbi);
@@ -2431,14 +2423,11 @@ const withdrawConsensually = async (claim) => {
     await blockchain.withdrawConsensually(claim, web3Provider);
     emitEvent(eventType.withdraw, "Consensual withdraw is sent to blockchain");
   } catch (error) {
+    console.log("error", error);
     emitErrorEvent(eventType.withdraw, error);
   }
 };
 const getTotalBalance = async (address) => {
-  const lastClaim2 = claimLibrary.getConfirmedClaim(address);
-  if (lastClaim2 && lastClaim2.closed === 1) {
-    return "0";
-  }
   try {
     await checkRightNetwork();
   } catch (error) {
@@ -2447,6 +2436,13 @@ const getTotalBalance = async (address) => {
   }
   let balance = "0";
   const web3Provider = getWeb3Provider();
+  const lastClaim2 = claimLibrary.getConfirmedClaim(address);
+  if (lastClaim2 && lastClaim2.closed === 1) {
+    const lastClosedChannel = await blockchain.getLastClosedChannel(address, web3Provider);
+    if (lastClosedChannel !== lastClaim2.id.toString()) {
+      return balance;
+    }
+  }
   try {
     balance = bnUtils.plus(balance, (await blockchain.getVaultBalance(address, web3Provider)).balance);
   } catch (error) {
