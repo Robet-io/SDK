@@ -162,6 +162,7 @@ const withdrawConsensually = async (claim) => {
     await blockchain.withdrawConsensually(claim, web3Provider)
     emitEvent(eventType.withdraw, 'Consensual withdraw is sent to blockchain')
   } catch (error) {
+    console.log('error', error)
     emitErrorEvent(eventType.withdraw, error)
   }
 }
@@ -171,11 +172,6 @@ const withdrawConsensually = async (claim) => {
  * @return {string}
  */
 const getTotalBalance = async (address) => {
-  const lastClaim = claimLibrary.getConfirmedClaim(address)
-  if (lastClaim && lastClaim.closed === 1) {
-    return '0'
-  }
-
   try {
     await checkRightNetwork()
   } catch (error) {
@@ -186,6 +182,17 @@ const getTotalBalance = async (address) => {
   let balance = '0'
 
   const web3Provider = getWeb3Provider()
+
+  const lastClaim = claimLibrary.getConfirmedClaim(address)
+
+  if (lastClaim && lastClaim.closed === 1) {
+    // control withdrawTransactions(Alice).id
+    const lastClosedChannel = await blockchain.getLastClosedChannel(address, web3Provider)
+    if (lastClosedChannel !== lastClaim.id.toString()) {
+      return balance
+    }
+  }
+
   try {
     balance = bnUtils.plus(balance, (await blockchain.getVaultBalance(address, web3Provider)).balance)
   } catch (error) {
