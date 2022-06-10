@@ -41,7 +41,7 @@ const callMethod = async (contract, method, params) => {
  * @param {string} event
  * @param {object} web3Provider
  */
- const sendTx = async (address, contract, method, params, event, web3Provider) => {
+const sendTx = async (address, contract, method, params, event, web3Provider) => {
   const web3 = new Web3(web3Provider)
   const gas = await contract.methods[method](...params).estimateGas({ from: address })
   const gasPrice = await web3.eth.getGasPrice()
@@ -75,27 +75,19 @@ const withdrawConsensually = async (claim, web3Provider) => {
   const contract = initContract(web3Provider)
   const web3 = new Web3(web3Provider)
   const address = claim.addresses[0]
-  try {
-    const gas = await contract.methods.withdrawAlice(claim).estimateGas({ from: address })
-    const gasPrice = await web3.eth.getGasPrice()
-    const options = { gasPrice, from: address, gas }
-    try {
-      await contract.methods.withdrawAlice(claim).send(options)
-        .on('transactionHash', (txHash) => {
-          console.log('txHash', txHash)
-          emitEvent(eventType.withdrawHash, txHash)
-        })
-        // .on('confirmation', function (confirmationNumber) { console.log('-------confirmationNumber', confirmationNumber) })
-        .on('receipt', (receipt) => {
-          console.log('receipt', receipt)
-          emitEvent(eventType.withdrawReceipt, receipt)
-        })
-    } catch (error) {
-      throw new Error(error)
-    }
-  } catch (error) {
-    throw new Error(error)
-  }
+  const gas = await contract.methods.withdrawAlice(claim).estimateGas({ from: address })
+  const gasPrice = await web3.eth.getGasPrice()
+  const options = { gasPrice, from: address, gas }
+  await contract.methods.withdrawAlice(claim).send(options)
+    .on('transactionHash', (txHash) => {
+      console.log('txHash', txHash)
+      emitEvent(eventType.withdrawHash, txHash)
+    })
+    // .on('confirmation', function (confirmationNumber) { console.log('-------confirmationNumber', confirmationNumber) })
+    .on('receipt', (receipt) => {
+      console.log('receipt', receipt)
+      emitEvent(eventType.withdrawReceipt, receipt)
+    })
 }
 
 /**
