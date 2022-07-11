@@ -101,7 +101,7 @@ const setRightNet = async () => {
         {
           name: CSDK_CURRENCY_NAME,
           symbol: CSDK_CURRENCY_SYMBOL,
-          decimals: CSDK_CURRENCY_DECIMALS
+          decimals: parseInt(CSDK_CURRENCY_DECIMALS)
         },
       rpcUrls: [CSDK_RPC_URL],
       blockExplorerUrls: [CSDK_CHAIN_EXPLORER]
@@ -116,7 +116,7 @@ const setRightNet = async () => {
         emitErrorEvent(eventType.network, 'Add net error: network is not changed')
       }
     } catch (error) {
-      emitErrorEvent(eventType.network, error)
+      emitErrorEvent(eventType.network, { ...error })
     }
   } else if (window.web3) {
     emitErrorEvent(eventType.network, "This version of Metamask supports only manual network switching")
