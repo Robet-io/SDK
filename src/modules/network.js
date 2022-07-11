@@ -116,7 +116,7 @@ const setRightNet = async () => {
         emitErrorEvent(eventType.network, 'Add net error: network is not changed')
       }
     } catch (error) {
-      emitErrorEvent(eventType.network, { ...error })
+      emitErrorEvent(eventType.network, error.message ? error.message : error)
     }
   } else if (window.web3) {
     emitErrorEvent(eventType.network, "This version of Metamask supports only manual network switching")
