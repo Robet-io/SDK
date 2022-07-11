@@ -1,3 +1,19 @@
+var __defProp = Object.defineProperty;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    }
+  return a;
+};
 import { recoverTypedSignature, SignTypedDataVersion } from "@metamask/eth-sig-util";
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
@@ -128,7 +144,7 @@ const setRightNet = async () => {
       nativeCurrency: {
         name: CSDK_CURRENCY_NAME,
         symbol: CSDK_CURRENCY_SYMBOL,
-        decimals: CSDK_CURRENCY_DECIMALS
+        decimals: parseInt(CSDK_CURRENCY_DECIMALS)
       },
       rpcUrls: [CSDK_RPC_URL],
       blockExplorerUrls: [CSDK_CHAIN_EXPLORER]
@@ -142,7 +158,7 @@ const setRightNet = async () => {
         emitErrorEvent(eventType.network, "Add net error: network is not changed");
       }
     } catch (error) {
-      emitErrorEvent(eventType.network, error);
+      emitErrorEvent(eventType.network, __spreadValues({}, error));
     }
   } else if (window.web3) {
     emitErrorEvent(eventType.network, "This version of Metamask supports only manual network switching");
