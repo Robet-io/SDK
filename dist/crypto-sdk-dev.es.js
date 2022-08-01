@@ -2428,6 +2428,9 @@ const withdrawConsensually = async (claim) => {
   }
 };
 const getTotalBalance = async (address) => {
+  if (!address) {
+    return "0";
+  }
   try {
     await checkRightNetwork();
   } catch (error) {

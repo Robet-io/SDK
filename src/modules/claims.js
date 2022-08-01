@@ -172,6 +172,10 @@ const withdrawConsensually = async (claim) => {
  * @return {string}
  */
 const getTotalBalance = async (address) => {
+  if (!address) {
+    return '0'
+  }
+
   try {
     await checkRightNetwork()
   } catch (error) {
