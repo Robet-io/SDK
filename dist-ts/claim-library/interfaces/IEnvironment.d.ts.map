@@ -1,0 +1,1 @@
+{"version":3,"file":"IEnvironment.d.ts","sourceRoot":"","sources":["../../../src/claim-library/interfaces/IEnvironment.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,mBAAmB,EAAE,MAAM,uBAAuB,CAAC;AAE5D,oBAAY,YAAY,GAAG,mBAAmB,GAAG;IAC7C,KAAK,EAAE,MAAM,CAAC;IACd,GAAG,EAAE,MAAM,CAAC;CACf,CAAC"}

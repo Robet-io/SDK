@@ -42,6 +42,7 @@ const eventType = {
   withdraw: "withdraw",
   withdrawReceipt: "withdrawReceipt",
   withdrawHash: "withdrawHash",
+  withdrawSigned: "withdrawSigned",
   depositDega: "depositDega",
   withdrawDega: "withdrawDega",
   approveDega: "approveDega",
@@ -2465,6 +2466,7 @@ var claims = {
   withdrawConsensually,
   getVaultBalance,
   downloadLastClaim: claimLibrary.downloadLastClaim,
+  getConfirmedClaim: claimLibrary.getConfirmedClaim,
   getTotalBalance
 };
 const depositDega = async (amount, address) => {
@@ -2644,7 +2646,7 @@ const receiveMsg = async (msg) => {
           };
         } else if (claim.signatures[ALICE] && claim.signatures[BOB]) {
           await claims.claimControfirmed(claim);
-          await claims.withdrawConsensually(claim);
+          emitEvent(eventType.withdrawSigned, "Consensual withdraw signed.");
         } else {
           throw new Error("Invalid claim");
         }
@@ -2669,6 +2671,7 @@ const cryptoSDK = {
   getVaultBalance: claims.getVaultBalance,
   getTotalBalance: claims.getTotalBalance,
   downloadLastClaim: claims.downloadLastClaim,
+  getConfirmedClaim: claims.getConfirmedClaim,
   formatNumber,
   pay: claims.cashin,
   payReceived: claims.claimControfirmed,
@@ -2678,6 +2681,14 @@ const cryptoSDK = {
   getDegaAllowance: erc20.getDegaAllowance,
   getDegaBalance: erc20.getDegaBalance,
   getBtcbBalance: erc20.getBtcbBalance,
-  getBnbBalance: erc20.getBnbBalance
+  getBnbBalance: erc20.getBnbBalance,
+  sendConsensualWithdraw: async function() {
+    const { address } = await getAddress();
+    const claim = claims.getConfirmedClaim(address);
+    if (!claim.closed) {
+      throw new Error("Withdraw claim not found.");
+    }
+    await claims.withdrawConsensually(claim);
+  }
 };
 export { cryptoSDK as default };

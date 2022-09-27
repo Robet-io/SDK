@@ -25,6 +25,7 @@ declare namespace cryptoSDK {
     export const getDegaBalance: (address: string) => string;
     export const getBtcbBalance: (address: string) => string;
     export const getBnbBalance: (address: string) => string;
+    export function sendConsensualWithdraw(): Promise<void>;
 }
 import { getAddress } from "./modules/metamask";
 import { isMetamaskInstalled } from "./modules/metamask";
