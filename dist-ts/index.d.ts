@@ -15,6 +15,7 @@ declare namespace cryptoSDK {
     export const getVaultBalance: (address: string) => any;
     export const getTotalBalance: (address: string) => string;
     export const downloadLastClaim: (address: string) => void;
+    export const getConfirmedClaim: (address: string) => any;
     export { formatNumber };
     export const pay: (claim: any) => any;
     export const payReceived: (claim: any) => Promise<void>;
