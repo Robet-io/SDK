@@ -1,5 +1,5 @@
 {
-  "name": "crypto-sdk-dev",
+  "name": "@coingames/crypto-sdk-dev",
   "version": "0.0.1",
   "main": "dist/crypto-sdk-dev.js",
   "module": "dist/crypto-sdk-dev.es.js",
