@@ -1148,7 +1148,7 @@ describe('cryptoSDK library', () => {
             claimStorage.saveConfirmedClaim(lastClaim)
           })
 
-          test('saves to localStorage and sends tx', async () => {
+          xtest('saves to localStorage and sends tx', async () => {
             const withdrawClaim = {
               id: 1,
               nonce: 3,

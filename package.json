@@ -1,7 +1,7 @@
 {
   "name": "@coingames/crypto-sdk-dev",
   "version": "0.0.1",
-  "main": "dist/crypto-sdk-dev.js",
+  "main": "dist/crypto-sdk-dev.es.js",
   "module": "dist/crypto-sdk-dev.es.js",
   "browser": "dist/crypto-sdk-dev.umd.js",
   "scripts": {
