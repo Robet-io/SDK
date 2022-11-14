@@ -42,6 +42,7 @@ const eventType = {
   withdraw: "withdraw",
   withdrawReceipt: "withdrawReceipt",
   withdrawHash: "withdrawHash",
+  withdrawSigned: "withdrawSigned",
   depositDega: "depositDega",
   withdrawDega: "withdrawDega",
   approveDega: "approveDega",
@@ -50,13 +51,13 @@ const eventType = {
 };
 const cryptoEvent = "cryptoSDK";
 const cryptoEventWS = "cryptoSDK_WS";
-const CSDK_CHAIN_ID$1 = "97";
-const CSDK_CHAIN_NAME$1 = "BSC Testnet";
-const CSDK_RPC_URL = "https://data-seed-prebsc-1-s1.binance.org";
-const CSDK_CHAIN_EXPLORER = "https://testnet.bscscan.com/";
-const CSDK_CURRENCY_NAME = "BNB";
-const CSDK_CURRENCY_SYMBOL = "BNB";
-const CSDK_CURRENCY_DECIMALS = "18";
+const CSDK_CHAIN_ID$1 = "undefined";
+const CSDK_CHAIN_NAME$1 = "undefined";
+const CSDK_RPC_URL = "undefined";
+const CSDK_CHAIN_EXPLORER = "undefined";
+const CSDK_CURRENCY_NAME = "undefined";
+const CSDK_CURRENCY_SYMBOL = "undefined";
+const CSDK_CURRENCY_DECIMALS = "undefined";
 const checkRightNetwork = async () => {
   const rightNet = getValidNetworks();
   const web3Provider = getWeb3Provider();
@@ -177,7 +178,7 @@ const _handleChainChanged = async (chainId) => {
 const _initMetamask = () => {
   if (window.ethereum) {
     if (!window.ethereum.chainId) {
-      window.ethereum.chainId = "97";
+      window.ethereum.chainId = "undefined";
     }
     window.ethereum.on("accountsChanged", async (accounts) => {
       console.log("#### - Metamask: accountsChanged - accounts", accounts);
@@ -264,9 +265,9 @@ const signTypedData = async (msg, from) => {
   return response;
 };
 _initMetamask();
-const CSDK_CHAIN_ID = "97";
-const CSDK_CHAIN_NAME = "BSC Testnet";
-const CSDK_CONTRACT_VAULT_ADDRESS = "0x9b9a5C1Af0A543d7dd243Bea6BDD53458dd0F067";
+const CSDK_CHAIN_ID = "undefined";
+const CSDK_CHAIN_NAME = "undefined";
+const CSDK_CONTRACT_VAULT_ADDRESS = "undefined";
 const domain = {
   name: CSDK_CHAIN_NAME,
   version: "1",
@@ -532,7 +533,7 @@ const formatNumber = (number, reduceDecimalTo = 18) => {
     return integer;
   }
 };
-const CSDK_SERVER_ADDRESS = "0xeA085D9698651e76750F07d0dE0464476187b3ca";
+const CSDK_SERVER_ADDRESS = "undefined";
 const isValidNewClaim = (claim) => {
   const lastClaim2 = claimStorage.getConfirmedClaim(claim.addresses[ALICE]);
   if (lastClaim2) {
@@ -2035,9 +2036,9 @@ var degaAbi = [
     type: "function"
   }
 ];
-const vaultAddress = "0x9b9a5C1Af0A543d7dd243Bea6BDD53458dd0F067";
-const degaAddress = "0x16B052D944c1b7731d7C240b6072530929C93b40";
-const btcbAddress = "0x6ce8dA28E2f864420840cF74474eFf5fD80E65B8";
+const vaultAddress = "undefined";
+const degaAddress = "undefined";
+const btcbAddress = "undefined";
 const initContract = (web3Provider, contractAddress = vaultAddress, contractAbi = vaultAbi) => {
   const web3 = new Web3(web3Provider);
   const contract = new web3.eth.Contract(contractAbi, contractAddress);
@@ -2465,6 +2466,7 @@ var claims = {
   withdrawConsensually,
   getVaultBalance,
   downloadLastClaim: claimLibrary.downloadLastClaim,
+  getConfirmedClaim: claimLibrary.getConfirmedClaim,
   getTotalBalance
 };
 const depositDega = async (amount, address) => {
@@ -2585,10 +2587,10 @@ var erc20 = {
   getBnbBalance,
   getDegaAllowance
 };
-const CSDK_TYPE_CASHIN = "CASHIN";
-const CSDK_TYPE_CASHOUT = "CASHOUT";
-const CSDK_TYPE_WITHDRAW = "WITHDRAW";
-const CSDK_TYPE_HANDSHAKE = "HANDSHAKE";
+const CSDK_TYPE_CASHIN = "undefined";
+const CSDK_TYPE_CASHOUT = "undefined";
+const CSDK_TYPE_WITHDRAW = "undefined";
+const CSDK_TYPE_HANDSHAKE = "undefined";
 const receiveMsg = async (msg) => {
   if (msg) {
     const { action, claim, context, error } = JSON.parse(msg);
@@ -2644,7 +2646,7 @@ const receiveMsg = async (msg) => {
           };
         } else if (claim.signatures[ALICE] && claim.signatures[BOB]) {
           await claims.claimControfirmed(claim);
-          await claims.withdrawConsensually(claim);
+          emitEvent(eventType.withdrawSigned, "Consensual withdraw signed.");
         } else {
           throw new Error("Invalid claim");
         }
@@ -2669,6 +2671,7 @@ const cryptoSDK = {
   getVaultBalance: claims.getVaultBalance,
   getTotalBalance: claims.getTotalBalance,
   downloadLastClaim: claims.downloadLastClaim,
+  getConfirmedClaim: claims.getConfirmedClaim,
   formatNumber,
   pay: claims.cashin,
   payReceived: claims.claimControfirmed,
@@ -2678,6 +2681,14 @@ const cryptoSDK = {
   getDegaAllowance: erc20.getDegaAllowance,
   getDegaBalance: erc20.getDegaBalance,
   getBtcbBalance: erc20.getBtcbBalance,
-  getBnbBalance: erc20.getBnbBalance
+  getBnbBalance: erc20.getBnbBalance,
+  sendConsensualWithdraw: async function() {
+    const { address } = await getAddress();
+    const claim = claims.getConfirmedClaim(address);
+    if (!claim.closed) {
+      throw new Error("Withdraw claim not found.");
+    }
+    await claims.withdrawConsensually(claim);
+  }
 };
 export { cryptoSDK as default };

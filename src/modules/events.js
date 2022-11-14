@@ -68,6 +68,7 @@ const eventType = {
   withdraw: 'withdraw',
   withdrawReceipt: 'withdrawReceipt',
   withdrawHash: 'withdrawHash',
+  withdrawSigned: 'withdrawSigned',
   depositDega: 'depositDega',
   withdrawDega: 'withdrawDega',
   approveDega: 'approveDega',

@@ -1,5 +1,12 @@
 /* eslint-disable no-prototype-builtins */
-import { addEventListener, emitErrorEvent, addEventListenerWS, emitEventWS, eventType } from './modules/events'
+import {
+    addEventListener,
+    emitErrorEvent,
+    addEventListenerWS,
+    emitEventWS,
+    eventType,
+    emitEvent
+} from './modules/events'
 import { isRightNet, setRightNet } from './modules/network'
 import { isMetamaskInstalled, getAddress } from './modules/metamask'
 import token from './modules/token'
@@ -73,7 +80,8 @@ const receiveMsg = async (msg) => {
           }
         } else if (claim.signatures[ALICE] && claim.signatures[BOB]) {
           await claims.claimControfirmed(claim)
-          await claims.withdrawConsensually(claim)
+          //await claims.withdrawConsensually(claim)
+          emitEvent(eventType.withdrawSigned, 'Consensual withdraw signed.');
         } else {
           throw new Error('Invalid claim')
         }
@@ -100,6 +108,7 @@ const cryptoSDK = {
   getVaultBalance: claims.getVaultBalance,
   getTotalBalance: claims.getTotalBalance,
   downloadLastClaim: claims.downloadLastClaim,
+  getConfirmedClaim: claims.getConfirmedClaim,
   formatNumber,
 
   pay: claims.cashin,
@@ -111,7 +120,16 @@ const cryptoSDK = {
   getDegaAllowance: erc20.getDegaAllowance,
   getDegaBalance: erc20.getDegaBalance,
   getBtcbBalance: erc20.getBtcbBalance,
-  getBnbBalance: erc20.getBnbBalance
+  getBnbBalance: erc20.getBnbBalance,
+
+  sendConsensualWithdraw: async function () {
+    const { address } = await getAddress();
+    const claim = claims.getConfirmedClaim(address)
+    if (!claim.closed) {
+      throw new Error('Withdraw claim not found.')
+    }
+    await claims.withdrawConsensually(claim)
+  }
 }
 
 export default cryptoSDK

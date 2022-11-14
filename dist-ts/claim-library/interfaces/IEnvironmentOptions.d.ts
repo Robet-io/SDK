@@ -1,4 +1,4 @@
-export type IEnvironmentOptions = {
+export declare type IEnvironmentOptions = {
     ME: number;
     THEY: number;
     chainId: number;
@@ -10,3 +10,4 @@ export type IEnvironmentOptions = {
     serverPrivateKey: string;
     serverUrl: string;
 };
+//# sourceMappingURL=IEnvironmentOptions.d.ts.map

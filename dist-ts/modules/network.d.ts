@@ -12,7 +12,6 @@ export function setRightNet(): Promise<void>;
  */
 export function getValidNetworks(): number;
 /**
- *
  * @returns {object}
  */
 export function getWeb3Provider(): object;
