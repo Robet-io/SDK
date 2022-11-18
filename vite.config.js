@@ -12,7 +12,10 @@ export default defineConfig(({ mode }) => {
       "process.env.CSDK_CONTRACT_VAULT_ADDRESS": `"${process.env.CSDK_CONTRACT_VAULT_ADDRESS}"`,
       "process.env.CSDK_CONTRACT_TOKEN_ADDRESS": `"${process.env.CSDK_CONTRACT_TOKEN_ADDRESS}"`,
       "process.env.CSDK_SERVER_ADDRESS": `"${process.env.CSDK_SERVER_ADDRESS}"`,
-      
+
+      "process.env.CSDK_CONTRACT_VAULT_NAME": `"${process.env.CSDK_CONTRACT_VAULT_NAME}"`,
+      "process.env.CSDK_CONTRACT_VAULT_VERSION": `"${process.env.CSDK_CONTRACT_VAULT_VERSION}"`,
+
       "process.env.CSDK_BTCB_ADDRESS": `"${process.env.CSDK_BTCB_ADDRESS}"`,
       "process.env.CSDK_CONTRACT_MINTER_ADDRESS": `"${process.env.CSDK_CONTRACT_MINTER_ADDRESS}"`,
 

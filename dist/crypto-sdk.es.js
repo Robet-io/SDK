@@ -51,13 +51,13 @@ const eventType = {
 };
 const cryptoEvent = "cryptoSDK";
 const cryptoEventWS = "cryptoSDK_WS";
-const CSDK_CHAIN_ID$1 = "undefined";
-const CSDK_CHAIN_NAME = "undefined";
-const CSDK_RPC_URL = "undefined";
-const CSDK_CHAIN_EXPLORER = "undefined";
-const CSDK_CURRENCY_NAME = "undefined";
-const CSDK_CURRENCY_SYMBOL = "undefined";
-const CSDK_CURRENCY_DECIMALS = "undefined";
+const CSDK_CHAIN_ID$1 = "56";
+const CSDK_CHAIN_NAME = "Binance Smart Chain Mainnet";
+const CSDK_RPC_URL = "https://bsc-dataseed1.binance.org";
+const CSDK_CHAIN_EXPLORER = "https://bscscan.com/";
+const CSDK_CURRENCY_NAME = "BNB";
+const CSDK_CURRENCY_SYMBOL = "BNB";
+const CSDK_CURRENCY_DECIMALS = "18";
 const checkRightNetwork = async () => {
   const rightNet = getValidNetworks();
   const web3Provider = getWeb3Provider();
@@ -178,7 +178,7 @@ const _handleChainChanged = async (chainId) => {
 const _initMetamask = () => {
   if (window.ethereum) {
     if (!window.ethereum.chainId) {
-      window.ethereum.chainId = "undefined";
+      window.ethereum.chainId = "56";
     }
     window.ethereum.on("accountsChanged", async (accounts) => {
       console.log("#### - Metamask: accountsChanged - accounts", accounts);
@@ -265,10 +265,10 @@ const signTypedData = async (msg, from) => {
   return response;
 };
 _initMetamask();
-const CSDK_CHAIN_ID = "undefined";
-const CSDK_CONTRACT_VAULT_NAME = {}.CSDK_CONTRACT_VAULT_NAME;
-const CSDK_CONTRACT_VAULT_VERSION = {}.CSDK_CONTRACT_VAULT_VERSION;
-const CSDK_CONTRACT_VAULT_ADDRESS = "undefined";
+const CSDK_CHAIN_ID = "56";
+const CSDK_CONTRACT_VAULT_NAME = "BSC Vault Mainnet";
+const CSDK_CONTRACT_VAULT_VERSION = "1";
+const CSDK_CONTRACT_VAULT_ADDRESS = "0xF3155acda1219F4b1D3D28f200E61E2951e1c175";
 const domain = {
   name: CSDK_CONTRACT_VAULT_NAME,
   version: CSDK_CONTRACT_VAULT_VERSION,
@@ -534,7 +534,7 @@ const formatNumber = (number, reduceDecimalTo = 18) => {
     return integer;
   }
 };
-const CSDK_SERVER_ADDRESS = "undefined";
+const CSDK_SERVER_ADDRESS = "0x85313b3910937D0975883fEFc98205dED8bA6482";
 const isValidNewClaim = (claim) => {
   const lastClaim2 = claimStorage.getConfirmedClaim(claim.addresses[ALICE]);
   if (lastClaim2) {
@@ -2037,9 +2037,9 @@ var degaAbi = [
     type: "function"
   }
 ];
-const vaultAddress = "undefined";
-const degaAddress = "undefined";
-const btcbAddress = "undefined";
+const vaultAddress = "0xF3155acda1219F4b1D3D28f200E61E2951e1c175";
+const degaAddress = "0x9Dd75154Ddb9a4869a49735fafc680a0e4d67398";
+const btcbAddress = "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c";
 const initContract = (web3Provider, contractAddress = vaultAddress, contractAbi = vaultAbi) => {
   const web3 = new Web3(web3Provider);
   const contract = new web3.eth.Contract(contractAbi, contractAddress);
@@ -2588,10 +2588,10 @@ var erc20 = {
   getBnbBalance,
   getDegaAllowance
 };
-const CSDK_TYPE_CASHIN = "undefined";
-const CSDK_TYPE_CASHOUT = "undefined";
-const CSDK_TYPE_WITHDRAW = "undefined";
-const CSDK_TYPE_HANDSHAKE = "undefined";
+const CSDK_TYPE_CASHIN = "CASHIN";
+const CSDK_TYPE_CASHOUT = "CASHOUT";
+const CSDK_TYPE_WITHDRAW = "WITHDRAW";
+const CSDK_TYPE_HANDSHAKE = "HANDSHAKE";
 const receiveMsg = async (msg) => {
   if (msg) {
     const { action, claim, context, error } = JSON.parse(msg);

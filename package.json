@@ -1,6 +1,6 @@
 {
   "name": "crypto-sdk",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "main": "dist/crypto-sdk.js",
   "module": "dist/crypto-sdk.es.js",
   "browser": "dist/crypto-sdk.umd.js",
