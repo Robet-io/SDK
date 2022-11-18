@@ -52,7 +52,7 @@ const eventType = {
 const cryptoEvent = "cryptoSDK";
 const cryptoEventWS = "cryptoSDK_WS";
 const CSDK_CHAIN_ID$1 = "undefined";
-const CSDK_CHAIN_NAME$1 = "undefined";
+const CSDK_CHAIN_NAME = "undefined";
 const CSDK_RPC_URL = "undefined";
 const CSDK_CHAIN_EXPLORER = "undefined";
 const CSDK_CURRENCY_NAME = "undefined";
@@ -125,7 +125,7 @@ const setRightNet = async () => {
     const chainIdHex = `0x${Number(CSDK_CHAIN_ID$1).toString(16)}`;
     const data = [{
       chainId: chainIdHex,
-      chainName: CSDK_CHAIN_NAME$1,
+      chainName: CSDK_CHAIN_NAME,
       nativeCurrency: {
         name: CSDK_CURRENCY_NAME,
         symbol: CSDK_CURRENCY_SYMBOL,
@@ -266,11 +266,12 @@ const signTypedData = async (msg, from) => {
 };
 _initMetamask();
 const CSDK_CHAIN_ID = "undefined";
-const CSDK_CHAIN_NAME = "undefined";
+const CSDK_CONTRACT_VAULT_NAME = {}.CSDK_CONTRACT_VAULT_NAME;
+const CSDK_CONTRACT_VAULT_VERSION = {}.CSDK_CONTRACT_VAULT_VERSION;
 const CSDK_CONTRACT_VAULT_ADDRESS = "undefined";
 const domain = {
-  name: CSDK_CHAIN_NAME,
-  version: "1",
+  name: CSDK_CONTRACT_VAULT_NAME,
+  version: CSDK_CONTRACT_VAULT_VERSION,
   chainId: CSDK_CHAIN_ID,
   verifyingContract: CSDK_CONTRACT_VAULT_ADDRESS
 };
