@@ -1,16 +1,13 @@
-# ABI directory
-abi/*.json
-abi/*.abi
-
 # Dependency npm
 node_modules
-package-lock.json
 
 # Debug log from npm
 npm-debug.log
 
 # local env variables
 .env
+.env.mainnet
+.env.production
 
 # macOS
 .DS_Store
@@ -21,6 +18,6 @@ npm-debug.log
 # Bundle
 *.bundle.js
 
-dist/
 
 tsconfig.tsbuildinfo
+coverage

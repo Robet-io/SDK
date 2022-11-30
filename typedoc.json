@@ -1,4 +1,0 @@
-{
-  "entryPoints": ["./src/libclaim.ts"],
-  "out": "docs"
-}

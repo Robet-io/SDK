@@ -1,0 +1,43 @@
+declare namespace _default {
+    export { minus };
+    export { plus };
+    export { times };
+    export { div };
+    export { pow };
+    export { eq };
+    export { lt };
+    export { gt };
+    export { lte };
+    export { gte };
+    export { isNaN };
+    export { dp };
+    export { negated };
+    export { timesFloor };
+    export { divFloor };
+    export { toFixed };
+    export { roundUpToTen };
+    export { roundDecimals };
+    export { abs };
+}
+export default _default;
+declare function minus(a: any, b: any): string;
+declare function plus(a: any, b: any): string;
+declare function times(a: any, b: any, decimals?: number, type?: 3): string;
+declare function div(a: any, b: any, decimals?: number, type?: 3): string;
+declare function pow(a: any, b: any): BigNumber;
+declare function eq(a: any, b: any): boolean;
+declare function lt(a: any, b: any): boolean;
+declare function gt(a: any, b: any): boolean;
+declare function lte(a: any, b: any): boolean;
+declare function gte(a: any, b: any): boolean;
+declare function isNaN(a: any): boolean;
+declare function dp(a: any, n: any, type: any): string;
+declare function negated(a: any): string;
+declare function timesFloor(a: any, b: any, decimals?: number): string;
+declare function divFloor(a: any, b: any, decimals?: number): string;
+declare function toFixed(value: any, decimal?: number): string;
+declare function roundUpToTen(a: any): any;
+declare function roundDecimals(a: any, decimals?: number): string;
+declare function abs(a: any): string;
+import BigNumber from "bignumber.js";
+//# sourceMappingURL=bnUtils.d.ts.map
