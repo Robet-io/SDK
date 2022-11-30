@@ -1,20 +1,21 @@
 {
-  "name": "crypto-sdk-dev",
-  "version": "0.0.1",
-  "main": "dist/crypto-sdk-dev.js",
+  "name": "@coingames/crypto-sdk",
+  "version": "1.0.0",
+  "main": "src/index.js",
   "module": "dist/crypto-sdk-dev.es.js",
   "browser": "dist/crypto-sdk-dev.umd.js",
+  "typings": "build-ts/*.d.ts",
   "scripts": {
-    "build-ts": "tsc --project .",
-    "build-dev": "vite build --mode testnet",
-    "build-prod": "vite build --mode mainnet",
-    "test": "jest"
+    "build:ts": "tsc --project .",
+    "build": "vite build",
+    "test": "jest",
+    "test:watch": "jest --watchAll"
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.16.5",
     "@babel/preset-env": "^7.16.5",
     "babel-jest": "^27.4.5",
-    "dotenv": "^10.0.0",
+    "ethers": "^5.7.2",
     "jest": "^27.4.5",
     "standard": "^16.0.4",
     "vite": "^2.7.2"
@@ -22,7 +23,6 @@
   "dependencies": {
     "@metamask/eth-sig-util": "^4.0.0",
     "bignumber.js": "^9.0.2",
-    "typescript": "^4.6.3",
-    "web3": "^1.6.1"
+    "typescript": "^4.6.3"
   }
 }

@@ -1,4 +1,2 @@
-const ALICE = 0
-const BOB = 1
-
-export { ALICE, BOB }
+export const ALICE = 0
+export const BOB = 1

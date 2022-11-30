@@ -17,7 +17,7 @@ const claim = {
   closed: 0 or 1
 } */
 
-const CSDK_SERVER_ADDRESS = process.env.CSDK_SERVER_ADDRESS
+const CSDK_SERVER_ADDRESS = '0xeA085D9698651e76750F07d0dE0464476187b3ca'
 
 /**
  *

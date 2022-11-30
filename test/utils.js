@@ -1,10 +1,10 @@
 import { signTypedData, SignTypedDataVersion } from '@metamask/eth-sig-util'
 
 const domain = {
-  name: process.env.CSDK_CHAIN_NAME,
+  name: 'BSC Testnet',
   version: '1',
-  chainId: process.env.CSDK_CHAIN_ID,
-  verifyingContract: process.env.CSDK_CONTRACT_VAULT_ADDRESS
+  chainId: '0x61',
+  verifyingContract: '0x9b9a5C1Af0A543d7dd243Bea6BDD53458dd0F067'
 }
 
 const _buildTypedClaim = claim => {

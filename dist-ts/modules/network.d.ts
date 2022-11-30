@@ -8,12 +8,8 @@ export function isRightNet(): boolean;
 export function checkRightNetwork(): boolean;
 export function setRightNet(): Promise<void>;
 /**
- * @returns {number}
- */
-export function getValidNetworks(): number;
-/**
  *
- * @returns {object}
+ * @returns {ExternalProvider}
  */
-export function getWeb3Provider(): object;
+export function getWeb3Provider(): ExternalProvider;
 //# sourceMappingURL=network.d.ts.map

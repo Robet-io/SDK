@@ -1,5 +1,6 @@
 export default cryptoSDK;
 declare namespace cryptoSDK {
+    export { setEnv };
     export { getAddress };
     export { isMetamaskInstalled };
     export { isRightNet };
@@ -28,6 +29,7 @@ declare namespace cryptoSDK {
     export const getBnbBalance: (address: string) => string;
     export function sendConsensualWithdraw(): Promise<void>;
 }
+import { setEnv } from "./env";
 import { getAddress } from "./modules/metamask";
 import { isMetamaskInstalled } from "./modules/metamask";
 import { isRightNet } from "./modules/network";

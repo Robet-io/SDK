@@ -1,12 +1,12 @@
 /* eslint-disable import/no-anonymous-default-export */
 /* eslint-disable no-prototype-builtins */
 import {
-  getWeb3Provider,
-  checkRightNetwork
+    getWeb3Provider,
+    checkRightNetwork
 } from './network'
 import {
-  emitErrorEvent,
-  eventType
+    emitErrorEvent,
+    eventType
 } from './events'
 import blockchain from './blockchain'
 import bnUtils from './bnUtils'
@@ -17,28 +17,28 @@ import bnUtils from './bnUtils'
  * @return {object} txhash
  */
 const depositDega = async (amount, address) => {
-  try {
-    checkRightNetwork()
-  } catch (error) {
-    emitErrorEvent(eventType.depositDega, error)
-    throw error
-  }
+    try {
+        await checkRightNetwork()
+    } catch (error) {
+        emitErrorEvent(eventType.depositDega, error)
+        throw error
+    }
 
-  const web3Provider = getWeb3Provider()
+    const web3Provider = getWeb3Provider()
 
-  try {
-    await checkDegaBalance(amount, address, web3Provider)
-  } catch (error) {
-    emitErrorEvent(eventType.depositDega, error)
-    throw error
-  }
+    try {
+        await checkDegaBalance(amount, address, web3Provider)
+    } catch (error) {
+        emitErrorEvent(eventType.depositDega, error)
+        throw error
+    }
 
-  try {
-    await blockchain.depositDega(amount, address, web3Provider)
-  } catch (error) {
-    emitErrorEvent(eventType.depositDega, error)
-    throw error
-  }
+    try {
+        await blockchain.depositDega(amount, address, web3Provider)
+    } catch (error) {
+        emitErrorEvent(eventType.depositDega, error)
+        throw error
+    }
 }
 
 /**
@@ -46,16 +46,16 @@ const depositDega = async (amount, address) => {
  * @param {string} address
  */
 const checkDegaBalance = async (amount, address, web3Provider) => {
-  let balance
-  try {
-    balance = await blockchain.getDegaBalance(address, web3Provider)
-  } catch (error) {
-    throw new Error("Can't get balance of Dega")
-  }
+    let balance
+    try {
+        balance = await blockchain.getDegaBalance(address, web3Provider)
+    } catch (error) {
+        throw new Error("Can't get balance of Dega")
+    }
 
-  if (bnUtils.lt(balance, amount)) {
-    throw new Error('The balance of Dega is not enough')
-  }
+    if (bnUtils.lt(balance, amount)) {
+        throw new Error('The balance of Dega is not enough')
+    }
 }
 
 /**
@@ -63,21 +63,21 @@ const checkDegaBalance = async (amount, address, web3Provider) => {
  * @param {string} address
  */
 const approveDega = async (amount, address) => {
-  try {
-    checkRightNetwork()
-  } catch (error) {
-    emitErrorEvent(eventType.approveDega, error)
-    throw error
-  }
+    try {
+        await checkRightNetwork()
+    } catch (error) {
+        emitErrorEvent(eventType.approveDega, error)
+        throw error
+    }
 
-  const web3Provider = getWeb3Provider()
+    const web3Provider = getWeb3Provider()
 
-  try {
-    await blockchain.approveDega(amount, address, web3Provider)
-  } catch (error) {
-    emitErrorEvent(eventType.approveDega, error)
-    throw error
-  }
+    try {
+        await blockchain.approveDega(amount, address, web3Provider)
+    } catch (error) {
+        emitErrorEvent(eventType.approveDega, error)
+        throw error
+    }
 }
 
 /**
@@ -85,23 +85,23 @@ const approveDega = async (amount, address) => {
  * @returns {string} balance
  */
 const getDegaBalance = async (address) => {
-  try {
-    checkRightNetwork()
-  } catch (error) {
-    emitErrorEvent(eventType.getBalance, error)
-    throw error
-  }
+    try {
+        await checkRightNetwork()
+    } catch (error) {
+        emitErrorEvent(eventType.getBalance, error)
+        throw error
+    }
 
-  const web3Provider = getWeb3Provider()
+    const web3Provider = getWeb3Provider()
 
-  let balance = '0'
-  try {
-    balance = await blockchain.getDegaBalance(address, web3Provider)
-  } catch (error) {
-    throw new Error("Can't get balance of Dega")
-  }
+    let balance = '0'
+    try {
+        balance = await blockchain.getDegaBalance(address, web3Provider)
+    } catch (error) {
+        throw new Error("Can't get balance of Dega")
+    }
 
-  return balance.toString()
+    return balance.toString()
 }
 
 /**
@@ -109,23 +109,23 @@ const getDegaBalance = async (address) => {
  * @returns {string} balance
  */
 const getBtcbBalance = async (address) => {
-  try {
-    checkRightNetwork()
-  } catch (error) {
-    emitErrorEvent(eventType.getBalance, error)
-    throw error
-  }
+    try {
+        await checkRightNetwork()
+    } catch (error) {
+        emitErrorEvent(eventType.getBalance, error)
+        throw error
+    }
 
-  const web3Provider = getWeb3Provider()
+    const web3Provider = getWeb3Provider()
 
-  let balance = '0'
-  try {
-    balance = await blockchain.getBtcbBalance(address, web3Provider)
-  } catch (error) {
-    throw new Error("Can't get balance of BTCB")
-  }
+    let balance = '0'
+    try {
+        balance = await blockchain.getBtcbBalance(address, web3Provider)
+    } catch (error) {
+        throw new Error("Can't get balance of BTCB")
+    }
 
-  return balance.toString()
+    return balance.toString()
 }
 
 /**
@@ -133,23 +133,23 @@ const getBtcbBalance = async (address) => {
  * @returns {string} balance
  */
 const getBnbBalance = async (address) => {
-  try {
-    checkRightNetwork()
-  } catch (error) {
-    emitErrorEvent(eventType.getBalance, error)
-    throw error
-  }
+    try {
+        await checkRightNetwork()
+    } catch (error) {
+        emitErrorEvent(eventType.getBalance, error)
+        throw error
+    }
 
-  const web3Provider = getWeb3Provider()
+    const web3Provider = getWeb3Provider()
 
-  let balance = '0'
-  try {
-    balance = await blockchain.getBnbBalance(address, web3Provider)
-  } catch (error) {
-    throw new Error("Can't get balance of BNB")
-  }
+    let balance = '0'
+    try {
+        balance = await blockchain.getBnbBalance(address, web3Provider)
+    } catch (error) {
+        throw new Error("Can't get balance of BNB")
+    }
 
-  return balance.toString()
+    return balance.toString()
 }
 
 /**
@@ -157,28 +157,28 @@ const getBnbBalance = async (address) => {
  * @returns {string} allowance
  */
 const getDegaAllowance = async (address) => {
-  try {
-    checkRightNetwork()
-  } catch (error) {
-    emitErrorEvent(eventType.approveDega, error)
-    throw error
-  }
+    try {
+        await checkRightNetwork()
+    } catch (error) {
+        emitErrorEvent(eventType.approveDega, error)
+        throw error
+    }
 
-  const web3Provider = getWeb3Provider()
+    const web3Provider = getWeb3Provider()
 
-  try {
-    return await blockchain.getDegaAllowance(address, web3Provider)
-  } catch (error) {
-    emitErrorEvent(eventType.approveDega, error)
-    throw error
-  }
+    try {
+        return await blockchain.getDegaAllowance(address, web3Provider)
+    } catch (error) {
+        emitErrorEvent(eventType.approveDega, error)
+        throw error
+    }
 }
 
 export default {
-  depositDega,
-  approveDega,
-  getDegaBalance,
-  getBtcbBalance,
-  getBnbBalance,
-  getDegaAllowance
+    depositDega,
+    approveDega,
+    getDegaBalance,
+    getBtcbBalance,
+    getBnbBalance,
+    getDegaAllowance
 }
