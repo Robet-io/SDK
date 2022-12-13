@@ -50709,7 +50709,7 @@ const cryptoSDK = {
   getBtcbBalance: erc20.getBtcbBalance,
   getBnbBalance: erc20.getBnbBalance,
   sendConsensualWithdraw: async function() {
-    const { address } = getAddress();
+    const { address } = await getAddress();
     const claim = claims.getConfirmedClaim(address);
     if (!claim.closed) {
       throw new Error("Withdraw claim not found.");
