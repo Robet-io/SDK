@@ -119,14 +119,7 @@ const cryptoSDK = {
     getBtcbBalance: erc20.getBtcbBalance,
     getBnbBalance: erc20.getBnbBalance,
 
-    sendConsensualWithdraw: async function () {
-        const { address } = await getAddress();
-        const claim = claims.getConfirmedClaim(address)
-        if (!claim.closed) {
-            throw new Error('Withdraw claim not found.')
-        }
-        await claims.withdrawConsensually(claim)
-    }
+    sendConsensualWithdraw: claims.sendConsensualWithdraw,
 }
 
 export default cryptoSDK

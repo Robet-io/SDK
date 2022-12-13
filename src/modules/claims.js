@@ -210,6 +210,15 @@ const getTotalBalance = async (address) => {
     return balance
 }
 
+const sendConsensualWithdraw = async function () {
+    const { address } = await getAddress();
+    const claim = claimLibrary.getConfirmedClaim(address)
+    if (!claim.closed) {
+        throw new Error('Withdraw claim not found.')
+    }
+    await withdrawConsensually(claim)
+}
+
 export default {
     cashin,
     claimControfirmed,
@@ -221,4 +230,5 @@ export default {
     downloadLastClaim: claimLibrary.downloadLastClaim,
     getConfirmedClaim: claimLibrary.getConfirmedClaim,
     getTotalBalance,
+    sendConsensualWithdraw,
 }

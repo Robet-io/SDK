@@ -50486,6 +50486,14 @@ const getTotalBalance = async (address) => {
   }
   return balance;
 };
+const sendConsensualWithdraw = async function() {
+  const { address } = await getAddress();
+  const claim = claimLibrary.getConfirmedClaim(address);
+  if (!claim.closed) {
+    throw new Error("Withdraw claim not found.");
+  }
+  await withdrawConsensually(claim);
+};
 var claims = {
   cashin,
   claimControfirmed,
@@ -50496,7 +50504,8 @@ var claims = {
   getVaultBalance,
   downloadLastClaim: claimLibrary.downloadLastClaim,
   getConfirmedClaim: claimLibrary.getConfirmedClaim,
-  getTotalBalance
+  getTotalBalance,
+  sendConsensualWithdraw
 };
 const depositDega = async (amount, address) => {
   try {
@@ -50708,13 +50717,6 @@ const cryptoSDK = {
   getDegaBalance: erc20.getDegaBalance,
   getBtcbBalance: erc20.getBtcbBalance,
   getBnbBalance: erc20.getBnbBalance,
-  sendConsensualWithdraw: async function() {
-    const { address } = await getAddress();
-    const claim = claims.getConfirmedClaim(address);
-    if (!claim.closed) {
-      throw new Error("Withdraw claim not found.");
-    }
-    await claims.withdrawConsensually(claim);
-  }
+  sendConsensualWithdraw: claims.sendConsensualWithdraw
 };
 export { cryptoSDK as default };
