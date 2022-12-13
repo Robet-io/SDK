@@ -11,5 +11,4 @@ module.exports = {
     '*/**/*.test.(js|jsx|ts|tsx)'
   ],
   transformIgnorePatterns: ['node_modules/'],
-  setupFiles: ['dotenv/config']
 }
