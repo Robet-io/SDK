@@ -16,7 +16,12 @@ const savedClameType = {
  * @param {string} address
  * @return {string}
  */
-const claimConfirmedName = address => `${savedClameType.claimConfirmed}_${address.toLowerCase()}`
+const claimConfirmedName = (address) => {
+    if (typeof address === 'undefined') {
+        return null
+    }
+    return `${savedClameType.claimConfirmed}_${address.toLowerCase()}`
+}
 
 /**
  * @param {string} address
@@ -37,6 +42,9 @@ const saveConfirmedClaim = claim => {
  * @return {object} claim
  */
 const getConfirmedClaim = (address) => {
+    if (!address) {
+        return null
+    }
     return JSON.parse(localStorage.getItem(claimConfirmedName(address)))
 }
 
@@ -53,6 +61,9 @@ const saveClaimAlice = claim => {
  * @return {object} claim
  */
 const getClaimAlice = (address) => {
+    if (!address) {
+        return null
+    }
     return JSON.parse(localStorage.getItem(claimAliceName(address)))
 }
 

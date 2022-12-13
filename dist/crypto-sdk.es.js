@@ -17070,18 +17070,29 @@ const savedClameType = {
   claimConfirmed: "claimConfirmed",
   claimAlice: "claimAlice"
 };
-const claimConfirmedName = (address) => `${savedClameType.claimConfirmed}_${address.toLowerCase()}`;
+const claimConfirmedName = (address) => {
+  if (typeof address === "undefined") {
+    return null;
+  }
+  return `${savedClameType.claimConfirmed}_${address.toLowerCase()}`;
+};
 const claimAliceName = (address) => `${savedClameType.claimAlice}_${address.toLowerCase()}`;
 const saveConfirmedClaim = (claim) => {
   localStorage.setItem(claimConfirmedName(claim.addresses[ALICE]), JSON.stringify(claim));
 };
 const getConfirmedClaim = (address) => {
+  if (!address) {
+    return null;
+  }
   return JSON.parse(localStorage.getItem(claimConfirmedName(address)));
 };
 const saveClaimAlice = (claim) => {
   localStorage.setItem(claimAliceName(claim.addresses[ALICE]), JSON.stringify(claim));
 };
 const getClaimAlice = (address) => {
+  if (!address) {
+    return null;
+  }
   return JSON.parse(localStorage.getItem(claimAliceName(address)));
 };
 const downloadLastClaim = (address) => {
