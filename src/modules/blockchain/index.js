@@ -75,8 +75,8 @@ const withdrawConsensually = async (claim, web3Provider) => {
     const address = claim.addresses[0]
     const gas = await contract.methods.withdrawAlice(claim).estimateGas({ from: address })
     const gasPrice = await web3.eth.getGasPrice()
-    const options = { gasPrice, from: address, gas }
-    await contract.methods.withdrawAlice(claim).send(options)
+    const opt = { gasPrice, from: address, gas }
+    await contract.methods.withdrawAlice(claim).send(opt)
         .on('transactionHash', (txHash) => {
             console.log('txHash', txHash)
             emitEvent(eventType.withdrawHash, txHash)

@@ -50093,13 +50093,13 @@ const getVaultBalance$1 = async (address, web3Provider) => {
   return { balance };
 };
 const withdrawConsensually$1 = async (claim, web3Provider) => {
-  const contract = initContract(web3Provider, options2[getEnv()].vaultAddress, vaultAbi);
+  const contract = initContract(web3Provider, options[getEnv()].vaultAddress, vaultAbi);
   const web3 = new Web3(web3Provider);
   const address = claim.addresses[0];
   const gas = await contract.methods.withdrawAlice(claim).estimateGas({ from: address });
   const gasPrice = await web3.eth.getGasPrice();
-  const options2 = { gasPrice, from: address, gas };
-  await contract.methods.withdrawAlice(claim).send(options2).on("transactionHash", (txHash) => {
+  const opt = { gasPrice, from: address, gas };
+  await contract.methods.withdrawAlice(claim).send(opt).on("transactionHash", (txHash) => {
     console.log("txHash", txHash);
     emitEvent(eventType.withdrawHash, txHash);
   }).on("receipt", (receipt) => {
