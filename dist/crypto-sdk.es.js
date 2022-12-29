@@ -17266,7 +17266,6 @@ const formatNumber = (number, reduceDecimalTo = 18) => {
     return integer;
   }
 };
-const CSDK_SERVER_ADDRESS = "0xeA085D9698651e76750F07d0dE0464476187b3ca";
 const isValidNewClaim = (claim) => {
   const lastClaim2 = claimStorage.getConfirmedClaim(claim.addresses[ALICE]);
   if (lastClaim2) {
@@ -17279,8 +17278,8 @@ const isValidNewClaim = (claim) => {
     if (nonce !== claim.nonce) {
       throw new Error(`Invalid claim nonce: ${claim.nonce} ${wasWithdraw ? " - channel id is changed" : `- last claim nonce: ${lastClaim2.nonce}`}`);
     }
-    if (claim.addresses[BOB] !== CSDK_SERVER_ADDRESS) {
-      throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - expected: ${CSDK_SERVER_ADDRESS}`);
+    if (claim.addresses[BOB] !== options[getEnv()].serverAddress) {
+      throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - expected: ${options[getEnv()].serverAddress}`);
     }
     const balance = wasWithdraw ? claim.amount : bnUtils.plus(bnUtils.minus(lastClaim2.cumulativeDebits[BOB], lastClaim2.cumulativeDebits[ALICE]), claim.amount);
     _controlDebits(balance, claim.cumulativeDebits);
@@ -17291,8 +17290,8 @@ const isValidNewClaim = (claim) => {
     if (claim.nonce !== 1) {
       throw new Error(`Invalid claim nonce: ${claim.nonce}`);
     }
-    if (claim.addresses[BOB] !== CSDK_SERVER_ADDRESS) {
-      throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - expected: ${CSDK_SERVER_ADDRESS}`);
+    if (claim.addresses[BOB] !== options[getEnv()].serverAddress) {
+      throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - expected: ${options[getEnv()].serverAddress}`);
     }
     const balance = claim.amount;
     _controlDebits(balance, claim.cumulativeDebits);

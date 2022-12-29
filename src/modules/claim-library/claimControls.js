@@ -3,6 +3,8 @@ import claimStorage from './claimStorage'
 import bnUtils from '../bnUtils'
 import { ALICE, BOB } from '../const'
 import { formatNumber } from '../utils'
+import { options } from '../../options'
+import { getEnv } from '../../env'
 
 /* claim structure
 const claim = {
@@ -16,8 +18,6 @@ const claim = {
   signatures: new Array(2),
   closed: 0 or 1
 } */
-
-const CSDK_SERVER_ADDRESS = '0xeA085D9698651e76750F07d0dE0464476187b3ca'
 
 /**
  *
@@ -35,8 +35,8 @@ const isValidNewClaim = (claim) => {
     if (nonce !== claim.nonce) {
       throw new Error(`Invalid claim nonce: ${claim.nonce} ${wasWithdraw ? ' - channel id is changed' : `- last claim nonce: ${lastClaim.nonce}`}`)
     }
-    if (claim.addresses[BOB] !== CSDK_SERVER_ADDRESS) {
-      throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - expected: ${CSDK_SERVER_ADDRESS}`)
+    if (claim.addresses[BOB] !== options[getEnv()].serverAddress) {
+      throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - expected: ${options[getEnv()].serverAddress}`)
     }
 
     // control cumulative debits
@@ -57,8 +57,8 @@ const isValidNewClaim = (claim) => {
     if (claim.nonce !== 1) {
       throw new Error(`Invalid claim nonce: ${claim.nonce}`)
     }
-    if (claim.addresses[BOB] !== CSDK_SERVER_ADDRESS) {
-      throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - expected: ${CSDK_SERVER_ADDRESS}`)
+    if (claim.addresses[BOB] !== options[getEnv()].serverAddress) {
+      throw new Error(`Invalid address of Server: ${claim.addresses[BOB]} - expected: ${options[getEnv()].serverAddress}`)
     }
 
     // control cumulative debits
