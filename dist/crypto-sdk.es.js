@@ -16815,7 +16815,7 @@ const options = {
     currencyName: "tBNB",
     currencySymbol: "tBNB",
     currencyDecimals: 18,
-    serverAddress: "0xeA085D9698651e76750F07d0dE0464476187b3ca",
+    serverAddress: "0xBfF79a6CC89f248b563EAf5A764d29CB7E475e34",
     btcbAddress: "0x6ce8dA28E2f864420840cF74474eFf5fD80E65B8",
     tokenAddress: "0x16B052D944c1b7731d7C240b6072530929C93b40",
     minterAddress: "0x6fB8a6D63a577401F75B6f8d9A4b82c6a0586404",
