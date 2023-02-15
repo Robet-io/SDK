@@ -16819,7 +16819,7 @@ const options = {
     btcbAddress: "0x6ce8dA28E2f864420840cF74474eFf5fD80E65B8",
     tokenAddress: "0x16B052D944c1b7731d7C240b6072530929C93b40",
     minterAddress: "0x6fB8a6D63a577401F75B6f8d9A4b82c6a0586404",
-    vaultAddress: "0x9b9a5C1Af0A543d7dd243Bea6BDD53458dd0F067",
+    vaultAddress: "0x2f7C8ebB784B1C0F718703473E3065862BFBB728",
     vaultName: "BSC Testnet",
     vaultVersion: "1"
   },
