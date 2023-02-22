@@ -113,14 +113,18 @@ const cashin = async (claim, web3Provider) => {
     const channelIsValid = await _controlChannel(claim, web3Provider)
 
     if (claimIsValid && claimWasntSigned && channelIsValid) {
-        const balanceIsEnough = await _isBalanceEnough(claim, web3Provider)
+        await _signClaim(claim)
+        claimStorage.saveClaimAlice(claim)
+        return claim
+
+        /*const balanceIsEnough = await _isBalanceEnough(claim, web3Provider)
         if (balanceIsEnough === true) {
             await _signClaim(claim)
             claimStorage.saveClaimAlice(claim)
             return claim
         } else {
             throw new Error('Not enough balance')
-        }
+        }*/
     }
 }
 
